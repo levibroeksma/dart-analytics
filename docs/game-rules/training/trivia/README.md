@@ -9,7 +9,7 @@ written, not yet implemented).
 
 **Quick Subtract** is built. See
 `docs/superpowers/specs/2026-09-09-quick-subtract-trivia-design.md` for its
-design and `decisions/frontend/architecture.md` (D261) for the architecture
+design and `decisions/frontend/architecture/` (D261) for the architecture
 decision — a `modules/training/trivia/` OOP tool (class-based, unlike
 Checkout Trivia's plain functions) outside the `GameEngine` contract, no
 `game_types` row, no persistence. A future trivia tool follows this same

@@ -24,6 +24,12 @@
 # stays fully excluded as before: it is the router, not a domain file, and
 # its own prose (Source key `P*n*` / date shorthand, the "How to add a
 # decision" fenced example) is the same class of noise.
+#
+# MADR split: the 10 pre-split domain files are retired (decisions/<domain>/
+# D####-<slug>.md replaced them). Their old paths are still quoted verbatim in
+# decision text and in docs/superpowers/** history, neither of which is
+# rewritten, so those 10 paths — a fixed list, RETIRED_DECISION_PATHS below —
+# are ignored in those 2 places only. Anywhere else they stay unresolved and fail.
 set -euo pipefail
 cd "$(git rev-parse --show-toplevel 2>/dev/null || echo .)"
 
@@ -61,6 +67,21 @@ BASES = [
     Path("app"),
     Path("app/src"),
 ]
+
+RETIRED_DECISION_PATHS = frozenset(
+    {
+        "decisions/architecture.md",
+        "decisions/api.md",
+        "decisions/testing.md",
+        "decisions/context-system.md",
+        "decisions/game-engine.md",
+        "decisions/database.md",
+        "decisions/frontend/astro.md",
+        "decisions/frontend/architecture.md",
+        "decisions/frontend/alpine.md",
+        "decisions/frontend/style.md",
+    }
+)
 
 SKIP_CHARS = set("*…<>| \t\n")
 PATH_LIKE = re.compile(
@@ -172,6 +193,8 @@ def check_file(path: Path) -> None:
     # but still run the markdown-link pass — decisions carry none today, but
     # a real [text](path) cross-reference added later should still resolve.
     is_decision = path.parts[0] == "decisions"
+    # The only places a retired path is tolerated (see header note).
+    tolerates_retired = is_decision or path.parts[:2] == ("docs", "superpowers")
     is_historical = bool(re.search(r"^status:\s*historical", text, re.MULTILINE))
     # 1) markdown links
     for m in MD_LINK.finditer(text):
@@ -181,6 +204,8 @@ def check_file(path: Path) -> None:
         # strip anchor / query
         local = target.split("#", 1)[0].split("?", 1)[0]
         if not local:
+            continue
+        if tolerates_retired and local in RETIRED_DECISION_PATHS:
             continue
         if not resolves(local, path):
             err(f"{path}: unresolved markdown link ({m.group(1)}) -> {target}")

@@ -1,0 +1,111 @@
+name: decision-ids
+
+on:
+  pull_request:
+    types: [labeled]
+
+concurrency:
+  group: decision-ids-${{ github.event.pull_request.number }}
+  cancel-in-progress: false
+
+jobs:
+  number:
+    if: >-
+      github.event.label.name == 'ready-to-merge' &&
+      github.event.pull_request.head.repo.full_name == github.repository
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      statuses: write
+      pull-requests: write
+      actions: write
+    env:
+      PR_NUMBER: ${{ github.event.pull_request.number }}
+      HEAD_REF: ${{ github.event.pull_request.head.ref }}
+      HEAD_SHA: ${{ github.event.pull_request.head.sha }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.sha }}
+          fetch-depth: 0
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Fetch main
+        run: git fetch origin main
+      - name: Number pending decisions
+        id: number
+        run: bash scripts/number-decisions.sh
+      # createCommitOnBranch makes GitHub sign the commit; a CLI commit by the
+      # bot is unsigned and main requires verified signatures (D289).
+      - name: Commit through the API
+        id: commit
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          set -o pipefail
+          : > adds.ndjson
+          : > dels.ndjson
+          while IFS= read -r -d '' entry; do
+            path="${entry:3}"
+            if [ -e "$path" ]; then
+              base64 -w0 "$path" | jq -Rs --arg path "$path" '{path: $path, contents: .}' >> adds.ndjson
+            else
+              jq -n --arg path "$path" '{path: $path}' >> dels.ndjson
+            fi
+          done < <(git status --porcelain=v1 -z --no-renames -uall -- . ':!adds.ndjson' ':!dels.ndjson')
+          if [ ! -s adds.ndjson ] && [ ! -s dels.ndjson ]; then
+            echo "sha=$HEAD_SHA" >> "$GITHUB_OUTPUT"
+            echo "changed=false" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+          query='mutation($input: CreateCommitOnBranchInput!) { createCommitOnBranch(input: $input) { commit { oid } } }'
+          jq -n --arg q "$query" --arg repo "$GITHUB_REPOSITORY" --arg branch "$HEAD_REF" \
+            --arg oid "$HEAD_SHA" --slurpfile adds adds.ndjson --slurpfile dels dels.ndjson \
+            '{query: $q, variables: {input: {
+               branch: {repositoryNameWithOwner: $repo, branchName: $branch},
+               message: {headline: "chore(decisions): number pending decisions"},
+               expectedHeadOid: $oid,
+               fileChanges: {additions: $adds, deletions: $dels}}}}' > request.json
+          sha=$(gh api graphql --input request.json --jq '.data.createCommitOnBranch.commit.oid')
+          [ -n "$sha" ]
+          echo "sha=$sha" >> "$GITHUB_OUTPUT"
+          echo "changed=true" >> "$GITHUB_OUTPUT"
+      - name: Run ledger gates
+        id: gates
+        if: steps.number.outcome == 'success' && steps.commit.outcome == 'success'
+        run: |
+          rm -f adds.ndjson dels.ndjson request.json
+          git add -A
+          bash scripts/check-decision-ids.sh
+          bash scripts/check-decision-pending.sh
+      - name: Dispatch checks on the new commit
+        if: always() && steps.commit.outcome == 'success' && steps.commit.outputs.changed == 'true'
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: gh workflow run checks.yml --ref "$HEAD_REF"
+      - name: Post decision-numbering status
+        if: always()
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          NUMBER: ${{ steps.number.outcome }}
+          COMMIT: ${{ steps.commit.outcome }}
+          GATES: ${{ steps.gates.outcome }}
+          NEW_SHA: ${{ steps.commit.outputs.sha }}
+        run: |
+          state=failure
+          if [ "$NUMBER" = success ] && [ "$COMMIT" = success ] && [ "$GATES" = success ]; then
+            state=success
+          fi
+          sha="${NEW_SHA:-$HEAD_SHA}"
+          gh api "repos/${GITHUB_REPOSITORY}/statuses/${sha}" \
+            -f state="$state" \
+            -f context="decision-numbering" \
+            -f description="Decision ledger checks" \
+            -f target_url="${GITHUB_SERVER_URL}/${GITHUB_REPOSITORY}/actions/runs/${GITHUB_RUN_ID}"
+      - name: Remove label
+        if: always()
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: gh pr edit "$PR_NUMBER" --remove-label ready-to-merge

@@ -2,12 +2,12 @@
 status: canonical
 scope: repository-wide decision ledger routing
 read-when: "why was X decided?" before touching any history — routes to the domain file, doesn't hold the decisions itself
-updated: 2026-09-20
+updated: 2026-11-19
 -->
 
 # Architectural Decision Ledger
 
-> This file is a **router**, not a record. All decisions (migrated table rows plus new blocks, with 20 ids never issued — see the ID-gap note below) live in `decisions/**`, one domain file per row of the table below. This file holds only what's shared across all of them: the authority note, the Source key, the routing table, the Deferred list, and the rules for adding a new decision.
+> This file is a **router**, not a record. All decisions live in `decisions/**`, one MADR record file per decision, one directory per row of the table below (20 ids never issued — see the ID-gap note below). This file holds only what's shared across all of them: the authority note, the Source key, the routing table, the Deferred list, and the rules for adding a new decision.
 >
 > Canonical docs always win over this ledger — a decision explains *why*, `docs/architecture/**` states *what is*. On conflict, `docs/architecture/00-Context-Map.md`'s authority order governs.
 >
@@ -15,20 +15,20 @@ updated: 2026-09-20
 
 ## Routing table
 
-| Domain | File | Load when |
+| Domain | Directory | Load when |
 | ------ | ---- | --------- |
-| Domain model | `decisions/architecture.md` | domain model, activity, session, stage, turn, dart, ruleset, platform, player, participant, configuration, snapshot, immutability, capability, capture mode, input mode |
-| Database platform & process | `decisions/database.md` | schema, migration, table, column, constraint, index, view, Neon, seed, replay, ID strategy, denormalisation |
-| API | `decisions/api.md` | endpoint, contract, envelope, auth, middleware, idempotency, batch, Worker, session, status, error code, validation, JWT |
-| Game engines | `decisions/game-engine.md` | engine, GameEngine, ruleset, scoring, checkout, fact log, 501, Score Training, undo, leg, visit, bust, turns, darts |
-| Testing | `decisions/testing.md` | test, TDD, Vitest, mock, coverage, fixture, test location, red-green, suite |
-| Frontend architecture | `decisions/frontend/architecture.md` | layering, folder structure, suffix, barrel, type import, error mapping, API client, types, interfaces, error, import direction, aliases |
-| Frontend Astro | `decisions/frontend/astro.md` | .astro, component, prerender, routing, layout, cn(), props, frontmatter, PWA, manifest, icon, safe-area, nav, page, slot, class composition |
-| Frontend Alpine | `decisions/frontend/alpine.md` | Alpine, stores, state, persist, recovery, x-data, x-show, outbox, x-init, idempotency, auth gate, session recovery |
-| Frontend style | `decisions/frontend/style.md` | style, CSS, token, Tailwind, primitive, typography, spacing, glass, surface, PWA, manifest, icon, safe-area, font, colour, dark mode, motion, accessibility |
-| Context & documentation system | `decisions/context-system.md` | docs, context map, CLAUDE.md, skill, gate, check script, knowledge graph, CI, deploy, Prettier, format, husky, pre-commit, branch, PR, workflow, AGENT.md |
+| Domain model | `decisions/architecture/` | domain model, activity, session, stage, turn, dart, ruleset, platform, player, participant, configuration, snapshot, immutability, capability, capture mode, input mode |
+| Database platform & process | `decisions/database/` | schema, migration, table, column, constraint, index, view, Neon, seed, replay, ID strategy, denormalisation |
+| API | `decisions/api/` | endpoint, contract, envelope, auth, middleware, idempotency, batch, Worker, session, status, error code, validation, JWT |
+| Game engines | `decisions/game-engine/` | engine, GameEngine, ruleset, scoring, checkout, fact log, 501, Score Training, undo, leg, visit, bust, turns, darts |
+| Testing | `decisions/testing/` | test, TDD, Vitest, mock, coverage, fixture, test location, red-green, suite |
+| Frontend architecture | `decisions/frontend/architecture/` | layering, folder structure, suffix, barrel, type import, error mapping, API client, types, interfaces, error, import direction, aliases |
+| Frontend Astro | `decisions/frontend/astro/` | .astro, component, prerender, routing, layout, cn(), props, frontmatter, PWA, manifest, icon, safe-area, nav, page, slot, class composition |
+| Frontend Alpine | `decisions/frontend/alpine/` | Alpine, stores, state, persist, recovery, x-data, x-show, outbox, x-init, idempotency, auth gate, session recovery |
+| Frontend style | `decisions/frontend/style/` | style, CSS, token, Tailwind, primitive, typography, spacing, glass, surface, PWA, manifest, icon, safe-area, font, colour, dark mode, motion, accessibility |
+| Context & documentation system | `decisions/context-system/` | docs, context map, CLAUDE.md, skill, gate, check script, knowledge graph, CI, deploy, Prettier, format, husky, pre-commit, branch, PR, workflow, AGENT.md |
 
-Each domain file's own front-matter carries the same `load-when` list plus `depends-on`/`related` — load those directly rather than re-deriving them here. `depends-on` files are assumed and load alongside the target file every time; `related` files are adjacent, load them only when the task actually spans domains.
+Each record's front-matter carries `tags`, `status`, `supersedes` and `superseded-by`. Find records with `scripts/decision-index.sh` (see "How to find a decision"), never by reading a directory whole.
 
 ## Deferred (open, not rejected)
 
@@ -40,25 +40,26 @@ guest-adding UI for the other 8 setup screens beyond 501 (2026-08-21; 501 shippe
 
 Durable facts — schemas, contracts, inventories, what a system *is* — belong in `docs/architecture/`. This tree records only choices and their rationale: what was decided, why, and what it cost. A statement of what *is*, with no alternative weighed and no rationale, is not a decision and does not belong here.
 
+## How to find a decision
+
+1. Run `bash scripts/decision-index.sh --domain <directory>` for one routing-table row, or `--tag <tag>` / `--status <status>` to filter across domains.
+2. Read the one-line rows. Each names the record file.
+3. Read only the record files your task needs.
+
 ## How to add a decision
 
-Append a new block to the file matching the decision's domain (routing table above), after the existing table, at the end of the file — never inside it. Never create a new decision file without also adding it to the routing table above; `scripts/check-decision-ids.sh` fails any `decisions/**` file missing from this table.
+1. Pick the domain directory from the routing table above.
+2. Copy `decisions/TEMPLATE.md` to `decisions/<domain>/pending-<slug>.md`. The slug is the title in lower case, at most 6 words, joined by hyphens.
+3. Fill the template. Leave `id: pending`. Set `status`, `date`, `tags`. The chosen option and the `Decided:` date in Evidence are fixed once written.
+4. Cite the record as `[pending:<slug>]` (or `[pending:<domain>/<slug>]` when two domains share a slug) in every doc, comment or plan that names it. Never invent an id.
+5. For a reversal, set `supersedes: D<4-digit id>` (for example `supersedes: D0184`) in the new record only. When it numbers the record, the bot sets `superseded-by`, `status: superseded` and the new date on the old one.
+6. Run `bash scripts/check-decision-ids.sh`. It checks frontmatter, unique ids, file names and the `supersedes`/`superseded-by` pairs.
+7. Add the `ready-to-merge` label to the PR. `.github/workflows/decision-ids.yml` runs `scripts/number-decisions.sh`: it takes the next id from `origin/main`, renames each pending file, sets `id`, rewrites `[pending:<slug>]` citations in the files the PR changed, and commits through the API.
+8. Wait for `checks.yml` on the bot's commit. Its required `quality / decision-ledger` check runs `scripts/check-decision-ids.sh` and `scripts/check-decision-pending.sh`; the latter fails the PR while any `pending-*.md` file or `[pending:...]` citation remains.
+9. After a race between 2 PRs ends in an equal id, re-add the label to the PR the uniqueness check fails; the bot renumbers its own ids.
 
-- Next id is the current maximum plus one — derive it, don't guess: `bash scripts/next-decision-id.sh`, and re-run it immediately before opening the PR. It runs `git grep -ohE '^\| D[0-9]+ \||^### D[0-9]+' decisions/**.md | grep -oE 'D[0-9]+' | sed 's/D0*//' | sort -n | tail -1` against fetched `origin/main` as well as the working tree, and counts the ids in-flight plans have reserved; the bare command over the working tree alone goes stale the moment a decision lands on `main`. Migrated table rows and new blocks share one id space, so both patterns must be searched.
-- Never reuse an id, never edit an existing decision's block. A reversal cites `Supersedes:` and gets its own new id.
-- Block format:
-
-```markdown
-### D<next> — Short imperative title
-Status: Accepted · Date: YYYY-MM-DD
-Decision: …
-Reason: …
-Consequences: …
-Supersedes: D86
-```
-
-`D<next>` and `YYYY-MM-DD` are placeholders — substitute the derived next id and today's date. (They are deliberately not a real id: an earlier draft used a concrete number, which was then issued as a real decision, so anyone copying the template verbatim would have collided with it.) `Supersedes:` is optional and omitted unless the decision reverses an earlier one; `Consequences:` is expected. See `decisions/context-system.md`'s D184 for a worked example.
+A record's chosen option and `Decided:` date never change. Context, drivers, options, evidence, `status` and `superseded-by` may be filled in later. `decisions/context-system/D0564-decision-records-are-madr-files.md` is the rule.
 
 ## ID-gap note
 
-Ids are non-contiguous: derive the current count and highest id with the command in "How to add a decision" above rather than trusting a number here. These 20 were never issued: `D18 D19 D29 D38 D39 D42 D43 D44 D45 D46 D47 D48 D49 D53 D54 D55 D56 D57 D58 D59`. These are numbering artifacts from the original distillation of the raw design history into this ledger (2026-07-11), not lost or deleted decisions. Do not renumber existing decisions or try to "fill" these ids.
+Ids are non-contiguous: derive the current count and highest id with `bash scripts/decision-index.sh | tail -1` rather than trusting a number here. These 20 were never issued: `D18 D19 D29 D38 D39 D42 D43 D44 D45 D46 D47 D48 D49 D53 D54 D55 D56 D57 D58 D59`. These are numbering artifacts from the original distillation of the raw design history into this ledger (2026-07-11), not lost or deleted decisions. Do not renumber numbered decisions or try to "fill" these ids.

@@ -8,7 +8,7 @@ Non-canonical like the rest of `docs/game-rules/`. Design:
 
 The database tag tables are now generated from this file and the `## Tags`
 sections (append-only, ids are positional); see D470 in
-`decisions/context-system.md`.
+`decisions/context-system/`.
 
 `scripts/check-game-rules.sh` reads the tables below. Keep their headings and
 columns exactly as they are: a `## ` heading per axis, named as in the Axes
@@ -40,7 +40,7 @@ table, holding a `| Key | Name | Meaning |` table.
 - **Skill.** Exactly one value is marked `(primary)` and comes first; the
   rest are secondary.
 - **Extending.** A new value or axis is a row here plus a decision in
-  `decisions/context-system.md`. Renaming or removing one is a new decision
+  `decisions/context-system/`. Renaming or removing one is a new decision
   citing `Supersedes:` and updates every rules file in the same change.
 
 ## Axes

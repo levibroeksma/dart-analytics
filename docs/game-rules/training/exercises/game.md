@@ -64,7 +64,7 @@ than the rules:
   is exclusive in `../../TAGS.md` §Axes and may not share a row. The stricter
   value is listed, the same choice Switching made.
 - **Difficulty** takes one value unless every value carries a label (D473,
-  `decisions/context-system.md`), so each is labelled with the game it comes
+  `decisions/context-system/`), so each is labelled with the game it comes
   from. Labelling them all means the block links no Difficulty tag at all —
   which is correct here: a GAME template's level is its own, set through
   `exercise_templates.difficulty_tag_id`.
@@ -179,7 +179,7 @@ even where the game supports 1v1 standalone.
   not by the type system. A key added to one and not the other is a test
   failure, and nothing else catches it.
 - **Currently eligible:** `TUOD_V1`, `SCORE_TRAINING_V1`, `121_V2`,
-  `AROUND_THE_CLOCK_V2` (D360, `decisions/game-engine.md`). `121_V1` is
+  `AROUND_THE_CLOCK_V2` (D360, `decisions/game-engine/`). `121_V1` is
   **not**: it is TARGET-only, with no timed mode, even though it declares the
   same capture pair as `121_V2`. Declaring the pair is necessary and not
   sufficient.

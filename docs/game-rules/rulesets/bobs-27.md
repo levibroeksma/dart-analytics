@@ -157,4 +157,4 @@ Scoring, path, bull rule and the three-darts-per-double visit are exactly Tradit
 
 - None. Multi-hit math and bull scoring resolved 2026-07-26 (see Scoring and Progress); the
   per-hit value formula corrected from face value to board value 2026-08-12 (D207,
-  `decisions/game-engine.md`).
+  `decisions/game-engine/`).
