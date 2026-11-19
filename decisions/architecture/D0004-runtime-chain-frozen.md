@@ -12,36 +12,37 @@ informed: []
 supersedes:
 superseded-by:
 ---
-<!-- backfill: pending -->
 
 # Runtime chain frozen
 
 ## Context and Problem Statement
-Single event model for all game types
+Single event model for all game types. The ledger row cites design conversation prompts P36–40 and carries no further reasoning.
 
 ## Decision Drivers
-Rationale unknown — backfill pending.
+Rationale unknown — no source found.
 
 ## Considered Options
-Rationale unknown — backfill pending.
+Rationale unknown — no source found.
 
 ## Decision Outcome
 Chosen option: "Runtime chain frozen: `Session → Stage → Turn → Dart`; Turn = physical oche action, Dart = atomic observation", because Single event model for all game types.
 
 ### Consequences
-Rationale unknown — backfill pending.
+Rationale unknown — no source found.
 
 ### Confidence
-Rationale unknown — backfill pending.
+Rationale unknown — no source found.
 
 ### Revisit When
-Rationale unknown — backfill pending.
+Rationale unknown — no source found.
 
 ### Confirmation
-Rationale unknown — backfill pending.
+Rationale unknown — no source found.
 
 ## Pros and Cons of the Options
-Rationale unknown — backfill pending.
+Rationale unknown — no source found.
 
 ## Evidence / More Information
 Source: P36–40
+
+* Commit `8b23f90e` (2026-07-11; adds `architecture/DECISIONS.md`, a one-line-per-decision ledger distilled from design prompts 1–85 and dated sessions): rebuilt Context.
