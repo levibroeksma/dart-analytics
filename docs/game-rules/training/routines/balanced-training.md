@@ -64,7 +64,7 @@ pins a game ruleset version instead (`../exercises/game.md` §Exercise type).
 - 10 + 5 + 5 + 10 = **30 minutes**.
 - Satisfies `0 < duration <= 60 minutes` (§7). As a system routine it is
   exempt from the 30-minute floor that applies to player-authored routines
-  (D305, `decisions/database.md`); it meets it exactly in any case.
+  (D305, `decisions/database/`); it meets it exactly in any case.
 - The total is the sum of the steps and is never edited on its own (§6).
 
 ## Config & presets

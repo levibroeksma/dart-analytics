@@ -54,7 +54,7 @@ Version and `Applies to` vocabulary: see `../../templates/GAME_RULESET_TEMPLATE.
   (`database/seeds/0017_balanced_training_routine.sql`).
 - Behaviour no other type provides: an intended zone that is always the
   **double**. Switching Standard stamps every dart `TREBLE` (D297,
-  `decisions/game-engine.md`) and Target Scoring aims at the treble or the
+  `decisions/game-engine/`) and Target Scoring aims at the treble or the
   bullseye; Double Pattern stamps `DOUBLE`
   (`app/src/modules/training/exercises/double-pattern.engine.module.ts`,
   `record`). That is also why the bull is not a legal target — it has no
@@ -121,7 +121,7 @@ step's (§5).
 - **Time-bound run:** the run lasts the step's duration. Every exercise used
   in a routine is time-bound in that routine (§3.3, §5), and the engine owns
   no clock of its own — completion arrives only when the step's countdown
-  reports it has elapsed (D264, `decisions/game-engine.md`).
+  reports it has elapsed (D264, `decisions/game-engine/`).
 - There is no second end condition: no dart budget, no pattern count, no
   finish on completing the cycle.
 

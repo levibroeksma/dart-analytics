@@ -114,7 +114,7 @@ bash scripts/check-decision-ids.sh
 bash scripts/check-decision-pending.sh
 ```
 
-Durable id-integrity guard for the split ledger (uniqueness, no id regression against the 2026-08-02 baseline, `Supersedes:` targets resolve, `DECISIONS.md` stays a router, every migrated row hash-matches `scripts/decision-row-hashes.tsv`, every `decisions/**.md` file is registered in the router). Runs unconditionally in `quality.yml` CI (alongside the other doc gates), so a missed local run is still caught before merge — it is only absent from the local "Always run" list and `.husky/pre-commit` because it has nothing to say unless `decisions/**` itself changed, and pre-commit already runs on every commit for the 14 structural gates. `context-maintenance`'s decision-ledger step also calls this out directly when a new decision block is added; this entry covers the rest (e.g. re-filing an id between domain files).
+`check-decision-ids.sh` is the durable integrity guard for the MADR ledger: frontmatter and headings valid, ids unique and equal to the file name, `supersedes`/`superseded-by` point both ways, no id from the split baseline missing. `check-decision-pending.sh` fails while any `pending-*.md` file or a bracketed `pending:<slug>` tag citation exists; it passes once the `ready-to-merge` label has made the bot number them. Both run unconditionally in `quality.yml` CI, so a missed local run is still caught before merge — they are absent from the local "Always run" list and `.husky/pre-commit` because they have nothing to say unless `decisions/**` itself changed. `context-maintenance`'s decision-ledger step calls this out directly when a new decision record is added.
 
 ## If only `docs/` changed
 

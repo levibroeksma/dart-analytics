@@ -77,7 +77,7 @@ the rows that hold for both.
 - **The bull is a legal Chain target and an illegal Standard one.** Standard
   stamps every dart's intended zone `TREBLE` (`INTENDED_ZONE_KEY`,
   09-Training/01-Routines.md §17) and the bull has no treble, so Standard's
-  targets stop at 20 (D297, `decisions/game-engine.md`). Chain aims at the
+  targets stop at 20 (D297, `decisions/game-engine/`). Chain aims at the
   treble on a number and at the bullseye on the bull, so it takes 1–20 and
   the bull alike. This asymmetry is deliberate and is the one rule the two
   configs do not share in spirit.

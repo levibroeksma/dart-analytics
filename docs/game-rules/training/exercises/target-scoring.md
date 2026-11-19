@@ -55,7 +55,7 @@ Version and `Applies to` vocabulary: see `../../templates/GAME_RULESET_TEMPLATE.
 - Wraps no game (§12).
 - Behaviour no existing type provides: a per-target aim that is not always the
   treble. `SWITCHING` stamps every dart `TREBLE` and so rejects the bull as a
-  target (D297, `decisions/game-engine.md`); Target Scoring aims at the treble
+  target (D297, `decisions/game-engine/`); Target Scoring aims at the treble
   on 1–20 and at the bullseye on the bull. It is therefore its own type, not a
   Switching configuration.
 

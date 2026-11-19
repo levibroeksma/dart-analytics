@@ -872,7 +872,7 @@ Resolving "the seat's state immediately before this visit" has two legitimate te
 
 `seat-rota.module.ts`'s `activeSeat()` takes an optional 4th parameter, a completion predicate `(seat: SeatFact) => boolean`, defaulting to `() => false`. Three engines pass a real one — Around the Clock, Ten Up One Down and Score Training — but only Around the Clock's does any work: its seats can finish their own circuit in a different number of visits (a miss costs an extra one), so once one seat is done, every remaining turn must go to whichever seat is not, and plain lockstep alternation cannot express that. TUOD's and Score Training's seats share one fixed round budget, so their predicates never change the answer; they are passed so the fold stays correct if that budget ever stops being uniform. Every other engine omits the argument, and the default reproduces the prior pure-alternation behavior unchanged. <!-- corrected 2026-08-22, D231 -->
 
-See `decisions/game-engine.md` D231 — D230 originally claimed only Around the Clock passes a predicate at all.
+See `decisions/game-engine/` D231 — D230 originally claimed only Around the Clock passes a predicate at all.
 
 See `docs/superpowers/specs/2026-08-22-single-opponent-seat-remaining-engines-design.md` for the full design. <!-- 2026-08-22 -->
 
@@ -887,7 +887,7 @@ Issue 3). The `2026-08-22-single-opponent-seat-remaining-engines-design.md`
 design above wired 1v1 support into every engine but its own touch list
 never named this snapshot-shape change, so those 6 games' results modals
 kept computing stats for the owning player only, silently dropping the
-opponent's data at the data layer — see `decisions/frontend/alpine.md` for
+opponent's data at the data layer — see `decisions/frontend/alpine/` for
 the correction record. Singles Training is the one ruleset whose `status` field
 lives per-seat (`seats[N].status`) rather than at the top level, since its
 HARD/EXTREME elimination can resolve one seat WON and the other LOST from

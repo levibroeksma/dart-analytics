@@ -44,7 +44,7 @@ Load exactly the pack for your task type. Do not preload anything else. Escalate
 | Architecture question / new pattern | `01-Principles.md`, `04-Architecture-patterns.md` | ~10.9k |
 | Workflow / process question | `03-Engineering-Workflow.md` | ~2.2k |
 | Tooling / quality audit (hooks, gate scripts, CI, fallow) | `.claude/skills/run-all-gates/SKILL.md` (which gate runs where), `.claude/skills/validate-app/references/fallow-scoring.md`, then `.claude/settings.json`, `.husky/pre-commit`, `.github/workflows/quality.yml`; procedure: `auditing-the-codebase` skill | ~2.9k |
-| "Why was X decided?" | `DECISIONS.md` (router — Source key, routing table, Deferred list, how-to-add-a-decision); then load only the domain file(s) your task needs from its routing table, e.g. `decisions/database.md`; deeper lineage: git history. Per-task total varies with domain: each decision file's size is its `~Tokens` figure in the File Inventory; the single figure in the last column below prices only the router + the one example file named above. | ~20k |
+| "Why was X decided?" | `DECISIONS.md` (router — Source key, routing table, Deferred list, how to find and add a decision); then run `scripts/decision-index.sh --domain <d>` for the domain your task needs from its routing table, e.g. `decisions/database/`, and read only the record files the index points to (`--tag` and `--status` filter too); deeper lineage: git history. Per-task total varies with domain: each domain's `~Tokens` figure in the File Inventory prices its index output; the single figure in the last column below prices the router + the one example index named above. | ~4k |
 | Bug in migration chain | `05-Database/03-Migrations.md`, full chain `database/migrations/0001`–`0054`; never patch applied files | ~14.4k |
 | Issue-driven UI polish | `07-Frontend/10-Frontend-Agent-Guide.md`, `07-Frontend/07-Style-Guide.md`, `07-Frontend/08-Component-Inventory.md`, `app/CLAUDE.md` | ~25.9k |
 | New game (full stack) | `07-Frontend/09-Adding-A-Game.md` (the touch list, the two shapes to reuse, the two opt-outs), `05-Database/10-Database-Agent-Guide.md` §"Add a new game type", `04-Architecture-patterns.md` §Pattern 18, `07-Frontend/08-Component-Inventory.md`, `app/CLAUDE.md` | ~23.1k |
@@ -75,7 +75,7 @@ When documents conflict, higher wins; correct the lower one:
 8. SQL migrations `0001`–`0055` and seeds
 9. Application code in `app/`
 
-If code contradicts architecture docs, the docs win unless the user explicitly directs otherwise. Git history (the retired master context) and the decision ledger (`DECISIONS.md` the router, `decisions/**` the domain files it routes to) are context, never authority — they explain *why*, they never state *what is*, and rank below every numbered item above.
+If code contradicts architecture docs, the docs win unless the user explicitly directs otherwise. Git history (the retired master context) and the decision ledger (`DECISIONS.md` the router, `decisions/**` the per-decision record files it routes to) are context, never authority — they explain *why*, they never state *what is*, and rank below every numbered item above.
 
 ---
 

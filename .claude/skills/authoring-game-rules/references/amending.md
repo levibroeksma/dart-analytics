@@ -37,12 +37,12 @@ written at all?* Exactly one applies:
   (typically an exercise gaining `standalone`). Amend `Entry points:` and
   answer the three questions in §New entry points. **Do not move the file.**
 - **Execution-model change** — it must become a game, or stop being one.
-  **Stop:** decision block first, then `git mv`. See §Execution-model changes.
+  **Stop:** decision record first, then `git mv`. See §Execution-model changes.
 - **Changes a shipped rule** — different behaviour for something already
   built. **Stop.** This is an architecture decision, not a notes edit. It needs
-  a block in the file `DECISIONS.md`'s routing table names —
-  `decisions/game-engine.md` for game rules and engines,
-  `decisions/architecture.md` for the domain model, `decisions/database.md`
+  a record under the directory `DECISIONS.md`'s routing table names —
+  `decisions/game-engine/` for game rules and engines,
+  `decisions/architecture/` for the domain model, `decisions/database/`
   when a seeded row or migration is involved. Never assume the domain; read the
   routing table. The doc edit lands in the same PR, citing the decision id.
 
@@ -129,7 +129,7 @@ The routing test:
   `training/exercises/`, wrapping the game. The exercise doc owns the override;
   the game's ruleset is not touched.
 - **Neither fits** → the engine genuinely must behave differently by context.
-  That is an architecture change: decision block before any doc edit.
+  That is an architecture change: decision record before any doc edit.
 
 **The test is not "would anyone play this standalone?"** That answers a
 different axis and produces a game ruleset for something that should never have
@@ -169,7 +169,7 @@ own bound — but that must be *written*, not inferred from the seed.
 Only when the subject needs a seeded `game_types` row and a `GameEngine` does
 it become a game. Then:
 
-1. **A decision block first.** A new seeded lookup row and a new engine are
+1. **A decision record first.** A new seeded lookup row and a new engine are
    architecture, not a notes edit. Seeded ids are SMALLINT and the database
    never generates them, so the row is a migration/seed decision too.
 2. `git mv docs/game-rules/training/exercises/<x>.md docs/game-rules/rulesets/<x>.md`
