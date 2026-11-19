@@ -12,7 +12,6 @@ informed: []
 supersedes:
 superseded-by:
 ---
-<!-- backfill: pending -->
 
 # Prisoner V1 engine: the Elimination kernel grows `reduceDart` and `decidedWinner`; `lives` is darts held; board-only capability
 
@@ -20,10 +19,13 @@ superseded-by:
 a per-dart outcome that also touches `shared`, and a win that is not "last one standing", fit neither `onDart` nor the end-of-fold rota. Holding darts as `lives` reuses the kernel's out rule and clamp. No migration: no DB CHECK or Zod bound caps darts per turn.
 
 ## Decision Drivers
-Rationale unknown — backfill pending.
+* Killer and Follow the Leader must fold unchanged, shown by a differential proof (spec § 4).
+* A prison and a capture in one visit depend on each other's order, so number counts update per dart (spec § 4).
+* The kernel needs no new life model: `lives` is darts held (spec P8).
+* The game is visual board only, hidden in Recreational mode (spec P6).
 
 ## Considered Options
-Rationale unknown — backfill pending.
+Rationale unknown — no source found.
 
 ## Decision Outcome
 Chosen option: "`EliminationRules` gains two more optional members, so Killer's and Follow the Leader's folds are unchanged (pinned by their regression tests). `reduceDart(thrower, seats, shared, dart)` returns the dart's `VisitOutcome` and replaces `onDart` when present (`onDart` stays required; Prisoner passes `() => []`); it lets one dart change `shared`. `decidedWinner(seats, shared)` returns a side key or `null`; a non-null result beats last-seat-standing and is judged on the final folded state. Prisoner (`prisoner-policy.ts`, `prisoner.engine.module.ts`) latches a completed 20 as the seat's `ext.target = 21`, which `decidedWinner` reads. `lives` is darts held (start `darts`, prison −1, capture +1, out at 0). Key `PRISONER_V1`, `SHARED` stage, two seats (one PLAYER, one guest), no DartBot, config `{ darts: 3 }`, `STATS_TAGS` `["board"]`. Capability is `ANALYTICS + VISUAL_BOARD` only, with `coordinateCapture`; no `RECREATIONAL` row. `prisonerValidator` overrides `validateConfig` to refuse any other capture/input pair, and `validateBatch` adds a cap of 6 darts per turn and refuses unbanded `SINGLE`, then delegates to the three-dart validator (which has no dart-count cap). Budget and skip resolve in `onVisitClose`: the closing seat sets `sitting := missed`, `budget := lives − sitting`, `missed := 0`; the walk over later seats (closing seat last) clears `sitting` and sets `budget := lives` on any seat still in with budget 0, until one has budget above 0; `activeOverride` returns that seat. A skipped visit writes nothing. Replay labels: `Advance`, `Capture`, `Advance and capture`, `Prison`, `Miss`.".
@@ -43,16 +45,20 @@ Rulings (planning 2026-10-31, where the rules file is silent):
 | Keypad `SINGLE` | The engine does not refuse it: under `coordinateCapture` every dart resolves from its coordinates and an unlocated `SINGLE` is a no-effect dart. Only the validator refuses it |
 
 ### Confidence
-Rationale unknown — backfill pending.
+Rationale unknown — no source found.
 
 ### Revisit When
-Rationale unknown — backfill pending.
+Rationale unknown — no source found.
 
 ### Confirmation
-Rationale unknown — backfill pending.
+`app/tests/modules/game/elimination-kernel.module.test.ts` pins the Killer and Follow the Leader folds, and `app/tests/modules/game/prisoner-policy.test.ts` and `prisoner.engine.module.test.ts` cover the policy and engine.
 
 ## Pros and Cons of the Options
-Rationale unknown — backfill pending.
+Rationale unknown — no source found.
 
 ## Evidence / More Information
 Decided: 2026-10-31
+
+* `docs/superpowers/specs/2026-10-30-prisoner-design.md` (§ 1 decisions P5-P11, § 4): rebuilt Decision Drivers.
+* `docs/superpowers/plans/2026-10-31-prisoner.md` (hook-shape row, Task 1 tests): rebuilt Confirmation.
+* Commit `a63150b4` (PR #1200, 2026-11-01): adds the original ledger block.

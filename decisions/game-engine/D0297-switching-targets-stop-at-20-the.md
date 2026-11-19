@@ -12,7 +12,6 @@ informed: []
 supersedes:
 superseded-by:
 ---
-<!-- backfill: pending -->
 
 # Switching targets stop at 20; the bull is not a Switching target
 
@@ -20,10 +19,14 @@ superseded-by:
 Every Switching dart is stamped with the visit's target and `TREBLE` as its intended zone (D276) — the exercise's aim is the target's treble, which `09-Training/01-Routines.md` §17 writes as `T20 → T19 → T18`. The bull has no treble, so target 25 is incoherent at the intent level, not merely unscored: the widened bound admitted a config the engine could not express an aim for. Adding a bull zone instead would mean inventing a fourth scoring key and a bull-specific intended-zone rule for a mode the design spec (`2026-09-11-training-page-and-balanced-training-design.md` §5.2) never describes — new product surface to rescue a configuration nobody asked for. The element bound was copied from `WarmUpPhaseConfig`, whose targets carry no ring intent at all; the two were never the same constraint.
 
 ## Decision Drivers
-Rationale unknown — backfill pending.
+* Every Switching dart is stamped `TREBLE` as its intended zone (D276), and the bull has no treble (PR #395 body, #298).
+* `pointsFor` has no bull zone, so a bull target scored 0 on every visit, indistinguishable from a miss, with no validation error (PR #395 body, #298).
+* Warm-Up targets and the `TargetNumber` type must keep 25, because 25 is a legal warm-up target and a hit on the bull is real data (PR #395 body).
 
 ## Considered Options
-Rationale unknown — backfill pending.
+* Keep `.max(25)`, so a bull target is accepted and scores 0 (status quo).
+* Add a bull zone and a fourth scoring key to Switching (row added by commit `d28be34a`).
+* Tighten the per-element bound to `.max(20)` (chosen; the issue left this as an open design decision).
 
 ## Decision Outcome
 Chosen option: "`SwitchingV1Config.targets`' per-element bound drops from `.max(25)` to `.max(20)`, so a configuration naming the bull is rejected by `switchingValidator` at rest and on submission rather than accepted and silently mis-scored. `SwitchingEngine.pointsFor` gains no bull zone and `SwitchingScoringConfig` gains no bull key. Warm-Up's own `targets` keep `.max(25)` — 25 is a legal warm-up target and `seeds/0015`/`0017` both use it — and `pages/api/sessions/types.ts`'s `TargetNumber` keeps `.max(25)`, since a *hit* on the bull is real data whatever was aimed at.".
@@ -32,16 +35,28 @@ Chosen option: "`SwitchingV1Config.targets`' per-element bound drops from `.max(
 A stored `exercise_templates.default_configuration` row naming 25 in a Switching target list would start failing validation. Every in-repo seed is clean (`seeds/0017` configures `[20, 19, 18]`), but no live database was reachable from this session (D193), so a production row carrying 25 is unverified — a reviewer with database access should confirm before merge. Reported bull-target behaviour was a silent 0 per visit, indistinguishable from a genuine miss; it is now a validation error naming `targets`.
 
 ### Confidence
-Rationale unknown — backfill pending.
+Rationale unknown — no source found.
 
 ### Revisit When
-Rationale unknown — backfill pending.
+Rationale unknown — no source found.
 
 ### Confirmation
-Rationale unknown — backfill pending.
+`app/tests/services/exercise-rulesets/switching.validator.test.ts` asserts that a target list containing 25 is rejected.
 
 ## Pros and Cons of the Options
-Rationale unknown — backfill pending.
+### Keep `.max(25)`
+* Bad, because a bull target is silently scored 0 per visit, the same as a genuine miss (PR #395 body).
+
+### Add a bull zone
+* Bad, because it invents a fourth scoring key and a bull-specific intended-zone rule for a mode the design spec never describes (row added by commit `d28be34a`).
+
+### Tighten to `.max(20)`
+* Good, because `switchingValidator` rejects a bull target with an error naming `targets` (row added by commit `d28be34a`).
+* Bad, because a stored `exercise_templates.default_configuration` row naming 25 in a Switching target list starts failing validation; the PR flags that no live database was checked.
 
 ## Evidence / More Information
 Decided: 2026-09-17
+
+* Commit `d28be34a` (PR #395, 2026-09-17; adds the D297 row to `decisions/game-engine.md`): rebuilt Considered Options and Pros and Cons.
+* PR #395 body (#298 section, reviewer note): rebuilt Decision Drivers, Considered Options and Pros and Cons.
+* Applied in: `docs/superpowers/specs/2026-10-19-switching-merge-design.md`.
