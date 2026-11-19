@@ -9,7 +9,7 @@ export const HEAT_PEAK_ALPHA = 0.55;
 /** Opacity of the hottest pixel; below 1 so the board stays legible under the heat. */
 export const HEAT_MAX_ALPHA = 0.85;
 
-/** Cool-to-hot ramp: blue, green, yellow, red (`decisions/frontend/alpine.md`, density heatmap). */
+/** Cool-to-hot ramp: blue, green, yellow, red (`decisions/frontend/alpine/`, density heatmap). */
 const HEAT_RAMP: readonly HeatRampStop[] = [
   { t: 0, rgb: [59, 130, 246] },
   { t: 0.3, rgb: [34, 197, 94] },

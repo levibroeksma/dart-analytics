@@ -12,6 +12,9 @@ jobs:
           # check-test-coverage.sh diffs against the merge base with the base
           # branch; a shallow clone has no such commit.
           fetch-depth: 0
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
       - name: Context-map consistency
         run: bash scripts/check-context-map.sh
       - name: File-location gate
@@ -31,8 +34,6 @@ jobs:
         run: bash scripts/check-doc-links.sh
       - name: Context-budget gate
         run: bash scripts/check-context-budget.sh && bash scripts/test-check-context-budget.sh
-      - name: Decision-id integrity gate
-        run: bash scripts/check-decision-ids.sh
       - name: History-version order gate
         run: bash scripts/check-history-versions.sh && bash scripts/test-check-history-versions.sh
       - name: Test-coverage window and scaffold fixtures
@@ -83,6 +84,18 @@ jobs:
         env:
           DOC_SYNC_BASE_REF: origin/${{ github.base_ref || github.event.repository.default_branch }}
         run: bash scripts/check-doc-sync.sh
+
+  decision-ledger:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Decision-id integrity gate
+        run: bash scripts/check-decision-ids.sh
+      - name: Decision-pending gate
+        run: bash scripts/check-decision-pending.sh
 
   app:
     runs-on: ubuntu-latest

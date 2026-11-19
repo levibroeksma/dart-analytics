@@ -89,7 +89,7 @@ On the run's branch, through the normal repo flow:
 
 - A token value enters `app/src/styles/global.css` in rem (D504); update `app/tests/lib/ui/brand-tokens.test.ts`; run `bash scripts/check-style-tokens.sh`.
 - Component and icon changes follow `app/CLAUDE.md` (TDD for any tested helper).
-- Update `08-Component-Inventory.md` and the Style Guide when affected; add a `decisions/frontend/style.md` block when a rule changes.
+- Update `08-Component-Inventory.md` and the Style Guide when affected; add a `decisions/frontend/style/pending-<slug>.md` record when a rule changes.
 
 ## 7. Publish to the artifact (code-wins)
 

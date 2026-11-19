@@ -48,5 +48,27 @@ grep -q '^OK' <<< "$out" || fail "rerun should report OK"
 out="$(run --update)"
 grep -q 'UPDATED' <<< "$out" && fail "second --update should change nothing"
 
+# Decision domain directory = 1 unit, priced by the decision-index output
+# (inventory row and pack row alike). Fixture: real testing-domain records.
+DEC="$TMP/decisions/testing"
+mkdir -p "$DEC"
+cp "$ROOT"/decisions/testing/D*.md "$DEC/"
+idx_chars="$(cd "$TMP" && node "$ROOT/scripts/decisions/index.mjs" --root decisions --domain testing | wc -c | tr -d ' ')"
+good_k="$(python3 -c "r=round($idx_chars/4/1000*10)/10; print(f'~{int(r)}k' if r==int(r) else f'~{r}k')")"
+printf '# Context Packs\n\n| Task | Load | Budget |\n| --- | --- | --- |\n| Why | `decisions/testing/` | %s |\n\n# Authority Order\n' "$good_k" > "$ARCH/00-Context-Map.md"
+cat > "$ARCH/00-File-Inventory.md" <<MD
+# File Inventory
+
+| File | Purpose | Status | Tokens |
+| --- | --- | --- | --- |
+| \`decisions/testing/\` | domain directory | canonical | $good_k |
+MD
+out="$(run)" || fail "decision domain dir priced by index should pass: $out"
+grep -q '^OK' <<< "$out" || fail "decision domain dir should report OK: $out"
+sed -i.bak 's/| canonical | .*$/| canonical | ~9k |/' "$ARCH/00-File-Inventory.md"; rm -f "$ARCH/00-File-Inventory.md.bak"
+out="$(run)"; code=$?
+[ "$code" -ne 0 ] || fail "wrong claim on a decision domain dir should fail"
+grep -qF 'decisions/testing/ claimed=~9k' <<< "$out" || fail "failure should name the domain dir: $out"
+
 if [ "$FAILED" -eq 0 ]; then echo "test-check-context-budget: PASS"; exit 0; fi
 exit 1

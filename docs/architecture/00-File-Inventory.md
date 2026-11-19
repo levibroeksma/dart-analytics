@@ -429,7 +429,7 @@ Registered for discoverability, not as reading material — the API contract liv
 
 ## Detailed statistics pages, phase 1 + 2 (2026-09-26)
 
-Registered for discoverability — the design lives in `10-Statistics/00-Overview.md`/`01-Section-Catalog.md`, the API contract in `06-API/04-Endpoint-Contracts.md` §Statistics Games, the decisions in `decisions/api.md` D367 (phase 1) and D368 (phase 2).
+Registered for discoverability — the design lives in `10-Statistics/00-Overview.md`/`01-Section-Catalog.md`, the API contract in `06-API/04-Endpoint-Contracts.md` §Statistics Games, the decisions in `decisions/api/` D367 (phase 1) and D368 (phase 2).
 
 | File | Answers | Status |
 | ---- | ------- | ------ |
@@ -474,7 +474,7 @@ Registered for discoverability — the design lives in `10-Statistics/00-Overvie
 
 ## Checkout family sections, phase 3 (2026-09-26)
 
-Registered for discoverability — the design lives in `10-Statistics/00-Overview.md` §4/§7/§12 and `01-Section-Catalog.md`, the API contract in `06-API/04-Endpoint-Contracts.md` §Statistics Games, the decision in `decisions/api.md` D369. Each module has a matching `*.module.test.ts` under `app/tests/` (`merge-metrics.ts` under `app/tests/lib/stats/`); the token estimate below is the module/source file alone.
+Registered for discoverability — the design lives in `10-Statistics/00-Overview.md` §4/§7/§12 and `01-Section-Catalog.md`, the API contract in `06-API/04-Endpoint-Contracts.md` §Statistics Games, the decision in `decisions/api/` D369. Each module has a matching `*.module.test.ts` under `app/tests/` (`merge-metrics.ts` under `app/tests/lib/stats/`); the token estimate below is the module/source file alone.
 
 | File | Answers | Status | ~Tokens |
 | ---- | ------- | ------ | ------- |
@@ -492,7 +492,7 @@ Registered for discoverability — the design lives in `10-Statistics/00-Overvie
 
 ## Derived intent and game-specific sections, phase 4 (2026-09-27)
 
-Registered for discoverability — the design lives in `10-Statistics/00-Overview.md` §2/§3/§12 and `01-Section-Catalog.md` §1.1/§1.2/§2.1, the API contract in `06-API/04-Endpoint-Contracts.md` §Statistics Games, the decision in `decisions/api.md` D370. Each new file below has a matching `*.test.ts` under `app/tests/` (mirrored path); token estimates are the module/source file alone.
+Registered for discoverability — the design lives in `10-Statistics/00-Overview.md` §2/§3/§12 and `01-Section-Catalog.md` §1.1/§1.2/§2.1, the API contract in `06-API/04-Endpoint-Contracts.md` §Statistics Games, the decision in `decisions/api/` D370. Each new file below has a matching `*.test.ts` under `app/tests/` (mirrored path); token estimates are the module/source file alone.
 
 | File | Answers | Status | ~Tokens |
 | ---- | ------- | ------ | ------- |
@@ -507,7 +507,7 @@ Registered for discoverability — the design lives in `10-Statistics/00-Overvie
 
 ## Session replay, phase 5 (2026-09-28)
 
-Registered for discoverability — the design lives in `10-Statistics/02-Replay.md`, the API contract in `06-API/04-Endpoint-Contracts.md` §Statistics Replay, the decision in `decisions/api.md` D371. Each `.ts` file below has a test under `app/tests/` (mirrored path, except the route's `app/tests/pages/api/statistics/session-replay.test.ts`); token estimates are the source file alone.
+Registered for discoverability — the design lives in `10-Statistics/02-Replay.md`, the API contract in `06-API/04-Endpoint-Contracts.md` §Statistics Replay, the decision in `decisions/api/` D371. Each `.ts` file below has a test under `app/tests/` (mirrored path, except the route's `app/tests/pages/api/statistics/session-replay.test.ts`); token estimates are the source file alone.
 
 | File | Answers | Status | ~Tokens |
 | ---- | ------- | ------ | ------- |
@@ -523,7 +523,7 @@ Registered for discoverability — the design lives in `10-Statistics/02-Replay.
 
 ## Routine statistics, phase 6 (2026-09-29)
 
-Registered for discoverability — the design lives in `10-Statistics/00-Overview.md` §6/§7/§8 and `01-Section-Catalog.md` §3, the API contract in `06-API/04-Endpoint-Contracts.md` §Statistics Routines, the decision in `decisions/api.md` D372; its database half (`0045`) is registered above. Each `.ts` file below has a test under `app/tests/` (mirrored path, except the routes' `app/tests/pages/api/statistics/routines-*.test.ts`); token estimates are the source file alone.
+Registered for discoverability — the design lives in `10-Statistics/00-Overview.md` §6/§7/§8 and `01-Section-Catalog.md` §3, the API contract in `06-API/04-Endpoint-Contracts.md` §Statistics Routines, the decision in `decisions/api/` D372; its database half (`0045`) is registered above. Each `.ts` file below has a test under `app/tests/` (mirrored path, except the routes' `app/tests/pages/api/statistics/routines-*.test.ts`); token estimates are the source file alone.
 
 | File | Answers | Status | ~Tokens |
 | ---- | ------- | ------ | ------- |
@@ -545,7 +545,7 @@ Registered for discoverability — the design lives in `10-Statistics/00-Overvie
 
 ## 501 inferred-aim statistics (2026-11-12)
 
-Registered for discoverability — the design lives in `10-Statistics/00-Overview.md` §3 and `01-Section-Catalog.md` §1/§2/§2.1, the decision in `decisions/api.md` D555; its database half (`0055`) is registered above. Each file below has a matching `*.test.ts` under `app/tests/` (mirrored path); token estimates are the source file alone.
+Registered for discoverability — the design lives in `10-Statistics/00-Overview.md` §3 and `01-Section-Catalog.md` §1/§2/§2.1, the decision in `decisions/api/` D555; its database half (`0055`) is registered above. Each file below has a matching `*.test.ts` under `app/tests/` (mirrored path); token estimates are the source file alone.
 
 | File | Answers | Status | ~Tokens |
 | ---- | ------- | ------ | ------- |
@@ -562,7 +562,7 @@ Registered for discoverability — the design lives in `10-Statistics/00-Overvie
 
 ## 501 variation filter (2026-11-13)
 
-Registered for discoverability — the design lives in `10-Statistics/00-Overview.md` §5/§6 and `01-Section-Catalog.md` §2.1, the API contract in `06-API/04-Endpoint-Contracts.md` §Statistics Games, the decision in `decisions/api.md` D556
+Registered for discoverability — the design lives in `10-Statistics/00-Overview.md` §5/§6 and `01-Section-Catalog.md` §2.1, the API contract in `06-API/04-Endpoint-Contracts.md` §Statistics Games, the decision in `decisions/api/` D556
 
 | File | Answers | Status | ~Tokens |
 | ---- | ------- | ------ | ------- |
@@ -703,7 +703,7 @@ Registered for discoverability, not as reading material — the contract lives i
 
 ## Routine step-kind generalisation (2026-09-20)
 
-Registered for discoverability, not as reading material — the contract lives in `09-Training/01-Routines.md` §11/§17, the adapter registry shape in `07-Frontend/04-Modules-And-OOP.md`, and the rationale in D339 (`decisions/database.md`), D340 (`decisions/game-engine.md`), D341 (`decisions/frontend/architecture.md`).
+Registered for discoverability, not as reading material — the contract lives in `09-Training/01-Routines.md` §11/§17, the adapter registry shape in `07-Frontend/04-Modules-And-OOP.md`, and the rationale in D339 (`decisions/database/`), D340 (`decisions/game-engine/`), D341 (`decisions/frontend/architecture/`).
 
 | File | Answers | Status |
 | ---- | ------- | ------ |
@@ -718,7 +718,7 @@ Registered for discoverability, not as reading material — the contract lives i
 
 ## Weekly training schedules (2026-09-20)
 
-Registered for discoverability, not as reading material — the domain model lives in `05-Database/06-Spec/02-Template-Layer.md` (`training_schedules`/`training_schedule_days`), the migration in `05-Database/03-Migrations.md` `## 0041`, the API contract in `06-API/04-Endpoint-Contracts.md` §Training Schedules, the frontend routes/components in `09-Training/01-Routines.md` §7 and `07-Frontend/08-Component-Inventory.md`, and the rationale in D342/D343 (`decisions/database.md`, `decisions/api.md`). Frontend (Task 4 of the implementation plan) is now built too.
+Registered for discoverability, not as reading material — the domain model lives in `05-Database/06-Spec/02-Template-Layer.md` (`training_schedules`/`training_schedule_days`), the migration in `05-Database/03-Migrations.md` `## 0041`, the API contract in `06-API/04-Endpoint-Contracts.md` §Training Schedules, the frontend routes/components in `09-Training/01-Routines.md` §7 and `07-Frontend/08-Component-Inventory.md`, and the rationale in D342/D343 (`decisions/database/`, `decisions/api/`). Frontend (Task 4 of the implementation plan) is now built too.
 
 | File | Answers | Status |
 | ---- | ------- | ------ |
@@ -839,12 +839,14 @@ Guards not specific to the game-engine contract, registered here for discoverabi
 | `scripts/test-check-context-budget.sh` | Fixture test for `check-context-budget.sh`: a drifting row fails, `--update` rewrites only that row, a rerun passes, the Context Map is untouched (2026-11-16) | canonical |
 | `scripts/check-history-versions.sh` | Guard: entries in `00-Context-Map-History.md` at or above `1.200.0` (`HISTORY_FLOOR`) are unique and strictly descending; `.gitattributes` unions the file on a local merge, so two PRs claiming one version surface here instead of as a conflict (2026-11-10) | canonical |
 | `scripts/test-check-history-versions.sh` | Fixture test for `check-history-versions.sh`: descending and below-floor disorder pass; a duplicate, an ascending pair and a missing file fail (2026-11-10) | canonical |
-| `scripts/check-decision-ids.sh` | Guard: every id across `decisions/**` is unique, none of the 163-id 2026-08-02 baseline has disappeared, every `Supersedes:` target exists, `DECISIONS.md` stays a router, every migrated row still hash-matches `scripts/decision-row-hashes.tsv` (D184+ out of scope by design), every `decisions/**.md` file is registered in the router's routing table; position-anchored to avoid darts `D18`/`D20` notation; blind spots documented in its header (2026-08-02; hash + registration checks 2026-08-03) | canonical |
-| `scripts/next-decision-id.sh` | Helper: prints the next free decision id on one line of stdout, derived against fetched `origin/main` union the working tree — both the migrated table-row form and the `### D<n>` block form, plus the `Decision id:` reservations that plans under `docs/superpowers/plans/` declare before their block exists; advisory, not a gate (2026-09-18) | canonical |
-| `scripts/renumber-decision.sh` | Helper: rewrites one decision id across every tracked file when CI catches a late collision; five refusals — a malformed or zero-padded id, a target already carrying a row or heading in `decisions/**`, a target in the 20-id never-issued set, an old id whose block in this tree is `origin/main`'s own or is declared twice (the unresolved post-merge state), and a dirty working tree; advisory, not a gate (2026-09-18) | canonical |
+| `scripts/check-decision-ids.sh` | Guard: every `decisions/<domain>/D####-<slug>.md` record has valid MADR frontmatter and headings, ids are unique and equal to the file name, `supersedes`/`superseded-by` point both ways, none of the split-baseline ids has disappeared (logic in `scripts/decisions/check.mjs`) (2026-08-02; rewritten for MADR files 2026-11-19, D564) | canonical |
+| `scripts/check-decision-pending.sh` | Guard: fails while any `decisions/**/pending-*.md` file or `[pending:<slug>]` citation exists, so a PR cannot merge before the bot numbers its decisions; exclusions in `scripts/decisions/pending-exclusions.txt` (2026-11-19, D564) | canonical |
+| `scripts/decision-index.sh` | Helper: prints the decision index — `ID \| status \| domain \| title \| path`, one line per record — filtered by `--domain`, `--tag` or `--status`; output is never committed (2026-11-19, D564) | canonical |
+| `scripts/number-decisions.sh` | Bot helper: takes the next id from `origin/main`, renames each `pending-*.md`, sets `id`, rewrites `[pending:<slug>]` citations in the files the PR changed; run by `.github/workflows/decision-ids.yml` on the `ready-to-merge` label (2026-11-19, D564) | canonical |
+| `scripts/decisions/` | Node logic behind the decision scripts: `check.mjs`, `index.mjs`, `number.mjs`, `lib.mjs`, `baseline-ids.txt`, `pending-exclusions.txt`; `*.d.mts` type stubs for the tests; one-shot `split.mjs`, deleted after merge (#1347) (2026-11-19, D564) | canonical |
+| `.github/workflows/decision-ids.yml` | Workflow: on the `ready-to-merge` label runs `scripts/number-decisions.sh`, commits through the GraphQL `createCommitOnBranch` API (GitHub signs it), removes the label; the owner then approves the held `checks.yml` run (2026-11-19, D564; dispatch dropped 2026-11-19) | canonical |
 | `scripts/check-doc-sync.sh` | Guard: a change under `database/migrations/`, `app/src/services/` or a domain subdirectory of `app/src/modules/` (`game`, `training`, `dartbot`, `stats`) must also touch `docs/architecture/` or `decisions/`; `docs/superpowers/` does not satisfy it (D312). Paths calibrated over 80 first-parent merges to zero false positives; `app/src/modules/ui/` excluded as infrastructure shims; comment-only `.ts`/`.astro` diffs (D444) and nested `CLAUDE.md` edits (D529) owe no doc. Absent from `.husky/pre-commit` by design — it diffs against the merge base (2026-09-18, D317) | canonical |
 | `scripts/fallow-gate.sh` | Wrapper: runs the pinned `npx --no-install fallow` (D548) from `app/`, passes its output and exit code through unchanged, and on failure re-runs `fallow health --format json` to print the `findings` array's real violating file/function/line — fallow's own `start with <file>` names its top refactoring suggestion, not the threshold violator (2026-09-19, D332, #292). Wired into `validate:app` and `quality.yml`'s Stale-usage gate. Also notes that the `dupes` clause is informational while `duplicates.threshold` is 0 (D395, #504) | canonical |
-| `scripts/decision-row-hashes.tsv` | Data file: id → sha256 of the 163 migrated rows' exact text at the 2026-08-02 split, read by `scripts/check-decision-ids.sh`'s row-integrity check | canonical |
 
 ## Brand asset generators (2026-07-31)
 
@@ -860,29 +862,22 @@ Registered for discoverability — regenerate committed outputs via `npm run ico
 
 ## Decision ledger (repo root, `decisions/`) (2026-08-02)
 
-`DECISIONS.md` routes to these; it holds no decision rows itself. Load-when lists mirror the router's own routing table — don't re-derive them here.
+`DECISIONS.md` routes to these; it holds no decision rows itself. One MADR record file per decision (D564); an agent runs `scripts/decision-index.sh --domain <d>`, then reads single records. `~Tokens` prices that index output, not the whole directory. Load-when lists mirror the router's own routing table — don't re-derive them here.
 
 | File | Answers | Status | ~Tokens |
 | ---- | ------- | ------ | ------- |
-| `DECISIONS.md` | Router: authority note, Source key, routing table, Deferred list, facts-vs-decisions rule, how-to-add-a-decision (2026-08-02) | canonical | ~1.7k |
-| `decisions/architecture.md` | 20 decisions — domain model, activity, session, stage, turn, dart, ruleset, platform, dart zones, client keys, mode capability | canonical | ~2.1k |
-| `decisions/database.md` | 45 decisions — schema, migration, table, column, constraint, index, view, Neon, seed (D257 general statistics views, 2026-09-06; D263 exercise-type discriminator, D266 exercise_templates.exercise_type_id backfill shape, 2026-09-10; D284 training gameplay in the read model, 2026-09-16; D288 CI-applied production migrations behind a rehearsal, D290 schema.ts the only committed introspect artifact, D291 uq_sessions_single_active keys on COALESCE(game_type_id, exercise_type_id), D295 exercise templates pin their exercise ruleset version, D298 a read-model view carries the columns its consumer reads, D305 custom-routine duration floor is a deferred constraint trigger, 2026-09-17; D310 constraint names are prefix_table_column with the column named in full, 2026-09-18; D333 shared-`dev` drift caught by comparing applied migrations and live views to the chain, D334 the trigger raises one constraint name regardless of which trigger fired and the service matches on it literally, D335 the trigger function picks its row by TG_OP, never by COALESCE(NEW, OLD), D336 migration 0038 builds D305's trigger and D306/D321's owner-aware routine views, 2026-09-19; D342 weekly training schedules — weekday SMALLINT+CHECK as a Pattern 12 exception, rest as an absent row, RESTRICT + service-layer mapping, 2026-09-20; D344 a migration unmerged and provably pending everywhere is corrected in place, 0041's day_count is ::int; D348 a view-select repository narrows each non-null column with nonNull(), never a blanket row-array cast, 2026-09-21; D375 D333's bare `0038` means `0039`, closing #528, 2026-09-30) | canonical | ~19.6k |
-| `decisions/api.md` | 58 decisions — endpoint, contract, envelope, auth, middleware, idempotency, batch, Worker, player settings (D283 training activity read player-scoped, terminal transition guarded in the UPDATE; D285 active-session conflict detection walks the error `cause` chain, 2026-09-16; D292 starting a routine abandons the player's previous one, D296 startTraining validates every step's configuration, D299 routine steps read through v_routine_execution, D300 envelope builders emit X-Request-Id, D301 activity grouping restated as shipped, 2026-09-17; D350 session participants restated as shipped — guest/DartBot no longer deferred, closing #406, 2026-09-21; D367/D368/D369 statistics phase 1/2/3 query contract, board sections and checkout family, 2026-09-26; D370 statistics phase 4 derived intent, 2026-09-27; D371 statistics phase 5 replay, 2026-09-28; D372 statistics phase 6 routine statistics, 2026-09-29; D555 501 inferred aim, 2026-11-12) | canonical | ~31.7k |
-| `decisions/game-engine.md` | 81 decisions — engine, GameEngine, ruleset, scoring, checkout, fact log, 501, Score Training (D230 win-condition categories/`SEAT_CAPS`/`activeSeat()` completion predicate; D231 corrects which engines pass that predicate, 2026-08-22; D238 exclusive score-band tallying, 2026-08-27; D242 `visitScoreBandCounts`'s `sixtyPlus` band and `checkout-bust.module.ts`'s `checkoutAttemptCount`; D252 the bot play loop's generic infrastructure and the QUICK_SCORE fold, 2026-09-01; D259 Shanghai V2 2-seat admission, 2026-09-07; D264/D267 the `ExerciseEngine`/`DartExerciseEngine` contracts parallel to `GameEngine`, 2026-09-11; D297 Switching targets stop at 20, the bull is not a Switching target, 2026-09-17; D313 adjacent DartBot levels never share a bias pair, 2026-09-18; D356 Target Scoring is its own exercise type with locked scoring, D357 the switching-sequence exercise is its own type sharing that point table, D358 65 or More is a Score Threshold type locked to 65, 2026-09-23; D360 Around the Clock V2 training variants served by the V1 engine class, 2026-09-23, D361 Bullseye Checkouts is its own type locked to 81, 2026-09-24, D362 Bull Up Practice is its own type with one-dart turns, 2026-09-24; D423 Catch 40 is a checkout-sequence exercise that ends itself, 2026-10-06; D424 Random Checkout stores a draw seed, not drawn scores, 2026-10-07; D449 single-set 501 keeps `decidingSet`, drops only the subtitle flag, 2026-10-11; D469 Track exercises bind through `trackExerciseSpec`, 2026-10-17; D474 the switching-sequence exercise is erased and returns as Switching's Chain ruleset version, superseding D357, 2026-10-20; D528 Score Training/TUOD share `validateScoredBatch`, Bull Up, Bullseye Checkout, Double Pattern and Switching bind to the exercise shell, `scoringTrackRules`, `seatedRefusal`/`visitOpenUnder`, `mapSessionHead`, 2026-11-05) | canonical | ~52.6k |
-| `decisions/testing.md` | 10 decisions — test, TDD, Vitest, mock, coverage, change-set test gate, verification-script parity gate, rendered-SQL repository tests, wrapped-store seam tests (2026-09-17) | canonical | ~3.2k |
-| `decisions/frontend/architecture.md` | 33 decisions — layering, folder structure, suffix, barrel, type import, error mapping, API client, one-shape-per-game extraction; +D261 Trivia tools outside GameEngine (2026-09-09); +D302 alias table as a third gate source (2026-09-17); +D308 `training/` is the umbrella domain for trivia/exercises/routines (2026-09-17); +D527 shared accent tokens, recreational inputs, target play screens, results parts and replay test helpers (2026-11-05) | canonical | ~12.0k |
-| `decisions/frontend/astro.md` | 24 decisions — .astro, component, prerender, routing, layout, cn(), props, frontmatter, PWA, manifest, icon, safe-area (D244 cross-cutting markup extraction inside D215's boundary, 2026-08-28; D265 `/training` replaces `/trivia` as a flat IA with a reusable routine-detail shell, 2026-09-11; D272 Balanced Training's play page reuses `GameLayout`, 2026-09-13; D275 dart exercise panels adopt the game play-screen shape, 2026-09-14) | canonical | ~8.3k |
-| `decisions/frontend/alpine.md` | 48 decisions — Alpine, stores, state, persist, recovery, x-data, x-show (D286 in-routine blocking-game resolution, 2026-09-16; D307 the `forms/` layer retired unbuilt, `settings.store.ts` is D77's substitute in practice, 2026-09-17; D337 routine step reorder is move-up/move-down buttons, `@alpinejs/sort` declined for now, 2026-09-19; D454 routine ready gate at routine start, supersedes D270 and D452/D275 in part, 2026-10-13; D460 recovery never abandons, setup asks first, supersedes D88, 2026-10-13) | canonical | ~15.9k |
-| `decisions/frontend/style.md` | 40 decisions — style, CSS, token, Tailwind, primitive, typography, spacing, glass, surface, PWA, manifest, icon, safe-area, undo affordance, important-modifier ban, container queries, flex-item sizing, scoreboard band, selection default, floating glass nav (2026-10-05), home and profile redesign (2026-10-07), games and training redesign (2026-10-07), modal bottom sheets (D429, 2026-10-08), setup bounded controls and slide-to-start (D430, 2026-10-08), login restyle (D431, 2026-10-08), setup rules collapse and width (D435, 2026-10-09), one-DOM result modals (D437, 2026-10-09), homepage resume deck (D442, 2026-10-10), sheet slide, deck after load, rules fold, autofill (D455, 2026-10-13), design-system sync (D499, 2026-10-26), rem-only tokens (D504, 2026-10-28) | canonical | ~15.3k |
-| `decisions/context-system.md` | 60 decisions — docs, context map, CLAUDE.md, skill, gate, check script, knowledge graph, CI, deploy, Prettier, format, husky (D314 denies whole-file reads and gates skill/rule registration, D315 the knowledge-graph skill is a lookup skill and the graph is never read whole, D316 moves directory-scoped rules out of `app/CLAUDE.md`, D317 the calibrated doc-sync gate and its `Stop` drift hook, D318 decision ids derive against fetched origin/main and re-derive before the PR opens, D319 retires `.claude/worktrees/` and makes the worktree-location rule a gate, D320 the worktree Read deny is anchored at the session directory and lifted by entering the worktree, D324 worktrees are entered at launch via a `WorktreeCreate` hook rather than mid-session, 2026-09-19) | canonical | ~29.4k |
-
-### Decision ledger migration tooling (2026-08-02, spent — 2026-08-03)
-
-Registered for provenance, not as reading material: `scripts/decision-map.txt` was an input of the one-time ledger split (2026-08-02); the split scripts and the front-matter sidecar were removed once spent (D550). The ongoing guard is `scripts/check-decision-ids.sh` (registered under Cross-cutting mechanical guards below).
-
-| File | Answers | Status |
-| ---- | ------- | ------ |
-| `scripts/decision-map.txt` | Spent migration input: id → target-file assignment as it stood at the 2026-08-02 split | historical |
+| `DECISIONS.md` | Router: authority note, Source key, routing table, Deferred list, facts-vs-decisions rule, how to find and add a decision (2026-08-02; MADR 2026-11-19) | canonical | ~1.7k |
+| `decisions/TEMPLATE.md` | The MADR record template every `decisions/<domain>/pending-<slug>.md` starts from (2026-11-19, D564) | canonical | ~0.4k |
+| `decisions/architecture/` | 20 records — domain model, activity, session, stage, turn, dart, ruleset, platform, dart zones, client keys, mode capability | canonical | ~0.8k |
+| `decisions/database/` | 50 records — schema, migration, table, column, constraint, index, view, Neon, seed, replay, ID strategy | canonical | ~2.2k |
+| `decisions/api/` | 82 records — endpoint, contract, envelope, auth, middleware, idempotency, batch, Worker, statistics endpoints, player settings | canonical | ~3.5k |
+| `decisions/game-engine/` | 132 records — engine, GameEngine, ruleset, scoring, checkout, fact log, 501, Score Training, kernels, DartBot | canonical | ~6.1k |
+| `decisions/testing/` | 10 records — test, TDD, Vitest, mock, coverage, change-set test gate, verification-script parity gate | canonical | ~0.4k |
+| `decisions/frontend/architecture/` | 33 records — layering, folder structure, suffix, barrel, type import, error mapping, API client, aliases | canonical | ~1.6k |
+| `decisions/frontend/astro/` | 31 records — .astro, component, prerender, routing, layout, cn(), props, frontmatter, PWA, manifest, icon, safe-area | canonical | ~1.4k |
+| `decisions/frontend/alpine/` | 49 records — Alpine, stores, state, persist, recovery, x-data, x-show, outbox | canonical | ~2.3k |
+| `decisions/frontend/style/` | 52 records — style, CSS, token, Tailwind, primitive, typography, spacing, glass, surface, dark mode, motion | canonical | ~2.3k |
+| `decisions/context-system/` | 80 records — docs, context map, CLAUDE.md, skill, gate, check script, knowledge graph, CI, deploy, Prettier, husky, worktrees, decision records | canonical | ~3.7k |
 
 ---
 

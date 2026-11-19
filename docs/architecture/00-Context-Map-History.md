@@ -17,6 +17,10 @@ updated: 2026-11-13
 
 # Version History
 
+> **Version:** 1.239.0 (2026-11-19 — Decision bot no longer dispatches `checks.yml` (D564): a throwaway PR showed the dispatched run does not count toward the PR's required checks; the owner approves the held `pull_request` run instead. `decision-ids.yml` drops the dispatch step and `actions: write`; `checks.yml` drops `workflow_dispatch`; `DECISIONS.md` step 8 and the `decision-ids.yml` inventory row updated.)
+
+> **Version:** 1.238.0 (2026-11-19 — Decision ledger is one MADR record file per decision (D564): `decisions/<domain>/` directories replace the 10 domain files; `DECISIONS.md` routes to directories and gains find/add steps (`pending-<slug>.md`, `[pending:<slug>]` citations, `ready-to-merge` bot numbering); the "Why was X decided?" pack loads decisions through `scripts/decision-index.sh`; File Inventory gets 1 row per domain directory and the new decision scripts, workflow and template; `next-decision-id.sh`, `renumber-decision.sh`, `decision-row-hashes.tsv`, `decision-map.txt` rows retired.)
+
 > **Version:** 1.237.0 (2026-11-17 — Ace statistics page (D563): `ACE_V1` gains `intent-derived` and an `ACE` walker in `derived-aims.module.ts`; layout `AceStatsOverview.astro` and `ACE_LAYOUTS`; new `lib/stats/ace/` comparison, `aceComparisonSection()`, `precedingWindow()`, `loadTargetInputsOver()`; shared `TrackTargetsCard.astro` and `StatTileRow.astro`; `01-Section-Catalog.md` 1.13.0.)
 
 > **Version:** 1.236.0 (2026-11-17 — Track games statistics page (D562): shared layout `TrackGamesStatsOverview.astro` and `TRACK_LAYOUTS` for Singles Training, Shanghai, Around the Clock and Bob's 27; new `lib/stats/track/` card derivation, `trackGamesCardSection()`, `trackRowKeys`, `loadTargetInputs`; `01-Section-Catalog.md` 1.12.0.)

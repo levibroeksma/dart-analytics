@@ -258,7 +258,7 @@ Prefer extension over duplication.
 
 - Which architectural layer owns this responsibility?
 - Does ownership change?
-- Does this require a new decision block under `decisions/**`?
+- Does this require a new decision record under `decisions/**`?
 - Does the ERD change?
 
 ---
@@ -296,7 +296,7 @@ Prefer extension over duplication.
 
 - Which documents must be updated?
 - Should a new architectural pattern be documented?
-- Is a new decision block required under `decisions/**`?
+- Is a new decision record required under `decisions/**`?
 
 ---
 

@@ -90,7 +90,7 @@ The context system is part of every deliverable. Before claiming any task done, 
 
 A change that leaves the context map, CLAUDE.md files, decision ledger, or knowledge graph stale is incomplete, even if the code works.
 
-Decisions are append-only and domain-scoped: never edit or delete an existing block in `decisions/**`; a reversal is a new decision citing `Supersedes:` in the domain file it belongs to, per `DECISIONS.md`'s routing table.
+Decisions are one MADR file each, domain-scoped (D564): the chosen option and the `Decided:` date in Evidence never change; other sections, `status` and `superseded-by` may be filled in later. A reversal is a new record with `supersedes`. New records start as `decisions/<domain>/pending-<slug>.md`, cited `[pending:<slug>]`; the `ready-to-merge` label has a bot assign the id. Steps: `DECISIONS.md`.
 
 ---
 

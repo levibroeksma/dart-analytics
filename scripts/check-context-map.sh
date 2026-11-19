@@ -7,11 +7,10 @@
 #   4. a doc under docs/architecture/ is not registered in 00-Context-Map.md
 #
 # decisions/** glob note: `git ls-files 'decisions/**/*.md'` only matches
-# files at least one directory below decisions/ under this repo's git
-# (2.43) — it would silently return just the 4 files under
-# decisions/frontend/ and miss the 6 top-level ones (architecture.md,
-# database.md, api.md, game-engine.md, testing.md, context-system.md). This
-# script uses `decisions/**.md` instead, verified to return all 10.
+# files at least one directory below decisions/ under this repo's git (2.43).
+# Records live at decisions/<domain>/D####-<slug>.md (frontend: one level
+# deeper), plus decisions/TEMPLATE.md at the top level, so this script uses
+# `decisions/**.md`, which matches every depth.
 set -u
 cd "$(git rev-parse --show-toplevel 2>/dev/null || echo .)"
 
@@ -105,8 +104,18 @@ fi
 
 # --- 3. Front-matter headers -----------------------------------------------
 for f in $(git ls-files 'docs/architecture/*.md' 'database/*.md' 'decisions/**.md' | grep -v -e 'CLAUDE.md' -e 'AGENT.md'); do
-  head -1 "$f" | grep -q '^<!--' && head -6 "$f" | grep -q '^status:' \
-    || err "$f lacks status front-matter header"
+  case "$f" in
+    decisions/*)
+      # Decision records carry YAML front-matter (--- ... status: ... ---) in
+      # place of the HTML-comment header (MADR ledger, spec section 7).
+      head -1 "$f" | grep -qx -e '---' && head -12 "$f" | grep -q '^status:' \
+        || err "$f lacks status front-matter header"
+      ;;
+    *)
+      head -1 "$f" | grep -q '^<!--' && head -6 "$f" | grep -q '^status:' \
+        || err "$f lacks status front-matter header"
+      ;;
+  esac
 done
 
 # --- 4. Inventory registration ----------------------------------------------

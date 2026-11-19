@@ -15,11 +15,11 @@
 # no plugins, so demanding it there would make the gate permanently red for
 # a reason CI cannot fix. Local runs carry the check; CI runs 1 and 2.
 #
-# Assertion 3's scan set deliberately excludes the append-only and historical
-# trees — decisions/**, docs/superpowers/**, docs/braindump/** and
+# Assertion 3's scan set deliberately excludes the historical trees —
+# decisions/**, docs/superpowers/**, docs/braindump/** and
 # 00-Context-Map-History.md. D311's own Consequences paragraph records that
-# mentions there are provenance, not live pointers, and decisions cannot be
-# edited to follow an upstream rename even if one happened. This mirrors the
+# mentions there are provenance, not live pointers; decision records are
+# provenance and are not edited to follow an upstream rename. This mirrors the
 # carve-out check-doc-links.sh already makes for the same trees.
 set -u
 cd "$(git rev-parse --show-toplevel 2>/dev/null || echo .)"
