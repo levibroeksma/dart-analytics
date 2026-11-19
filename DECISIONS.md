@@ -55,7 +55,7 @@ Durable facts — schemas, contracts, inventories, what a system *is* — belong
 5. For a reversal, set `supersedes: D<4-digit id>` (for example `supersedes: D0184`) in the new record only. When it numbers the record, the bot sets `superseded-by`, `status: superseded` and the new date on the old one.
 6. Run `bash scripts/check-decision-ids.sh`. It checks frontmatter, unique ids, file names and the `supersedes`/`superseded-by` pairs.
 7. Add the `ready-to-merge` label to the PR. `.github/workflows/decision-ids.yml` runs `scripts/number-decisions.sh`: it takes the next id from `origin/main`, renames each pending file, sets `id`, rewrites `[pending:<slug>]` citations in the files the PR changed, and commits through the API.
-8. Wait for `checks.yml` on the bot's commit. Its required `quality / decision-ledger` check runs `scripts/check-decision-ids.sh` and `scripts/check-decision-pending.sh`; the latter fails the PR while any `pending-*.md` file or `[pending:...]` citation remains.
+8. GitHub holds the `checks.yml` run on the bot's commit for approval, because the bot authored the commit. Open the PR and click **Approve workflows to run**. The run's required `quality / decision-ledger` check runs `scripts/check-decision-ids.sh` and `scripts/check-decision-pending.sh`; the latter fails the PR while any `pending-*.md` file or `[pending:...]` citation remains.
 9. After a race between 2 PRs ends in an equal id, re-add the label to the PR the uniqueness check fails; the bot renumbers its own ids.
 
 A record's chosen option and `Decided:` date never change. Context, drivers, options, evidence, `status` and `superseded-by` may be filled in later. `decisions/context-system/D0564-decision-records-are-madr-files.md` is the rule.
