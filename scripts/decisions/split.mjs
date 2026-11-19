@@ -31,6 +31,8 @@ const trimBlank = (lines) => {
   while (b > a && lines[b - 1].trim() === "") b--;
   return lines.slice(a, b);
 };
+const idList = (v) =>
+  Array.isArray(v) ? v : v ? v.split(",").map((s) => s.trim()) : [];
 const esc = (s) => s.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
 
 function loadWhen(lines) {
@@ -144,7 +146,7 @@ function build({
       "decision-makers": ["owner"],
       consulted: [],
       informed: [],
-      supersedes: ids.join(", "),
+      supersedes: ids.length > 1 ? ids : ids.join(""),
       "superseded-by": "",
     },
     title,
@@ -319,9 +321,7 @@ export function splitDomainFile(text, domain, opts = {}) {
 export function linkSupersedes(records) {
   const byId = new Map(records.map((r) => [r.fm.id, r]));
   for (const r of records) {
-    const ids = r.fm.supersedes
-      ? r.fm.supersedes.split(",").map((s) => s.trim())
-      : [];
+    const ids = idList(r.fm.supersedes);
     for (const id of ids) {
       const old = byId.get(id);
       if (!old)
@@ -329,11 +329,10 @@ export function linkSupersedes(records) {
           `${r.fm.id} supersedes ${id}, which is not in the ledger`,
         );
       old.fm.status = "superseded";
-      const by = old.fm["superseded-by"]
-        ? old.fm["superseded-by"].split(", ")
-        : [];
+      const by = idList(old.fm["superseded-by"]);
       if (!by.includes(r.fm.id)) by.push(r.fm.id);
-      old.fm["superseded-by"] = by.join(", ");
+      // flat YAML: 1 id is a scalar, several are a [a, b] list.
+      old.fm["superseded-by"] = by.length > 1 ? by : by[0];
       // spec § 5: the older record takes the superseder's date; an empty
       // superseder date leaves the older date as it was.
       if (r.fm.date) old.fm.date = r.fm.date;

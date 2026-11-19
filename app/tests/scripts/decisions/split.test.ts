@@ -188,6 +188,20 @@ describe("linkSupersedes", () => {
     expect(newer.fm.status).toBe("accepted");
   });
 
+  it("lists several superseders as a YAML list the checker reads", () => {
+    const fresh = splitDomainFile(fixture, "database");
+    const second = structuredClone(
+      fresh.find((r: { fm: { id: string } }) => r.fm.id === "D0101"),
+    );
+    second.fm.id = "D0110";
+    fresh.push(second);
+    linkSupersedes(fresh);
+    const old = fresh.find((r: { fm: { id: string } }) => r.fm.id === "D0100");
+    expect(old.fm["superseded-by"]).toEqual(["D0101", "D0110"]);
+    const line = /^superseded-by:.*$/m.exec(renderRecord(old))?.[0];
+    expect(line).toBe("superseded-by: [D0101, D0110]");
+  });
+
   it("leaves the older date when the superseder has none", () => {
     const fresh = splitDomainFile(fixture, "database");
     fresh.find((r: { fm: { id: string } }) => r.fm.id === "D0101").fm.date = "";
