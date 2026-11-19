@@ -1,5 +1,5 @@
 ---
-id: pending
+id: D0565
 status: proposed
 date: 2026-11-19
 origin: contemporaneous
@@ -52,4 +52,4 @@ Chosen option: "{Option A}", because {justification tied to the drivers}.
 {Links to design docs, benchmarks, PRs, commits. For backfilled ADRs: the artefacts
 the record was reconstructed from, plus "Rationale unknown" where it cannot be verified.}
 
-Test citation: [pending:throwaway-bot-test].
+Test citation: D0565.
