@@ -182,7 +182,7 @@ New or changed:
 | ---- | --- |
 | `scripts/split-decisions.mjs` | One-shot. Reads the 10 domain files, writes 1 file per record. Deleted after PR 1 merges, as D550 did with the last split scripts. |
 | `scripts/check-decision-ids.sh` (rewrite) | Every file has valid frontmatter. Ids are unique. The file name matches the id. `supersedes` and `superseded-by` point both ways. The 538 ids present at the split still exist. No old hash check. |
-| `scripts/check-decision-pending.sh` | Fails if any `pending-*.md` file or `[pending:<slug>]` citation exists. Required on PRs, so a pending PR cannot merge. |
+| `scripts/check-decision-pending.sh` | Fails if any `pending-*.md` file or `[pending:<slug>]` citation exists. Runs in the `decision-ledger` job of `quality.yml`, a required check on every PR, so a pending PR cannot merge. |
 | `scripts/decision-index.sh` | Prints the index on demand, filtered by tag, status or domain. Its output is never committed. |
 | `scripts/number-decisions.sh` | Run by the bot. Takes the next id from `origin/main`, renames each pending file, sets `id`, rewrites `[pending:<slug>]` citations in files the PR changed. |
 | `.github/workflows/decision-ids.yml` | Runs on the `ready-to-merge` label. Runs `number-decisions.sh`, commits through the API, dispatches `checks.yml`, removes the label. |
@@ -219,7 +219,7 @@ An agent no longer loads a whole domain file. It runs `scripts/decision-index.sh
 
 ### Cutover (designer's call)
 
-After PR 1 merges, a branch that appended a block to an old domain file, or reserved an id, converts that block to `pending-<slug>.md` when it rebases. The bot then numbers it. A reserved id is not kept. The validator rejects a hand-numbered new id above D564, except for the PR 1 decision in § 6. The PR 1 description tells the owner to check open PRs for this before merging.
+After PR 1 merges, a branch that appended a block to an old domain file, or reserved an id, converts that block to `pending-<slug>.md` when it rebases. The bot then numbers it. A reserved id is not kept. The rule that rejected a hand-numbered new id above D564 was dropped: it is unenforceable, and the bot and the pending gate cover the case. The PR 1 description tells the owner to check open PRs for this before merging.
 
 ## 8. Enrichment PRs (after PR 1)
 
@@ -244,6 +244,6 @@ The plan for PR 1 does not cover these. Each enrichment PR gets its own short pl
 
 - **Race guard.** `main`'s branch protection requires branches to be up to date before merge. The uniqueness check then runs against the newest `main`.
 - **Merge method.** The repo allows squash merge only. Merge commits and rebase merge are switched off.
-- **Bot token.** The bot uses the default `GITHUB_TOKEN`. It commits through the API, so the commit is signed and passes the verified-signature rule; a CLI push would be unsigned. A push by `GITHUB_TOKEN` starts no `pull_request` run, so the bot dispatches `checks.yml` (which has `workflow_dispatch`) on the branch. It then runs `check-decision-ids.sh` and `check-decision-pending.sh` itself and posts the result as the `decision-ledger` commit status on its own commit. That status is a required check, and it is posted on failure paths too.
+- **Bot token.** The bot uses the default `GITHUB_TOKEN`. It commits through the API, so the commit is signed and passes the verified-signature rule; a CLI push would be unsigned. A push by `GITHUB_TOKEN` starts no `pull_request` run, so the bot dispatches `checks.yml` (which has `workflow_dispatch`) on the branch. It runs `check-decision-ids.sh` and `check-decision-pending.sh` itself and posts the result as the informational `decision-numbering` commit status on its own commit, on failure paths too. The required check is the `decision-ledger` job in `quality.yml` (called by `checks.yml`), which runs both gates on every PR and on the bot's dispatched run.
 
 The owner changes these settings by hand in GitHub. The plan lists them as a manual step before PR 1 merges. A human must check them: branch protection is a security setting.

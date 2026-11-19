@@ -103,6 +103,27 @@ describe("validateRecord", () => {
     expect(e).toHaveLength(1);
     expect(e[0]).toContain("frontmatter keys");
   });
+  it("rejects non-4-digit supersedes ids, naming the field", () => {
+    const e = validateRecord(rec({ supersedes: "D184" }), p("D0020"), OPTS);
+    expect(e.join("\n")).toContain("supersedes must hold 4-digit ids");
+    const f = validateRecord(
+      rec({ "superseded-by": ["D0021", "D22"] }),
+      p("D0020"),
+      OPTS,
+    );
+    expect(f.join("\n")).toContain("superseded-by must hold 4-digit ids");
+  });
+
+  it("accepts 4-digit and empty supersedes, and checks pending records", () => {
+    expect(
+      validateRecord(rec({ supersedes: ["D0184", "D0318"] }), p("D0020"), OPTS),
+    ).toEqual([]);
+    const pend = rec({ id: "pending", status: "proposed", supersedes: "D7" });
+    expect(
+      validateRecord(pend, "decisions/database/pending-x.md", OPTS).join("\n"),
+    ).toContain("supersedes must hold 4-digit ids");
+  });
+
   it("rejects a bad status", () => {
     const e = validateRecord(rec({ status: "Accepted" }), p("D0020"), OPTS);
     expect(e).toHaveLength(1);

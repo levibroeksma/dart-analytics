@@ -1,7 +1,7 @@
 ---
 id: D0318
-status: accepted
-date: 2026-09-18
+status: superseded
+date: 2026-11-18
 origin: contemporaneous
 original-date:
 tags: [context-system, docs, CLAUDE.md, gate, CI, branch, PR]
@@ -10,7 +10,7 @@ decision-makers: [owner]
 consulted: []
 informed: []
 supersedes:
-superseded-by:
+superseded-by: D0564
 ---
 <!-- backfill: pending -->
 

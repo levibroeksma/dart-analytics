@@ -23,8 +23,21 @@ export function parseBaseline(text) {
     .filter((l) => /^D\d{4}$/.test(l));
 }
 
-export function checkLedger(root, baselineIds) {
+export function checkRouter(path) {
+  if (!existsSync(path)) return [];
   const errs = [];
+  readFileSync(path, "utf8")
+    .split("\n")
+    .forEach((line, i) => {
+      if (/^### D\d+/.test(line) || /^\| D\d+ \|/.test(line)) {
+        errs.push(`${path}:${i + 1}: router must hold no decision heading or table row`);
+      }
+    });
+  return errs;
+}
+
+export function checkLedger(root, baselineIds, routerPath) {
+  const errs = routerPath ? checkRouter(routerPath) : [];
   const stray = new Set();
   for (const p of listFiles(root)) {
     const rel = relative(root, p);
@@ -84,7 +97,7 @@ if (process.argv[1] === fileURLToPath(import.meta.url)) {
     process.exit(1);
   }
   const baseline = parseBaseline(readFileSync(baselinePath, "utf8"));
-  const errs = checkLedger(root, baseline);
+  const errs = checkLedger(root, baseline, opt("--router", "DECISIONS.md"));
   if (errs.length) {
     console.error(errs.join("\n"));
     process.exit(1);

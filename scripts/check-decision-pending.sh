@@ -11,7 +11,11 @@ while IFS= read -r line; do
   specs+=(":!$line")
 done < "$exclusions"
 fail=0
-files=$(git ls-files 'decisions/**/pending-*.md')
+files=""
+while IFS= read -r f; do
+  [ -n "$f" ] && [ -e "$f" ] && files+="$f"$'\n'
+done < <(git ls-files -co --exclude-standard 'decisions/**/pending-*.md')
+files="${files%$'\n'}"
 if [ -n "$files" ]; then
   echo "FAIL: pending decision files:" >&2
   echo "$files" >&2

@@ -21,7 +21,7 @@
 - The split copies text as it is. It changes no wording beyond the spec § 5 mapping.
 - `date` may be empty only on ids at or below the split maximum (D564, re-derived in Task 5).
 - No new npm dependency. YAML frontmatter here is flat: scalars and `[a, b]` lists only.
-- Bot token: default `GITHUB_TOKEN`; status context name `decision-ledger`.
+- Bot token: default `GITHUB_TOKEN`; informational status context `decision-numbering`; the required check is the `decision-ledger` job in `quality.yml`.
 
 ## Review Focus
 
@@ -147,7 +147,7 @@ it("allows empty date only at or below maxBaselineId", () => {
 - [ ] **Step 2: Run** `cd app && npx vitest run tests/scripts/decisions/number.test.ts` — expect FAIL.
 - [ ] **Step 3: Implement `number.mjs`** and the wrapper. The wrapper derives `mainMaxId` from `git ls-tree -r --name-only origin/main decisions/` and `changedFiles` from `git diff --name-only origin/main...HEAD`.
 - [ ] **Step 4: Run the tests again** — expect PASS.
-- [ ] **Step 5: Write `decision-ids.yml`.** Trigger `pull_request: types: [labeled]`, `if: github.event.label.name == 'ready-to-merge'`, `permissions: { contents: write, statuses: write, pull-requests: write }`. Steps: checkout the head ref with `fetch-depth: 0`; `git fetch origin main`; `bash scripts/number-decisions.sh`; commit as `github-actions[bot]` with message `chore(decisions): number pending decisions` if anything changed, then push; run `check-decision-ids.sh` and `check-decision-pending.sh`; post status `decision-ledger` (success or failure) on the pushed SHA with `gh api repos/{owner}/{repo}/statuses/<sha>`; remove the label with `gh pr edit --remove-label ready-to-merge`. Skip fork PRs.
+- [ ] **Step 5: Write `decision-ids.yml`.** Trigger `pull_request: types: [labeled]`, `if: github.event.label.name == 'ready-to-merge'`, `permissions: { contents: write, statuses: write, pull-requests: write }`. Steps: checkout the head ref with `fetch-depth: 0`; `git fetch origin main`; `bash scripts/number-decisions.sh`; commit as `github-actions[bot]` with message `chore(decisions): number pending decisions` if anything changed, then push; run `check-decision-ids.sh` and `check-decision-pending.sh`; post status `decision-numbering` (success or failure) on the pushed SHA with `gh api repos/{owner}/{repo}/statuses/<sha>`; remove the label with `gh pr edit --remove-label ready-to-merge`. Skip fork PRs.
 - [ ] **Step 6: Lint the workflow:** `npx --yes actionlint .github/workflows/decision-ids.yml` if available, else `python3 -c "import yaml,sys;yaml.safe_load(open(sys.argv[1]))" .github/workflows/decision-ids.yml` — expect no output.
 - [ ] **Step 7: Commit** `feat(decisions): numbering bot on ready-to-merge label`
 
@@ -202,6 +202,6 @@ it("allows empty date only at or below maxBaselineId", () => {
 - [ ] **Step 3:** Run `superpowers:finishing-a-development-branch` with `finishing-a-dart-branch`: push and open the PR. The PR body lists these manual owner steps before merge:
   1. Turn on "Require branches to be up to date before merging" for `main`.
   2. Allow squash merge only.
-  3. Add `decision-ledger` as a required status check.
+  3. Add `decision-ledger` as a required status check (a job in `quality.yml`, called by `checks.yml`).
   4. Create the `ready-to-merge` label.
   5. Check open PRs that append to an old domain file; they convert to `pending-<slug>.md` at rebase.

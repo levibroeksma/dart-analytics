@@ -16,6 +16,21 @@ describe("checkLedger", () => {
     expect(checkLedger(root, ["D0001", "D0002"])).toEqual([]);
   });
 
+  it("flags a decision heading or row in the router", () => {
+    const root = makeTree({
+      "database/D0001-a.md": recordText({ id: "D0001" }),
+    });
+    const router = join(root, "..", "ROUTER-test.md");
+    writeFileSync(router, "# Router\n\n### D12 — x\n");
+    expect(checkLedger(root, [], router).join("\n")).toContain(
+      "router must hold",
+    );
+    writeFileSync(router, "| D12 | x |\n");
+    expect(checkLedger(root, [], router)).toHaveLength(1);
+    writeFileSync(router, "# Router\n\nSee D12 and ### mid-line.\n");
+    expect(checkLedger(root, [], router)).toEqual([]);
+  });
+
   it("flags a duplicate id", () => {
     const root = makeTree({
       "database/D0001-a.md": recordText({ id: "D0001" }),

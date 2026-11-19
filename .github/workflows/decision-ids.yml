@@ -77,6 +77,7 @@ jobs:
         if: steps.number.outcome == 'success' && steps.commit.outcome == 'success'
         run: |
           rm -f adds.ndjson dels.ndjson request.json
+          git add -A
           bash scripts/check-decision-ids.sh
           bash scripts/check-decision-pending.sh
       - name: Dispatch checks on the new commit
@@ -84,7 +85,7 @@ jobs:
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: gh workflow run checks.yml --ref "$HEAD_REF"
-      - name: Post decision-ledger status
+      - name: Post decision-numbering status
         if: always()
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -100,7 +101,7 @@ jobs:
           sha="${NEW_SHA:-$HEAD_SHA}"
           gh api "repos/${GITHUB_REPOSITORY}/statuses/${sha}" \
             -f state="$state" \
-            -f context="decision-ledger" \
+            -f context="decision-numbering" \
             -f description="Decision ledger checks" \
             -f target_url="${GITHUB_SERVER_URL}/${GITHUB_REPOSITORY}/actions/runs/${GITHUB_RUN_ID}"
       - name: Remove label

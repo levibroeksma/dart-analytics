@@ -1,5 +1,5 @@
 import { execFileSync, spawnSync } from "node:child_process";
-import { mkdirSync, mkdtempSync, writeFileSync } from "node:fs";
+import { mkdirSync, mkdtempSync, renameSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { dirname, join, resolve } from "node:path";
 import { describe, expect, it } from "vitest";
@@ -9,7 +9,7 @@ const script = resolve(
   "../../../../scripts/check-decision-pending.sh",
 );
 
-function run(files: Record<string, string>) {
+function run(files: Record<string, string>, after?: (dir: string) => void) {
   const dir = mkdtempSync(join(tmpdir(), "pending-"));
   const git = (...a: string[]) =>
     execFileSync("git", a, { cwd: dir, stdio: "pipe" });
@@ -20,6 +20,7 @@ function run(files: Record<string, string>) {
     writeFileSync(p, text);
   }
   git("add", "-A");
+  after?.(dir);
   return spawnSync("bash", [script], { cwd: dir, encoding: "utf8" });
 }
 
@@ -38,6 +39,24 @@ describe("check-decision-pending.sh", () => {
     const r = run({ "decisions/database/pending-x.md": "x" });
     expect(r.status).toBe(1);
     expect(r.stderr).toContain("pending-x.md");
+  });
+
+  it("passes when a pending file is renamed on disk without staging", () => {
+    const r = run({ "decisions/database/pending-x.md": "x" }, (dir) =>
+      renameSync(
+        join(dir, "decisions/database/pending-x.md"),
+        join(dir, "decisions/database/D0600-x.md"),
+      ),
+    );
+    expect(r.status).toBe(0);
+  });
+
+  it("fails on an unstaged pending file", () => {
+    const r = run({ "decisions/database/D0001-a.md": "x" }, (dir) =>
+      writeFileSync(join(dir, "decisions/database/pending-y.md"), "y"),
+    );
+    expect(r.status).toBe(1);
+    expect(r.stderr).toContain("pending-y.md");
   });
 
   it("fails on a [pending:slug] citation", () => {

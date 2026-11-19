@@ -17,7 +17,7 @@ updated: 2026-11-13
 
 # Version History
 
-> **Version:** 1.238.0 (2026-11-19 — Decision ledger is one MADR record file per decision (D564): `decisions/<domain>/` directories replace the 10 domain files; `DECISIONS.md` routes to directories and gains find/add steps (`pending-<slug>.md`, bracketed `pending:<slug>` citations, `ready-to-merge` bot numbering); the "Why was X decided?" pack loads decisions through `scripts/decision-index.sh`; File Inventory gets 1 row per domain directory and the new decision scripts, workflow and template; `next-decision-id.sh`, `renumber-decision.sh`, `decision-row-hashes.tsv`, `decision-map.txt` rows retired.)
+> **Version:** 1.238.0 (2026-11-19 — Decision ledger is one MADR record file per decision (D564): `decisions/<domain>/` directories replace the 10 domain files; `DECISIONS.md` routes to directories and gains find/add steps (`pending-<slug>.md`, `[pending:<slug>]` citations, `ready-to-merge` bot numbering); the "Why was X decided?" pack loads decisions through `scripts/decision-index.sh`; File Inventory gets 1 row per domain directory and the new decision scripts, workflow and template; `next-decision-id.sh`, `renumber-decision.sh`, `decision-row-hashes.tsv`, `decision-map.txt` rows retired.)
 
 > **Version:** 1.237.0 (2026-11-17 — Ace statistics page (D563): `ACE_V1` gains `intent-derived` and an `ACE` walker in `derived-aims.module.ts`; layout `AceStatsOverview.astro` and `ACE_LAYOUTS`; new `lib/stats/ace/` comparison, `aceComparisonSection()`, `precedingWindow()`, `loadTargetInputsOver()`; shared `TrackTargetsCard.astro` and `StatTileRow.astro`; `01-Section-Catalog.md` 1.13.0.)
 

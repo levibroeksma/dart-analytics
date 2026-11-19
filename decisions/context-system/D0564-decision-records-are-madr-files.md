@@ -1,7 +1,7 @@
 ---
 id: D0564
 status: accepted
-date: 2026-11-19
+date: 2026-11-18
 origin: contemporaneous
 original-date:
 tags: [context-system, docs, gate, workflow, CI]
@@ -9,7 +9,7 @@ scope: repository
 decision-makers: [owner]
 consulted: []
 informed: []
-supersedes: D0184
+supersedes: [D0184, D0318]
 superseded-by:
 ---
 
@@ -34,7 +34,7 @@ superseded-by:
 ## Decision Outcome
 Chosen option: "A. Bot before merge, with 1 MADR file per decision under `decisions/<domain>/D####-<slug>.md`, split first and enriched later", because only A removes both the shared-file conflict and the id race. It also keeps short `D####` citations and leaves `main` free of unnumbered decisions.
 
-This decision replaces the append-only rule of D184. The chosen option and the `Decided:` date in Evidence never change; a reversal is still a new record with `supersedes`. A later PR may fill in context, drivers, options, evidence, and `status`/`superseded-by`.
+This decision replaces the append-only rule of D184 and its router-plus-domain-files layout, and retires D318's id derivation and reservation (`scripts/next-decision-id.sh`). The chosen option and the `Decided:` date in Evidence never change; a reversal is still a new record with `supersedes`. A later PR may fill in context, drivers, options, evidence, and `status`/`superseded-by`.
 
 ### Consequences
 * Good, because a new decision is a new file, so 2 branches never edit the same ledger file.
@@ -78,7 +78,7 @@ Medium — the split and the checker are tested against the 10 old files; the bo
 * Bad, because parallel branches keep conflicting on the domain files and on ids.
 
 ## Evidence / More Information
-Decided: 2026-11-19
+Decided: 2026-11-18
 
 * Spec: `docs/superpowers/specs/2026-11-18-madr-decision-ledger-design.md` (§ 1 drivers, § 4 options, § 6 rule change, § 7 tooling, § 10 repo settings).
 * Plan: `docs/superpowers/plans/2026-11-18-madr-decision-ledger.md`.

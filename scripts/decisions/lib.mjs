@@ -180,6 +180,14 @@ export function validateRecord(r, path, opts) {
   } else {
     err(`id must be D<4 digits> or pending, got "${id}"`);
   }
+  for (const field of ["supersedes", "superseded-by"]) {
+    const v = r.fm[field];
+    for (const item of Array.isArray(v) ? v : [v]) {
+      if (typeof item === "string" && item !== "" && !/^D\d{4}$/.test(item)) {
+        err(`${field} must hold 4-digit ids (D0000), got "${item}"`);
+      }
+    }
+  }
   if (!STATUSES.includes(r.fm.status)) {
     err(`status must be one of ${STATUSES.join(", ")}`);
   }

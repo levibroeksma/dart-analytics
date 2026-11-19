@@ -18,9 +18,9 @@ The checkbox list is inlined here so every PR prefills it.
 
 ## Architectural decisions
 
-<!-- New or changed decisions this PR introduces. Append a block to the
-     appropriate decisions/ domain file for each (see DECISIONS.md's routing
-     table). Delete this section if there are none. -->
+<!-- New or changed decisions this PR introduces. Write a
+     decisions/<domain>/pending-<slug>.md record for each (see DECISIONS.md)
+     and add the ready-to-merge label so the bot numbers it. Delete this section if there are none. -->
 
 -
 
@@ -44,8 +44,8 @@ The checkbox list is inlined here so every PR prefills it.
 - [ ] Preserves replayability
 - [ ] Completed gameplay remains immutable (corrections create new records)
 - [ ] Statistics remain derived — no persisted stats
-- [ ] Documentation updated (context map, the appropriate `decisions/` domain file, affected docs)
-- [ ] A decision block was appended to the appropriate `decisions/` domain file if an architectural decision was made
+- [ ] Documentation updated (context map, affected docs)
+- [ ] A `decisions/<domain>/pending-<slug>.md` record was written (numbered by the `ready-to-merge` label) if an architectural decision was made
 
 ## Notes
 
