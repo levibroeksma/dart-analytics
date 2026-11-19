@@ -5,7 +5,7 @@ import type {
   CheckoutInput,
   PeakMeasure,
   Ratio,
-} from "./types";
+} from "@lib/types";
 
 type Counted = {
   finish: Ratio;
