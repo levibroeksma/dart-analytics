@@ -17,7 +17,7 @@ if [ -n "$files" ]; then
   echo "$files" >&2
   fail=1
 fi
-hits=$(git grep -n '\[pending:' -- . "${specs[@]}" || true)
+hits=$(git grep -nE '\[pending:[a-z0-9]' -- . "${specs[@]}" || true)
 if [ -n "$hits" ]; then
   echo "FAIL: [pending:...] citations:" >&2
   echo "$hits" >&2

@@ -114,7 +114,7 @@ bash scripts/check-decision-ids.sh
 bash scripts/check-decision-pending.sh
 ```
 
-`check-decision-ids.sh` is the durable integrity guard for the MADR ledger: frontmatter and headings valid, ids unique and equal to the file name, `supersedes`/`superseded-by` point both ways, no id from the split baseline missing. `check-decision-pending.sh` fails while any `pending-*.md` file or a bracketed `pending:<slug>` tag citation exists; it passes once the `ready-to-merge` label has made the bot number them. Both run unconditionally in `quality.yml` CI, so a missed local run is still caught before merge — they are absent from the local "Always run" list and `.husky/pre-commit` because they have nothing to say unless `decisions/**` itself changed. `context-maintenance`'s decision-ledger step calls this out directly when a new decision record is added.
+`check-decision-ids.sh` is the durable integrity guard for the MADR ledger: frontmatter and headings valid, ids unique and equal to the file name, `supersedes`/`superseded-by` point both ways, no id from the split baseline missing. `check-decision-pending.sh` fails while any `pending-*.md` file or `[pending:<slug>]` citation exists; it passes once the `ready-to-merge` label has made the bot number them. Both run unconditionally in `quality.yml` CI, so a missed local run is still caught before merge — they are absent from the local "Always run" list and `.husky/pre-commit` because they have nothing to say unless `decisions/**` itself changed. `context-maintenance`'s decision-ledger step calls this out directly when a new decision record is added.
 
 ## If only `docs/` changed
 

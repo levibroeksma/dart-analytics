@@ -52,7 +52,7 @@ Durable facts — schemas, contracts, inventories, what a system *is* — belong
 2. Copy `decisions/TEMPLATE.md` to `decisions/<domain>/pending-<slug>.md`. The slug is the title in lower case, at most 6 words, joined by hyphens.
 3. Fill the template. Leave `id: pending`. Set `status`, `date`, `tags`. The chosen option and the `Decided:` date in Evidence are fixed once written.
 4. Cite the record as `[pending:<slug>]` (or `[pending:<domain>/<slug>]` when two domains share a slug) in every doc, comment or plan that names it. Never invent an id.
-5. For a reversal, set `supersedes: D<id>` in the new record. The bot fills `superseded-by` in the old one.
+5. For a reversal, set `supersedes: D<id>` in the new record only. When it numbers the record, the bot sets `superseded-by`, `status: superseded` and the new date on the old one.
 6. Run `bash scripts/check-decision-ids.sh`. It checks frontmatter, unique ids, file names and the `supersedes`/`superseded-by` pairs.
 7. Add the `ready-to-merge` label to the PR. `.github/workflows/decision-ids.yml` runs `scripts/number-decisions.sh`: it takes the next id from `origin/main`, renames each pending file, sets `id`, rewrites `[pending:<slug>]` citations in the files the PR changed, and commits through the API.
 8. Wait for `checks.yml` on the bot's commit. `scripts/check-decision-pending.sh` fails the PR while any `pending-*.md` file or `[pending:...]` citation remains.

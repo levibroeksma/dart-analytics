@@ -46,6 +46,11 @@ describe("check-decision-pending.sh", () => {
     expect(r.stderr).toContain("docs/architecture/a.md");
   });
 
+  it("passes a [pending:<slug>] placeholder and fails [pending:my-slug]", () => {
+    expect(run({ "docs/a.md": "cite [pending:<slug>]" }).status).toBe(0);
+    expect(run({ "docs/a.md": "cite [pending:my-slug]" }).status).toBe(1);
+  });
+
   it("fails on a [pending:domain/slug] citation", () => {
     const r = run({ "docs/architecture/a.md": "see [pending:database/x]" });
     expect(r.status).toBe(1);

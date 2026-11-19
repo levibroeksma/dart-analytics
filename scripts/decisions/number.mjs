@@ -4,6 +4,8 @@ import { fileURLToPath } from "node:url";
 import { listRecords } from "./lib.mjs";
 
 const CITE = /\[pending:([a-z0-9][a-z0-9/-]*)\]/g;
+const asList = (v) =>
+  (Array.isArray(v) ? v : [v]).filter((x) => typeof x === "string" && x !== "");
 const ID = /\bD0*(\d+)\b/g;
 const EXCLUSIONS_FILE = join(
   dirname(fileURLToPath(import.meta.url)),
@@ -131,6 +133,42 @@ export function numberPending({
   for (const [file, body] of edits) {
     writeFileSync(file, body);
     rewrites.push(file);
+  }
+  const byRecordId = new Map(
+    records.map(({ path, record }) => [String(record.fm.id), path]),
+  );
+  const supersededBy = new Map();
+  for (const p of plan) {
+    const rec = records.find((r) => r.path === p.path).record;
+    for (const target of asList(rec.fm.supersedes)) {
+      const tpath = byRecordId.get(target);
+      if (!tpath) continue;
+      const cur = supersededBy.get(tpath) ?? { ids: [], date: "" };
+      cur.ids.push(p.id);
+      if (rec.fm.date) cur.date = rec.fm.date;
+      supersededBy.set(tpath, cur);
+    }
+  }
+  for (const [tpath, { ids, date }] of supersededBy) {
+    let text = readFileSync(tpath, "utf8");
+    const old = text.match(/^superseded-by:(.*)$/m);
+    const prior = old
+      ? asList(
+          old[1]
+            .replace(/\s+#.*$/, "")
+            .trim()
+            .replace(/^\[|\]$/g, "")
+            .split(",")
+            .map((x) => x.trim()),
+        )
+      : [];
+    const all = [...new Set([...prior, ...ids])];
+    const value = all.length === 1 ? all[0] : `[${all.join(", ")}]`;
+    text = text.replace(/^superseded-by:.*$/m, `superseded-by: ${value}`);
+    text = text.replace(/^status:.*$/m, "status: superseded");
+    if (date) text = text.replace(/^date:.*$/m, `date: ${date}`);
+    writeFileSync(tpath, text);
+    rewrites.push(tpath);
   }
   const renames = [];
   for (const p of plan) {

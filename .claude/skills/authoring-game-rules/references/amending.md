@@ -44,7 +44,7 @@ written at all?* Exactly one applies:
   `decisions/game-engine/` for game rules and engines,
   `decisions/architecture/` for the domain model, `decisions/database/`
   when a seeded row or migration is involved. Never assume the domain; read the
-  routing table. The doc edit lands in the same PR, citing the decision id.
+  routing table. The doc edit lands in the same PR, citing the record as `[pending:<slug>]` (the bot rewrites it to the id).
 
 Then the attributes. These **stack** on the routing verdict and on each other:
 

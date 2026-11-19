@@ -84,6 +84,44 @@ describe("numberPending", () => {
     numberPending({ root, mainMaxId: 1, changedFiles: [f] });
     expect(readFileSync(f, "utf8")).toBe("D0002");
   });
+  it("resolves a nested domain-qualified citation among same-slug files", () => {
+    const root = makeTree({
+      "frontend/style/pending-dup.md": pend(),
+      "frontend/astro/pending-dup.md": pend(),
+    });
+    const f = note(
+      root,
+      "[pending:frontend/style/dup] [pending:frontend/astro/dup]",
+    );
+    numberPending({ root, mainMaxId: 10, changedFiles: [f] });
+    expect(readFileSync(f, "utf8")).toBe("D0012 D0011");
+  });
+
+  it("marks the superseded record when numbering a superseder", () => {
+    const root = makeTree({
+      "api/D0003-old.md": recordText({ id: "D0003" }),
+      "api/pending-new.md": pend({ supersedes: "D0003", date: "2026-11-19" }),
+    });
+    const out = numberPending({ root, mainMaxId: 10, changedFiles: [] });
+    const text = readFileSync(`${root}/api/D0003-old.md`, "utf8");
+    expect(text).toMatch(/^superseded-by: D0011$/m);
+    expect(text).toMatch(/^status: superseded$/m);
+    expect(text).toMatch(/^date: 2026-11-19$/m);
+    expect(out.rewrites).toContain(`${root}/api/D0003-old.md`);
+  });
+
+  it("appends to an existing superseded-by as a list", () => {
+    const root = makeTree({
+      "api/D0003-old.md": recordText({ id: "D0003", "superseded-by": "D0004" }),
+      "api/D0004-mid.md": recordText({ id: "D0004", supersedes: "D0003" }),
+      "api/pending-new.md": pend({ supersedes: "D0003" }),
+    });
+    numberPending({ root, mainMaxId: 10, changedFiles: [] });
+    const text = readFileSync(`${root}/api/D0003-old.md`, "utf8");
+    expect(text).toMatch(/^superseded-by: \[D0004, D0011\]$/m);
+    expect(text).toMatch(/^date: 2026-01-02$/m);
+  });
+
   it("skips an excluded changed file, even with an unresolved citation", () => {
     const root = makeTree({ "api/pending-a.md": pend() });
     const f = note(root, "[pending:nope]");

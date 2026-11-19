@@ -58,6 +58,19 @@ describe("checkLedger", () => {
     expect(errs[0]).toContain("lacks supersedes D0001");
   });
 
+  it("skips the two-way rule for a pending superseding record", () => {
+    const root = makeTree({
+      "database/D0001-a.md": recordText({ id: "D0001" }),
+      "database/pending-b.md": recordText({
+        id: "pending",
+        status: "proposed",
+        date: "2026-11-19",
+        supersedes: "D0001",
+      }),
+    });
+    expect(checkLedger(root, [])).toEqual([]);
+  });
+
   it("accepts links in both directions", () => {
     const root = makeTree({
       "database/D0001-a.md": recordText({
