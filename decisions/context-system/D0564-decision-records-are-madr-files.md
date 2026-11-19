@@ -42,7 +42,7 @@ This decision replaces the append-only rule of D184 and its router-plus-domain-f
 * Good, because an enrichment PR can fill a record from its sources without breaking a rule.
 * Bad, because the 538 split records stay thin (`<!-- backfill: pending -->`) until their domain's enrichment PR lands; until then most sections say `Rationale unknown — backfill pending.`
 * Bad, because old paths such as `decisions/api.md` stay dead in `docs/superpowers/**` and in copied decision text; `check-doc-links.sh` must ignore them there.
-* Bad, because the bot depends on GitHub settings the owner sets by hand: squash merge only, up-to-date branches, required `decision-ledger` status. It also depends on a dispatched `checks.yml` run to satisfy the required checks on the bot's own commit. Nobody can test this until after this PR merges.
+* Bad, because the bot depends on GitHub settings the owner sets by hand: squash merge only, up-to-date branches, required `decision-ledger` status. GitHub holds the `pull_request` run on the bot's commit for approval, so the owner clicks **Approve workflows to run** once per decision PR. A test on throwaway PR #1349 (2026-11-19) showed that a dispatched `checks.yml` run does not count toward the PR's required checks, so the dispatch step was dropped.
 * Bad, because a branch that appended to an old domain file or reserved an id must convert its block to `pending-<slug>.md` when it rebases; a reserved id is not kept.
 * Neutral, because the index is no longer a file: `scripts/decision-index.sh` prints it on demand.
 
@@ -50,7 +50,7 @@ This decision replaces the append-only rule of D184 and its router-plus-domain-f
 Medium — the split and the checker are tested against the 10 old files; the bot flow is untested until it runs on a real PR after merge.
 
 ### Revisit When
-* The bot fails to number a PR, or its dispatched checks do not satisfy the required checks.
+* The bot fails to number a PR, or the approval click per decision PR becomes a burden (then: a GitHub App token, whose commits start checks without approval).
 * 2 labeled PRs race and the uniqueness check does not catch it.
 * The owner changes the repo's merge method or branch protection.
 
@@ -61,7 +61,7 @@ Medium — the split and the checker are tested against the 10 old files; the bo
 ### A. Bot before merge
 * Good, because `main` never holds an unnumbered decision.
 * Good, because citations keep the short `D####` form.
-* Bad, because it needs squash merge and a dispatched checks run, since a `GITHUB_TOKEN` commit starts no `pull_request` run.
+* Bad, because it needs squash merge and an owner approval of the held checks run on the bot's commit.
 * Bad, because 2 PRs labeled at once can race; the uniqueness gate catches it and the owner re-adds the label.
 
 ### B. Bot after merge
