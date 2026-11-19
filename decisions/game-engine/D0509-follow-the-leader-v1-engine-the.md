@@ -12,7 +12,6 @@ informed: []
 supersedes:
 superseded-by:
 ---
-<!-- backfill: pending -->
 
 # Follow the Leader V1 engine: the Elimination kernel grows a visit-close hook, a shared slot and rota override; `turns.kept`; shell visit actions
 
@@ -20,10 +19,13 @@ superseded-by:
 whether a seat failed, matched or must set depends on the whole visit, so the per-dart hook cannot decide it; the leader and target live in no seat, hence the shared slot. A stored `kept` flag makes a keep a fact the fold replays rather than an inference from a missing turn.
 
 ## Decision Drivers
-Rationale unknown — backfill pending.
+* Killer's fold must not change; both kernel additions are optional (spec § 4).
+* Fail and last-dart-off-board resolve when a turn closes, not per dart (spec § 4).
+* A keep is stored as a fact, a closed dartless turn with `kept`, so the fold replays it (spec F2, § 6).
 
 ## Considered Options
-Rationale unknown — backfill pending.
+* A keep inferred from a missing turn: Context says the stored `kept` flag replaces it.
+* A CHECK constraint enforcing kept implies no darts and `total_score` 0: spec F3 has the upload validator enforce it instead.
 
 ## Decision Outcome
 Chosen option: "`EliminationRules` gains three optional members, so Killer's fold is unchanged (pinned by a regression test): `onVisitClose(visit, seats, shared)` runs once when a turn closes (`completedAt` set) and returns seat changes plus the next `shared`, `initShared` seeds the `shared` slot on `EliminationMatch`, and `activeOverride(seats, shared)` names the seat to act next (the rota stays on a seat owed a re-throw). Follow the Leader (`follow-the-leader.engine.module.ts`, policy `follow-the-leader-policy.ts`) resolves a visit at close, not per dart: target, leader, `failed` set and lives all come from `resolveVisit`. Migration `0051` adds `turns.kept BOOLEAN NOT NULL DEFAULT false`; a keep is a closed, dartless turn with `kept = true`, and the upload validator, not a CHECK, requires no darts and a total of 0. The game shell gains `DartGameSpec.visitActions` (STOP closes an open darted turn early, KEEP writes a kept turn), undone like a dart. V1 seats two (kernel and tests cover 3 to 4), key `FOLLOW_THE_LEADER_V1`, `SHARED` stage, no DartBot, no stats page, `STATS_TAGS` `["board"]`. Replay result labels: `Keep`, `Fail`, `Retry`, `Set`, `Match`.".
@@ -43,16 +45,20 @@ Rulings (user decision 2026-10-29 where the rules file is silent):
 | Replay label | An off-board setting dart with no life lost reads `Retry`, not `Fail` |
 
 ### Confidence
-Rationale unknown — backfill pending.
+Rationale unknown — no source found.
 
 ### Revisit When
-Rationale unknown — backfill pending.
+Rationale unknown — no source found.
 
 ### Confirmation
-Rationale unknown — backfill pending.
+`app/tests/modules/game/elimination-kernel.module.test.ts`, `app/tests/modules/game/follow-the-leader.engine.module.test.ts` and `app/tests/modules/game/follow-the-leader-policy.test.ts` cover the kernel hook and the engine; the spec (§ 8) asks for a test that a Killer fold is byte-identical before and after.
 
 ## Pros and Cons of the Options
-Rationale unknown — backfill pending.
+Rationale unknown — no source found.
 
 ## Evidence / More Information
 Decided: 2026-10-29
+
+* `docs/superpowers/specs/2026-10-29-follow-the-leader-design.md` (F2, F3, F4, § 4, § 6, § 8): rebuilt Decision Drivers, Considered Options and Confirmation.
+* Commit `71bcf1f7` (PR #1157): adds the D509 row.
+* Applied in: `docs/superpowers/plans/2026-10-31-prisoner.md`.

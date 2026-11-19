@@ -12,7 +12,6 @@ informed: []
 supersedes:
 superseded-by:
 ---
-<!-- backfill: pending -->
 
 # Random Checkout stores a draw seed, not drawn scores
 
@@ -20,10 +19,14 @@ superseded-by:
 the start score is a fact no dart can fold to, and no turn/dart column holds it. A seed is one stored value that makes every draw derivable — store what happened, derive what it means — with no migration. Index-keying makes a draw independent of prior darts, so undo and replay are exact.
 
 ## Decision Drivers
-Rationale unknown — backfill pending.
+* The drawn start score is a fact no turn or dart column carries.
+* A stored seed from which every start score derives needs no migration.
+* A stored seed must replay to the same scores forever, so the pool and the PRNG are part of the ruleset version.
 
 ## Considered Options
-Rationale unknown — backfill pending.
+* Store each drawn start score.
+* Store one draw seed and derive every start score from it, keyed by attempt index (chosen).
+* Derive draws from a stream keyed by the seed alone, so each draw depends on earlier darts.
 
 ## Decision Outcome
 Chosen option: "`RANDOM_CHECKOUT` / `RANDOM_CHECKOUT_V1` (seed `0036`, template "Random Checkout") is a time-bound exercise of one-visit attempts from a random start score. The server mints `drawSeed` (uint32, Web Crypto) into the step configuration at training start, overwriting any template or step value; the immutable `exercise_configurations` snapshot holds it. Attempt *n*'s start score is a uniform pick over the 124 three-dart-finishable scores in 40–170, keyed by `(drawSeed, n)` through `seededUniform` (`app/src/modules/game/seeded-rng.module.ts`), the hash + mulberry32 lifted unchanged from DartBot's `rng.module.ts`.".
@@ -32,16 +35,28 @@ Chosen option: "`RANDOM_CHECKOUT` / `RANDOM_CHECKOUT_V1` (seed `0036`, template 
 the pool and the PRNG are frozen for `RANDOM_CHECKOUT_V1`; changing either is a new ruleset version. DartBot and Random Checkout share one PRNG definition. Configurable range, round bound, average darts per checkout and head-to-head are later versions. Rules: `docs/game-rules/training/exercises/random-checkout.md`. Spec: `docs/superpowers/specs/2026-10-07-random-checkout-exercise-design.md`.
 
 ### Confidence
-Rationale unknown — backfill pending.
+Rationale unknown — no source found.
 
 ### Revisit When
-Rationale unknown — backfill pending.
+Rationale unknown — no source found.
 
 ### Confirmation
-Rationale unknown — backfill pending.
+`app/tests/modules/game/seeded-rng.module.test.ts` pins the shared PRNG. `app/tests/modules/training/exercises/random-checkout.engine.module.test.ts` and `random-checkout.golden.test.ts` cover the engine. `database/verification/0036_random_checkout_seed_checks.sql` covers the seed.
 
 ## Pros and Cons of the Options
-Rationale unknown — backfill pending.
+### Store each drawn start score
+* Bad, because the spec finds no turn or dart column that holds a per-visit start score.
+
+### Draw seed, keyed by attempt index
+* Good, because every start score derives from the stored seed.
+* Good, because a draw depends only on the seed and the attempt index, so replay is deterministic and undo cannot change a later draw.
+
+### Stream-keyed draws
+* Bad, because the spec states a draw must never depend on earlier darts.
 
 ## Evidence / More Information
 Decided: 2026-10-07
+
+* `docs/superpowers/specs/2026-10-07-random-checkout-exercise-design.md` (§ 2, § 3, § 4): rebuilt Decision Drivers, Considered Options, Pros and Cons, Confirmation.
+* `docs/superpowers/plans/2026-10-07-random-checkout-v1.md`: names D424; no section rebuilt.
+* Commit `7c187722` (2026-10-07, "resolve open questions, record D424"): the adding commit.
