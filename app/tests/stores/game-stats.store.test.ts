@@ -767,6 +767,28 @@ describe("gameStatsStore", () => {
     expect(store.chartRouteFor(169)).toBeNull();
   });
 
+  it("checkoutPathRemainings lists the remainings highest first", async () => {
+    readSection.mockImplementation((_player, _game, meta) =>
+      Promise.resolve(
+        meta.id === "checkout-path"
+          ? series(
+              {
+                "40": { D20: { visits: 1, finished: 1 } },
+                "170": { "T20 T20 BULL": { visits: 1, finished: 0 } },
+              },
+              2,
+            )
+          : series({}, 0),
+      ),
+    );
+
+    const store = gameStatsStore();
+    store.gameTypeKey = "TUOD";
+    await store.load();
+
+    expect(store.checkoutPathRemainings).toEqual([170, 40]);
+  });
+
   it("ladderSummary bands attempts by ten, tracks maxTarget and gates recoveryRate", async () => {
     readSection.mockImplementation((_player, _game, meta) => {
       if (meta.id === "ladder-progress") {

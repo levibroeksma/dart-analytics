@@ -80,4 +80,12 @@ describe("aceComparisonTiles", () => {
 
     expect(hit!.detail).toBe("No earlier period");
   });
+
+  it("withholds the change when the preceding period is under 30 darts", () => {
+    const [hit] = aceComparisonTiles(
+      comparison({ hit: { current: r(16, 40), previous: r(5, 29) } }),
+    );
+
+    expect(hit!.detail).toBe("No comparison yet");
+  });
 });

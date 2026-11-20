@@ -1,0 +1,33 @@
+---
+/**
+ * The Checkout statistics layout: the completion tile, the finish rate,
+ * highest target, recovery rate and bust rate tiles against the preceding
+ * period, the target range, double and route cards, then the heatmap and the
+ * session list.
+ */
+import CheckoutCards from "./CheckoutCards.astro";
+import GameCompletionSection from "./GameCompletionSection.astro";
+import GameHeatmapSection from "./GameHeatmapSection.astro";
+import GameSessionList from "./GameSessionList.astro";
+import StatTileRow from "./StatTileRow.astro";
+import ErrorAlert from "@components/ui/ErrorAlert.astro";
+---
+
+<div class="flex flex-col gap-2">
+  <div class="grid grid-cols-2 gap-2">
+    <GameCompletionSection />
+  </div>
+  <div
+    class="flex flex-col gap-2"
+    x-data="checkoutComparisonSection()"
+  >
+    <ErrorAlert
+      showExpr="error !== null"
+      textExpr="error"
+    />
+    <StatTileRow />
+  </div>
+  <CheckoutCards />
+  <GameHeatmapSection />
+  <GameSessionList />
+</div>
