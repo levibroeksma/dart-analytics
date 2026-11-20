@@ -8,6 +8,7 @@ import type {
   ReplayRow,
   ReplayStageRow,
   ReplayTurn,
+  StagedReplayRow,
   StageTypeKey,
   TurnFact,
 } from "@modules/types";
@@ -257,4 +258,70 @@ export function replayFacts(
     })),
     turns: turns.map(turnFactOf),
   };
+}
+
+/** One session's distinct stages, in first-appearance order, exactly as `v_game_replay` carries them. */
+function stagesOf(rows: readonly StagedReplayRow[]): ReplayStageRow[] {
+  const seen = new Set<string>();
+  const stages: ReplayStageRow[] = [];
+  for (const row of rows) {
+    if (seen.has(row.stageId)) continue;
+    seen.add(row.stageId);
+    stages.push({
+      stageId: row.stageId,
+      parentStageId: row.parentStageId,
+      stageTypeKey: row.stageTypeKey,
+      sequence: row.stageSequence,
+    });
+  }
+  return stages;
+}
+
+/** Groups `rows` by `sessionId` in first-appearance order, preserving each session's own row order. */
+export function groupBySession<T extends { sessionId: string }>(
+  rows: readonly T[],
+): Map<string, T[]> {
+  const groups = new Map<string, T[]>();
+  for (const row of rows) {
+    const group = groups.get(row.sessionId);
+    if (group) {
+      group.push(row);
+    } else {
+      groups.set(row.sessionId, [row]);
+    }
+  }
+  return groups;
+}
+
+/**
+ * One session's `rows` in play order: by each stage's index in `stages`
+ * (`stageOrder`'s pre-order), then turn sequence, then dart number. A root
+ * and its first child share a stage sequence, so the query's own order
+ * would interleave their turns.
+ */
+function inPlayOrder<T extends StagedReplayRow>(
+  rows: readonly T[],
+  stages: readonly ReplayStageRow[],
+): T[] {
+  const stageIndex = new Map(
+    stages.map((stage, index) => [stage.stageId, index]),
+  );
+  return rows
+    .slice()
+    .sort(
+      (a, b) =>
+        stageIndex.get(a.stageId)! - stageIndex.get(b.stageId)! ||
+        a.turnSequence - b.turnSequence ||
+        (a.dartNumber ?? 0) - (b.dartNumber ?? 0),
+    );
+}
+
+/**
+ * One session's `v_game_replay` rows as the engine fact log it was played
+ * as: its real stage tree in pre-order, every turn in play order.
+ * @throws on rows `stageOrder` or `rowsToTurns` reject.
+ */
+export function sessionFactsOf(rows: readonly StagedReplayRow[]): EngineFacts {
+  const stages = stageOrder(stagesOf(rows));
+  return replayFacts(stages, rowsToTurns(inPlayOrder(rows, stages)));
 }

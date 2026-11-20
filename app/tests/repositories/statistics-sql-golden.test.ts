@@ -4,6 +4,7 @@ import {
   countGameSessions,
   findBucketedSessionAggregates,
   findDartFoldRows,
+  findMarksFoldRows,
   findGameSessionsPage,
   findHeatmapCells,
   findHitNumberCells,
@@ -71,6 +72,12 @@ describe("statistics readers rendered SQL", () => {
         await render((db) => findX01FoldRows(db, { ...scope, ...b })),
       ).toMatchSnapshot();
     });
+    it("findMarksFoldRows", async () => {
+      expect(
+        await render((db) => findMarksFoldRows(db, { ...scope, ...b })),
+      ).toMatchSnapshot();
+    });
+
     it("findDartFoldRows", async () => {
       expect(
         await render((db) => findDartFoldRows(db, { ...scope, ...b })),

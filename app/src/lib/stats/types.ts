@@ -11,6 +11,7 @@ import type {
   LadderProgressMetrics,
   LegStatsMetrics,
   LooseDartsMetrics,
+  MarksMetrics,
   MissDirectionMetrics,
   ScoringTrendMetrics,
   ShanghaiCountMetrics,
@@ -42,6 +43,7 @@ export type SectionId =
   | "atc-darts-per-target"
   | "bobs27-survival"
   | "shanghai-count"
+  | "marks"
   | "training-result"
   | "large-target-accuracy"
   | "aim-drift"
@@ -187,6 +189,7 @@ export type ServerSectionId =
   | "atc-darts-per-target"
   | "bobs27-survival"
   | "shanghai-count"
+  | "marks"
   | "training-result"
   | "heatmap"
   | "large-target-accuracy"
@@ -210,6 +213,7 @@ export type ServerSectionMetrics = {
   "atc-darts-per-target": AtcDartsPerTargetMetrics;
   "bobs27-survival": Bobs27SurvivalMetrics;
   "shanghai-count": ShanghaiCountMetrics;
+  marks: MarksMetrics;
   "training-result": TrainingResultMetrics;
   "large-target-accuracy": AimCountMetrics;
   "aim-drift": AimCountMetrics;
@@ -420,3 +424,4 @@ export type HeatmapTargetOption = { value: AimKey | null; label: string };
 export * from "./track/types";
 export * from "./ace/types";
 export * from "./checkout/types";
+export * from "./marks/types";

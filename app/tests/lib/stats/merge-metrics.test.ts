@@ -440,6 +440,37 @@ describe("mergeMetrics", () => {
     });
   });
 
+  it("sums marks field-wise, objectives by key", () => {
+    const base = {
+      darts: 9,
+      marks: 6,
+      wasted: 3,
+      rings: { single: 1, double: 1, treble: 1 },
+      objectives: [
+        { key: "20", marks: 3, darts: 1 },
+        { key: "BULL", marks: 0, darts: 0 },
+      ],
+      closeOuts: { games: 1, darts: 9 },
+      duel: { games: 1, wins: 1, darts: 9, points: 60 },
+    };
+    const merged = mergeMetrics("marks", base, {
+      ...base,
+      objectives: [{ key: "20", marks: 2, darts: 2 }],
+    });
+    expect(merged).toEqual({
+      darts: 18,
+      marks: 12,
+      wasted: 6,
+      rings: { single: 2, double: 2, treble: 2 },
+      objectives: [
+        { key: "20", marks: 5, darts: 3 },
+        { key: "BULL", marks: 0, darts: 0 },
+      ],
+      closeOuts: { games: 2, darts: 18 },
+      duel: { games: 2, wins: 2, darts: 18, points: 120 },
+    });
+  });
+
   it("sums training-result sessions and totals but takes the max best", () => {
     const merged = mergeMetrics(
       "training-result",

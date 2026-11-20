@@ -18,6 +18,7 @@ import { trackGamesCardSection } from "@lib/stats/sections/track-games-card.data
 import { aceComparisonSection } from "@lib/stats/sections/ace-comparison.data";
 import { checkoutCardsSection } from "@lib/stats/sections/checkout-cards.data";
 import { checkoutComparisonSection } from "@lib/stats/sections/checkout-comparison.data";
+import { marksSection } from "@lib/stats/sections/marks-section.data";
 import { driftCardSection } from "@lib/stats/sections/drift-card.data";
 import { preferenceCardSection } from "@lib/stats/sections/preference-card.data";
 import { setupCardSection } from "@lib/stats/sections/setup-card.data";
@@ -127,6 +128,7 @@ describe("registerRouteData", () => {
     ["aceComparisonSection", aceComparisonSection],
     ["checkoutComparisonSection", checkoutComparisonSection],
     ["checkoutCardsSection", checkoutCardsSection],
+    ["marksSection", marksSection],
     ["preferenceCardSection", preferenceCardSection],
     ["setupCardSection", setupCardSection],
   ])("registers %s as an Alpine data factory", (name, factory) => {
@@ -156,6 +158,7 @@ describe("registerRouteData", () => {
       "aceComparisonSection",
       "checkoutComparisonSection",
       "checkoutCardsSection",
+      "marksSection",
       "preferenceCardSection",
       "setupCardSection",
     ])

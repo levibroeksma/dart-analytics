@@ -425,6 +425,22 @@ describe("statistics section registry", () => {
     expect(tagsForGameType("TACTICS")).toEqual(new Set(["board"]));
   });
 
+  it("offers marks on Cricket, Tactics and Mickey Mouse only", () => {
+    expect(SECTIONS.marks).toMatchObject({
+      requires: ["board"],
+      games: ["CRICKET", "TACTICS", "MICKEY_MOUSE"],
+      computeSite: "server",
+      bucketable: true,
+      includesAbandoned: false,
+    });
+    const marksGames = new Set(["CRICKET", "TACTICS", "MICKEY_MOUSE"]);
+    for (const gameType of new Set(Object.values(GAME_TYPE_BY_RULESET))) {
+      expect(sectionsForGame(gameType).includes("marks")).toBe(
+        marksGames.has(gameType),
+      );
+    }
+  });
+
   it("gives Baseball the higher result direction and only the board tag", () => {
     expect(RESULT_DIRECTION.BASEBALL).toBe("higher");
     expect(tagsForGameType("BASEBALL")).toEqual(new Set(["board"]));

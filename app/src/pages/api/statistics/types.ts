@@ -629,6 +629,36 @@ export type ShanghaiCountSeriesResponseData = z.infer<
   typeof ShanghaiCountSeriesResponse
 >;
 
+const MarksCount = z.number().int().nonnegative();
+
+const MarksMetrics = z.object({
+  darts: MarksCount,
+  marks: MarksCount,
+  wasted: MarksCount,
+  rings: z.object({
+    single: MarksCount,
+    double: MarksCount,
+    treble: MarksCount,
+  }),
+  objectives: z.array(
+    z.object({ key: z.string(), marks: MarksCount, darts: MarksCount }),
+  ),
+  closeOuts: z.object({ games: MarksCount, darts: MarksCount }),
+  duel: z.object({
+    games: MarksCount,
+    wins: MarksCount,
+    darts: MarksCount,
+    points: MarksCount,
+  }),
+});
+
+export const MarksSeriesResponse = SeriesBase.extend({
+  sectionId: z.literal("marks"),
+  buckets: z.array(BucketBase.extend({ metrics: MarksMetrics })),
+  ...SkippedSessions,
+});
+export type MarksSeriesResponseData = z.infer<typeof MarksSeriesResponse>;
+
 /**
  * One page of a session's replay (D371 decisions 4, 6): only `cursor` and
  * `limit` are accepted -- any other search param fails `.strict()`, per
