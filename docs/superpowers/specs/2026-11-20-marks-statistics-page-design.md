@@ -4,7 +4,7 @@ Status: draft for owner approval · Date: 2026-11-20
 
 ## Intent
 
-The MARKS family is next after CHECKOUT (D565). Its games are Cricket (`CRICKET_V1` solo, `CRICKET_V2` 1v1), Tactics (`TACTICS_V1`, `TACTICS_V2`) and Mickey Mouse (`MICKEY_MOUSE_V1`), and today they show only the heatmap layout. As with Ace and Checkout, the owner wants the page to **measure improvement over time**: more marks per round, fewer darts to close out, fewer wasted darts and more wins, each compared with the previous period. A dart's marks follow from where it landed under each game's own rules, so no aim needs storing. Wins and points do depend on the opponent's darts, which the statistics views do not hold today.
+The MARKS family is next after CHECKOUT (D565). Its games are Cricket (`CRICKET_V1` solo, `CRICKET_V2` 1v1), Tactics (`TACTICS_V1`, `TACTICS_V2`) and Mickey Mouse (`MICKEY_MOUSE_V1`), and today they show only the heatmap layout. As with Ace and Checkout, the owner wants the page to **measure improvement over time**: more marks per round, fewer darts to close out, fewer wasted darts and more wins, each compared with the previous period. A dart's marks follow from where it landed under each game's own rules, so no aim needs storing. Wins and points depend on the opponent's darts too: the `v_stats_*` views hold the owner's darts only, but `v_game_replay` (0023, 0053) holds every participant's darts in the owner's sessions, so no migration is needed (owner decision, 2026-11-20).
 
 ## Goals
 
@@ -16,7 +16,6 @@ The MARKS family is next after CHECKOUT (D565). Its games are Cricket (`CRICKET_
   - single, double and treble mark counts
   - finished close-outs with their dart counts
   - and, for 1v1 sessions: games finished, games won and points.
-- **A new migration** with a view that serves the opponent's darts in the owner's 1v1 sessions of these games, so the fold can replay both seats (owner decision, 2026-11-20).
 - **A dedicated Marks layout** for the five ruleset versions, over the page Period select, in this order:
   1. Completion tile.
   2. **Four comparison tiles**, each showing the current period's value and its change against the preceding period of equal length:
@@ -50,21 +49,14 @@ The MARKS family is next after CHECKOUT (D565). Its games are Cricket (`CRICKET_
   - Points per round: darts in 1v1 sessions.
 
   Below that the tile shows its current value alone. All Time shows no change.
-- Exposing a raw table or another player's history: the new view only returns darts from sessions the owner played, scoped to the owner like every `v_stats_*` view.
+- Reading another player's history: only sessions the owner played are read, `v_game_replay` filtered by the requesting `player_id`.
 
 ## Data
 
-- **Migration** (next free number, `0056` at the time of writing): one view, for example `v_stats_session_seat_darts`. It returns one row per dart of every participant in the owner's terminal sessions of the marks games, with:
-  - the session and participant ids
-  - the seat side
-  - an owner flag
-  - turn and dart order
-  - the hit ring and number the folds read
-  
-  It is schema-only and a view, not a table. Add a `verification/` script for the owner scoping and the column resolution (D193).
+- **No migration.** The section reads `v_game_replay` (every participant's darts, scoped to the owner's sessions by `player_id`) for the sessions `v_stats_session_facts` selects in the request's scope.
 - **Fold input:**
   - Solo sessions replay from the owner's darts as other server sections do.
-  - 1v1 sessions replay both seats from the new view, so points, dead numbers and the winner match the game.
+  - 1v1 sessions replay both seats from `v_game_replay`, so points, dead numbers and the winner match the game.
 - **Owner seat:** the seat whose participant is the requesting player; the engine's `winnerParticipantRef` decides a win.
 - **Reads:** `marks` is bucketable, but the page uses two un-bucketed reads (current and preceding window), the Ace and Checkout pattern (`comparisonSection`, `periodComparison`). The cards read over the current window.
 
@@ -86,20 +78,17 @@ The MARKS family is next after CHECKOUT (D565). Its games are Cricket (`CRICKET_
   - astro check 0/0/0, format
   - context-budget
   - quality ratchet
-  - `npm run validate:app`'s `db:*` steps where a database is available, and `schema-view-drift.test.ts`
+  - `statistics-sql.itest.ts` where a database is available
 - Docs in the same change:
-  - `05-Database/06-Database-Specification.md` and its `06-Spec/` views chapter, `05-Views/00-Overview.md`
   - `10-Statistics/01-Section-Catalog.md` (new section row, Marks layout paragraph, game rows)
   - `10-Statistics/00-Overview.md` if the section list is named there
-  - the game-rules rows for Cricket and Tactics: their "statistics section" rows say a view and migration are needed
+  - the game-rules rows for Cricket and Tactics: their "statistics section" rows say a view and migration are needed; mark them shipped with no migration
   - File Inventory, component inventory, context-map history
   - a pending decision record in `decisions/api/`
 - Ask the owner about the design sync (D524) before the PR.
 
 ## Left to the builder
 
-- View name and exact columns.
-- Whether the view covers all games or only the marks games.
 - File and factory names.
 - One `marks` section, or `marks` plus a separate duel section.
 - Whether the cards are one component or several.
