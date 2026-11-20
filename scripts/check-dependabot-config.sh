@@ -5,7 +5,8 @@
 # cooldown, at most 5 open PRs, and minor+patch grouped with majors left
 # ungrouped. Also guards .github/workflows/dependency-review.yml: read +
 # PR-comment permissions only, Dependabot-only jobs, SHA-pinned actions, the
-# Claude step limited to read and comment tools and to the dependabot bot.
+# Claude step on the workflow token, in default permission mode, limited to
+# read, domain-scoped fetch and comment tools, and to the dependabot bot.
 # Override the files with DEPENDABOT_FILE and REVIEW_WORKFLOW (relative paths
 # resolve from the repo root). Runs from any cwd. Parses YAML with Ruby's stdlib.
 set -uo pipefail
@@ -68,10 +69,13 @@ d = YAML.load_file(path) || {}
 want_perms = { "contents" => "read", "pull-requests" => "write" }
 errs << "workflow permissions must be exactly #{want_perms}" unless d["permissions"] == want_perms
 
-tools = %w[Read Grep Glob WebFetch Bash(gh\ pr\ comment:*) Bash(gh\ pr\ view:*)]
+tools = ["Read", "Grep", "Glob", "WebFetch(domain:github.com)", "WebFetch(domain:www.npmjs.com)",
+         "WebFetch(domain:registry.npmjs.org)", "Bash(gh pr comment:*)", "Bash(gh pr view:*)"]
 claude_seen = false
 (d["jobs"] || {}).each do |name, j|
-  errs << "job #{name}: if must restrict to dependabot[bot]" unless j["if"].to_s.include?("'dependabot[bot]'")
+  cond = j["if"].to_s
+  errs << "job #{name}: if must restrict to dependabot[bot]" unless cond.include?("pull_request.user.login == 'dependabot[bot]'")
+  errs << "job #{name}: if must also require github.actor == 'dependabot[bot]'" unless cond.include?("github.actor == 'dependabot[bot]'")
   errs << "job #{name}: must not override permissions" if j.key?("permissions")
   (j["steps"] || []).each do |s|
     u = s["uses"].to_s
@@ -82,6 +86,8 @@ claude_seen = false
     w = s["with"] || {}
     errs << "claude step: allowed_bots must be dependabot[bot]" unless w["allowed_bots"] == "dependabot[bot]"
     errs << "claude step: must not set anthropic_api_key (free tier only)" if w.key?("anthropic_api_key")
+    errs << "claude step: github_token must be ${{ github.token }} (no OIDC app token)" unless w["github_token"] == "${{ github.token }}"
+    errs << "claude step: claude_args must set --permission-mode default" unless w["claude_args"].to_s =~ /--permission-mode\s+default\b/
     m = w["claude_args"].to_s.match(/--allowedTools\s+"([^"]*)"/)
     if m.nil?
       errs << "claude step: claude_args must set --allowedTools"

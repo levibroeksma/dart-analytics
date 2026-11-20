@@ -71,6 +71,14 @@ mutate_wf wf-write-tool "$claude[\"with\"][\"claude_args\"] = $claude[\"with\"][
 expect_wf_fail wf-write-tool Write
 mutate_wf wf-any-bot "$claude[\"with\"][\"allowed_bots\"] = \"*\""
 expect_wf_fail wf-any-bot allowed_bots
+mutate_wf wf-no-token "$claude[\"with\"].delete(\"github_token\")"
+expect_wf_fail wf-no-token github_token
+mutate_wf wf-auto-mode "$claude[\"with\"][\"claude_args\"] = $claude[\"with\"][\"claude_args\"].sub(\"--permission-mode default\", \"\")"
+expect_wf_fail wf-auto-mode permission-mode
+mutate_wf wf-any-fetch "$claude[\"with\"][\"claude_args\"] = $claude[\"with\"][\"claude_args\"].sub(\"Read,\", \"Read,WebFetch,\")"
+expect_wf_fail wf-any-fetch WebFetch
+mutate_wf wf-human-push 'd["jobs"].each_value { |j| j["if"] = "github.event.pull_request.user.login == '"'dependabot[bot]'"'" }'
+expect_wf_fail wf-human-push github.actor
 
 # Selector: select <json> <expected breaking value>.
 SELECT="$ROOT/scripts/dependency-review-select.sh"
@@ -87,6 +95,9 @@ select_case "[$(dep drizzle-orm 0.45.2 0.45.3 patch)]" false
 select_case "[$(dep alpinejs 3.15.12 3.16.0 minor)]" false
 select_case "[$(dep clsx 2.1.1 2.1.2 patch),$(dep drizzle-orm 0.45.2 0.46.0 minor)]" true
 select_case "[]" false
+select_case '[{"dependencyName":"actions/setup-node","prevVersion":"4","newVersion":"5","updateType":null}]' true
+select_case '[{"dependencyName":"actions/checkout","prevVersion":"v4.2.0","newVersion":"v5.0.0","updateType":null}]' true
+select_case '[{"dependencyName":"clsx","prevVersion":"2.1.1","newVersion":"2.2.0","updateType":null}]' false
 
 [ "$FAILED" -eq 0 ] || { echo "test-check-dependabot-config: $FAILED failure(s)" >&2; exit 1; }
 echo "test-check-dependabot-config: ok"
