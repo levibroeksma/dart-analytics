@@ -56,6 +56,7 @@ import { trackGamesCardSection } from "@lib/stats/sections/track-games-card.data
 import { aceComparisonSection } from "@lib/stats/sections/ace-comparison.data";
 import { checkoutCardsSection } from "@lib/stats/sections/checkout-cards.data";
 import { checkoutComparisonSection } from "@lib/stats/sections/checkout-comparison.data";
+import { marksSection } from "@lib/stats/sections/marks-section.data";
 import { driftCardSection } from "@lib/stats/sections/drift-card.data";
 import { preferenceCardSection } from "@lib/stats/sections/preference-card.data";
 import { setupCardSection } from "@lib/stats/sections/setup-card.data";
@@ -86,6 +87,7 @@ function registerStatisticsData(Alpine: Alpine) {
   Alpine.data("aceComparisonSection", aceComparisonSection);
   Alpine.data("checkoutComparisonSection", checkoutComparisonSection);
   Alpine.data("checkoutCardsSection", checkoutCardsSection);
+  Alpine.data("marksSection", marksSection);
   Alpine.data("preferenceCardSection", preferenceCardSection);
   Alpine.data("setupCardSection", setupCardSection);
 }

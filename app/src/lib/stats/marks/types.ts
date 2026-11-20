@@ -1,4 +1,6 @@
 import type { AceMeasure } from "../ace/types";
+import type { TrackTile } from "../track/types";
+import type { AimTableRow } from "../x01/types";
 
 /** A measure shown as a mean (`part / whole`), not a percent: this period's and the preceding period's, `null` with no preceding period. */
 export type MeanMeasure = AceMeasure;
@@ -15,4 +17,12 @@ export type MarksComparison = {
   wasted: AceMeasure;
   wins: AceMeasure;
   ppr: MeanMeasure;
+};
+
+/** The Marks page card for one period: its comparison, objective and ring rows, and the 1v1 points tile (none without 1v1 darts). */
+export type MarksCard = {
+  comparison: MarksComparison;
+  objectives: AimTableRow[];
+  rings: AimTableRow[];
+  points: TrackTile[];
 };

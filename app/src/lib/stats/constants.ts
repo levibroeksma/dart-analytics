@@ -41,13 +41,17 @@ export const CHECKOUT_LAYOUTS: ReadonlySet<string> = new Set([
   "TUOD_V1",
 ]);
 
-/** Ruleset versions whose `/statistics` view is the plain heatmap alone (`HeatmapStatsOverview.astro`): board games, with a target picker where the heatmap takes a `target` (`heatmap-targets.ts`). */
-export const HEATMAP_ONLY_LAYOUTS: ReadonlySet<string> = new Set([
+/** Ruleset versions whose `/statistics` view is the Marks layout (`MarksStatsOverview.astro`): Cricket, Tactics and Mickey Mouse. */
+export const MARKS_LAYOUTS: ReadonlySet<string> = new Set([
   "CRICKET_V1",
   "CRICKET_V2",
   "TACTICS_V1",
   "TACTICS_V2",
   "MICKEY_MOUSE_V1",
+]);
+
+/** Ruleset versions whose `/statistics` view is the plain heatmap alone (`HeatmapStatsOverview.astro`): board games, with a target picker where the heatmap takes a `target` (`heatmap-targets.ts`). */
+export const HEATMAP_ONLY_LAYOUTS: ReadonlySet<string> = new Set([
   "BASEBALL_V1",
   "KILLER_V1",
   "FIVES_V1",
