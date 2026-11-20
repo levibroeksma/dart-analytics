@@ -2,6 +2,7 @@ import type {
   AimKey,
   ContextFilter,
   GameTypeKey,
+  SeatFact,
   SeriesBucket,
   TargetKey,
   WireKey,
@@ -10,6 +11,7 @@ import type {
   CheckoutVisitTotals,
   DartFact,
   DartZoneKey,
+  EngineFacts,
   SeatFoldStep,
 } from "@modules/types";
 
@@ -772,6 +774,49 @@ export type SessionSteps<TSeat> = {
   bucketStart: string;
   bucketEnd: string;
   steps: readonly SeatFoldStep<TSeat>[];
+};
+
+/** A marks game the `marks` section replays. */
+export type MarksGameKey = "CRICKET" | "TACTICS" | "MICKEY_MOUSE";
+
+/**
+ * One marks session ready to replay: every seat's kept turns in play order,
+ * and the seat the requesting player held (`ownerRef`).
+ */
+export type MarksSession = {
+  sessionId: string;
+  gameTypeKey: MarksGameKey;
+  bucketStart: string;
+  bucketEnd: string;
+  seats: readonly SeatFact[];
+  ownerRef: string;
+  facts: EngineFacts;
+};
+
+/** One objective's owner marks and landed darts; `key` is `"20"`, `"BULL"`, `"DOUBLES"` or `"TRIPLES"`. */
+export type MarksObjectiveCount = { key: string; marks: number; darts: number };
+
+/**
+ * `marks` section metrics for the owner's seat. `objectives` lists the
+ * game's own objectives in display order; `duel` counts two-seat sessions
+ * only.
+ */
+export type MarksMetrics = {
+  darts: number;
+  marks: number;
+  wasted: number;
+  rings: { single: number; double: number; treble: number };
+  objectives: MarksObjectiveCount[];
+  closeOuts: { games: number; darts: number };
+  duel: { games: number; wins: number; darts: number; points: number };
+};
+
+/** One replayed marks session's metrics, tagged with its bucket. */
+export type MarksFoldedSession = {
+  sessionId: string;
+  bucketStart: string;
+  bucketEnd: string;
+  metrics: MarksMetrics;
 };
 
 /** `shanghai-count` section metrics — one bucket (phase-4 decision 12). */
