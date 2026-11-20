@@ -424,3 +424,4 @@ export type HeatmapTargetOption = { value: AimKey | null; label: string };
 export * from "./track/types";
 export * from "./ace/types";
 export * from "./checkout/types";
+export * from "./marks/types";
