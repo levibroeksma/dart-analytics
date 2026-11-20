@@ -17,6 +17,8 @@ updated: 2026-11-13
 
 # Version History
 
+> **Version:** 1.241.0 (2026-11-20 — Marks statistics page ([pending:marks-statistics-page]): new server section `marks` for Cricket, Tactics and Mickey Mouse, replayed from `v_game_replay` through the engines' `foldMarks` (no migration; `findMarksFoldRows`, `marks.module.ts`); layout `MarksStatsOverview.astro`, `MARKS_LAYOUTS`, `lib/stats/marks/`, `marksSection()`; `meanTile` joins `ratioTile`; `groupBySession`/`sessionFactsOf` move into `replay.module.ts`; Section Catalog 1.15.0.)
+
 > **Version:** 1.240.0 (2026-11-19 — Checkout statistics page (D0565): layout `CheckoutStatsOverview.astro` and `CheckoutCards.astro`, `CHECKOUT_LAYOUTS` for `121_V1`, `121_V2` and `TUOD_V1`; new `lib/stats/checkout/` ladder totals, routes, comparison and card rows, `checkoutComparisonSection()` and `checkoutCardsSection()`; the store's ladder and route helpers move there and `ratioTile` is shared with Ace; `01-Section-Catalog.md` 1.14.0.)
 
 > **Version:** 1.239.0 (2026-11-19 — Decision bot no longer dispatches `checks.yml` (D564): a throwaway PR showed the dispatched run does not count toward the PR's required checks; the owner approves the held `pull_request` run instead. `decision-ids.yml` drops the dispatch step and `actions: write`; `checks.yml` drops `workflow_dispatch`; `DECISIONS.md` step 8 and the `decision-ids.yml` inventory row updated.)
