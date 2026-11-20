@@ -2,7 +2,7 @@
 status: historical
 scope: context-map version history and point-in-time task records
 read-when: never during a task — provenance only
-updated: 2026-11-13
+updated: 2026-11-20
 -->
 
 # Context Map History
@@ -16,6 +16,8 @@ updated: 2026-11-13
 ---
 
 # Version History
+
+> **Version:** 1.240.0 (2026-11-20 — Weekly Dependabot updates [pending:dependabot-weekly-updates]: `.github/dependabot.yml` (npm `/app` + github-actions, Monday 06:00 Europe/Amsterdam, 2-day cooldown, limit 5, minor+patch grouped); `.github/workflows/dependency-review.yml` posts a Claude impact comment on breaking updates via `scripts/dependency-review-select.sh`; new gate `check-dependabot-config.sh` + fixture test; `03-Engineering-Workflow.md` § Dependency Updates with owner setup)
 
 > **Version:** 1.239.0 (2026-11-19 — Decision bot no longer dispatches `checks.yml` (D564): a throwaway PR showed the dispatched run does not count toward the PR's required checks; the owner approves the held `pull_request` run instead. `decision-ids.yml` drops the dispatch step and `actions: write`; `checks.yml` drops `workflow_dispatch`; `DECISIONS.md` step 8 and the `decision-ids.yml` inventory row updated.)
 
