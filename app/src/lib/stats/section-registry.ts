@@ -230,6 +230,17 @@ export const SECTIONS: Readonly<Record<SectionId, SectionMeta>> = {
     configSensitive: [],
     params: [],
   },
+  marks: {
+    id: "marks",
+    version: 1,
+    requires: ["board"],
+    games: ["CRICKET", "TACTICS", "MICKEY_MOUSE"],
+    computeSite: "server",
+    bucketable: true,
+    includesAbandoned: false,
+    configSensitive: [],
+    params: [],
+  },
   confusion: {
     id: "confusion",
     version: 1,

@@ -33,6 +33,7 @@ import {
   findStepBuckets,
   findStepSessionPage,
   findStepFoldRows,
+  findMarksFoldRows,
   findStepScopeDartCount,
 } from "@repositories/statistics.repository";
 
@@ -3550,6 +3551,37 @@ describe("findStepSessionPage", () => {
     const result = await findStepSessionPage(db, baseQuery);
 
     expect(result[0].neverStarted).toBeNull();
+  });
+});
+
+describe("findMarksFoldRows", () => {
+  it("reads every v_game_replay dart of the owner's scoped sessions", async () => {
+    const { db, statements } = renderingDb([]);
+    await findMarksFoldRows(db, {
+      ...sessionScope,
+      bucket: "none",
+      tz: undefined,
+    });
+    const sql = onlyStatement(statements);
+    expect(sql).toContain('"v_game_replay"');
+    expect(sql).toContain('"v_stats_session_facts"');
+    expect(sql).toMatch(/"v_game_replay"\."player_id" = \$/);
+    expect(sql).toMatch(/"status_key"/);
+    expect(sql).not.toMatch(/"participant_type_key" = /);
+  });
+
+  it("orders by session, stage sequence, turn and dart", async () => {
+    const { db, statements } = renderingDb([]);
+    await findMarksFoldRows(db, {
+      ...sessionScope,
+      bucket: "none",
+      tz: undefined,
+    });
+    const sql = onlyStatement(statements);
+    const orderClause = sql.slice(sql.toLowerCase().indexOf("order by"));
+    expect(orderClause).toMatch(
+      /"session_id".*"stage_sequence".*"turn_sequence".*"dart_number"/,
+    );
   });
 });
 

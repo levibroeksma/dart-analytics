@@ -947,6 +947,30 @@ export type ReplayRow = {
 };
 
 /**
+ * A `v_game_replay` row with its session and its stage's own columns, so a
+ * fold rebuilds the session's real stage tree (`sessionFactsOf`).
+ */
+export type StagedReplayRow = ReplayRow & {
+  sessionId: string;
+  stageSequence: number;
+  stageTypeKey: string;
+  parentStageId: string | null;
+};
+
+/**
+ * `findMarksFoldRows`' row: every participant's dart of one owner session in
+ * scope, with the session's snapshot and the bucket its `completed_at`
+ * falls in.
+ */
+export type MarksFoldRow = StagedReplayRow & {
+  gameTypeKey: string;
+  rulesetVersionKey: string;
+  configuration: Record<string, unknown> | null;
+  bucketStart: string;
+  bucketEnd: string;
+};
+
+/**
  * A `ReplayRow`'s dart half, narrowed to a real dart: `dartNumber`, `score`
  * and `hitZoneKey` are non-null, which `rowsToTurns` proves row by row (R3).
  */
@@ -994,14 +1018,10 @@ export type ReplayCursor = {
  * rather than assumed, so the fold rebuilds each session's real stage tree
  * through `stageOrder` instead of inventing one.
  */
-export type StepFoldRow = ReplayRow & {
-  sessionId: string;
+export type StepFoldRow = StagedReplayRow & {
   completedAt: string;
   exerciseRulesetVersionKey: string | null;
   configuration: Record<string, unknown> | null;
-  stageSequence: number;
-  stageTypeKey: string;
-  parentStageId: string | null;
 };
 
 /**

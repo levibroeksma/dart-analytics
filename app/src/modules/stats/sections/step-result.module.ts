@@ -13,11 +13,7 @@ import "@modules/training/exercises/switching-chain.engine.module";
 import "@modules/training/exercises/switching.engine.module";
 import "@modules/training/exercises/target-scoring.engine.module";
 import { getDartExerciseEngineFactory } from "@modules/training/exercises/dart-engine.registry";
-import {
-  replayFacts,
-  rowsToTurns,
-  stageOrder,
-} from "@modules/stats/replay.module";
+import { groupBySession, sessionFactsOf } from "@modules/stats/replay.module";
 import {
   STEP_METRIC_SPECS,
   mergeStepMetrics,
@@ -27,68 +23,11 @@ import { isClosed } from "./series.module";
 import type { ExerciseRulesetVersionKey, SeriesBucket } from "@lib/types";
 import type {
   DartExerciseKind,
-  ReplayStageRow,
   StepFoldBucketRow,
   StepFoldSession,
   StepMetricSpec,
   StepResultMetric,
 } from "@modules/types";
-
-/** One session's distinct stages, in first-appearance order, exactly as `v_game_replay` carries them (migration `0044`). */
-function stagesOf(rows: readonly StepFoldSession[]): ReplayStageRow[] {
-  const seen = new Set<string>();
-  const stages: ReplayStageRow[] = [];
-  for (const row of rows) {
-    if (seen.has(row.stageId)) continue;
-    seen.add(row.stageId);
-    stages.push({
-      stageId: row.stageId,
-      parentStageId: row.parentStageId,
-      stageTypeKey: row.stageTypeKey,
-      sequence: row.stageSequence,
-    });
-  }
-  return stages;
-}
-
-/** Groups `sessions` by `sessionId`, preserving each session's own row order (`findStepFoldRows`' own `ORDER BY`). */
-function groupBySession(
-  sessions: readonly StepFoldSession[],
-): Map<string, StepFoldSession[]> {
-  const groups = new Map<string, StepFoldSession[]>();
-  for (const row of sessions) {
-    const group = groups.get(row.sessionId);
-    if (group) {
-      group.push(row);
-    } else {
-      groups.set(row.sessionId, [row]);
-    }
-  }
-  return groups;
-}
-
-/**
- * One session's `rows` in play order: by each stage's index in `stages`
- * (`stageOrder`'s pre-order), then turn sequence, then dart number.
- * `findStepFoldRows` orders by `stageSequence`, which a root and its first
- * child share, so without this their turns would interleave in the replay.
- */
-function inPlayOrder(
-  rows: readonly StepFoldSession[],
-  stages: readonly ReplayStageRow[],
-): StepFoldSession[] {
-  const stageIndex = new Map(
-    stages.map((stage, index) => [stage.stageId, index]),
-  );
-  return rows
-    .slice()
-    .sort(
-      (a, b) =>
-        stageIndex.get(a.stageId)! - stageIndex.get(b.stageId)! ||
-        a.turnSequence - b.turnSequence ||
-        (a.dartNumber ?? 0) - (b.dartNumber ?? 0),
-    );
-}
 
 /**
  * One session's own `stepMetrics`, replayed from its rows through its
@@ -113,9 +52,7 @@ function foldOneSession(
   if (!factory) return null;
 
   try {
-    const stages = stageOrder(stagesOf(rows));
-    const turns = rowsToTurns(inPlayOrder(rows, stages));
-    const facts = replayFacts(stages, turns);
+    const facts = sessionFactsOf(rows);
     const state = factory.create(first.configuration, facts).state();
     return stepMetrics(kind, state, facts);
   } catch {

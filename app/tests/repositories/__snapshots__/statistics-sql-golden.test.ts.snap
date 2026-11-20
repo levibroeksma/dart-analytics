@@ -86,6 +86,25 @@ exports[`statistics readers rendered SQL > bucket none > findIntentMoments 1`] =
 ]
 `;
 
+exports[`statistics readers rendered SQL > bucket none > findMarksFoldRows 1`] = `
+[
+  {
+    "params": [
+      "2026-01-01T00:00:00.000Z",
+      "2026-02-01T00:00:00.000Z",
+      "0190a000-0000-7000-8000-000000000001",
+      "501",
+      "2026-01-01T00:00:00.000Z",
+      "2026-02-01T00:00:00.000Z",
+      "COMPLETED",
+      "VISUAL_BOARD",
+      "0190a000-0000-7000-8000-000000000001",
+    ],
+    "sql": "select "v_game_replay"."session_id", "v_game_replay"."stage_id", "v_game_replay"."stage_sequence", "v_game_replay"."stage_type_key", "v_game_replay"."parent_stage_id", "v_game_replay"."turn_sequence", "v_game_replay"."participant_id", "v_game_replay"."participant_name", "v_game_replay"."participant_type_key", "v_game_replay"."turn_total_score", "v_game_replay"."dart_number", "v_game_replay"."intended_target_number", "v_game_replay"."intended_zone_key", "v_game_replay"."hit_target_number", "v_game_replay"."hit_zone_key", "v_game_replay"."score", "v_game_replay"."location_x", "v_game_replay"."location_y", "v_game_replay"."kept", "v_stats_session_facts"."game_type_key", "v_stats_session_facts"."ruleset_version_key", "v_stats_session_facts"."configuration", $1::timestamptz, $2::timestamptz from "v_game_replay" inner join "v_stats_session_facts" on "v_game_replay"."session_id" = "v_stats_session_facts"."session_id" where (("v_stats_session_facts"."player_id" = $3 and "v_stats_session_facts"."game_type_key" = $4 and "v_stats_session_facts"."completed_at" >= $5 and "v_stats_session_facts"."completed_at" < $6 and "v_stats_session_facts"."status_key" in ($7) and "v_stats_session_facts"."input_mode_key" = $8) and "v_game_replay"."player_id" = $9) order by "v_game_replay"."session_id", "v_game_replay"."stage_sequence", "v_game_replay"."turn_sequence", "v_game_replay"."dart_number"",
+  },
+]
+`;
+
 exports[`statistics readers rendered SQL > bucket none > findRoutineRunBuckets 1`] = `
 [
   {
@@ -285,6 +304,23 @@ exports[`statistics readers rendered SQL > bucket week > findIntentMoments 1`] =
       "COMPLETED",
     ],
     "sql": "select to_char(((date_trunc('week', "v_stats_dart_facts"."completed_at" AT TIME ZONE 'Europe/Amsterdam') AT TIME ZONE 'Europe/Amsterdam')) AT TIME ZONE 'UTC', 'YYYY-MM-DD"T"HH24:MI:SS.MS"Z"'), to_char((((date_trunc('week', "v_stats_dart_facts"."completed_at" AT TIME ZONE 'Europe/Amsterdam') + interval '1 week') AT TIME ZONE 'Europe/Amsterdam')) AT TIME ZONE 'UTC', 'YYYY-MM-DD"T"HH24:MI:SS.MS"Z"'), "intended_target_number", "intended_zone_key", count(*), sum("location_x"), sum("location_y"), sum("location_x" * "location_x"), sum("location_y" * "location_y"), sum("location_x" * "location_y") from "v_stats_dart_facts" where (("v_stats_dart_facts"."player_id" = $1 and "v_stats_dart_facts"."game_type_key" = $2 and "v_stats_dart_facts"."completed_at" >= $3 and "v_stats_dart_facts"."completed_at" < $4 and "v_stats_dart_facts"."status_key" in ($5)) and "v_stats_dart_facts"."intended_target_number" is not null and "v_stats_dart_facts"."intended_zone_key" is not null) group by to_char(((date_trunc('week', "v_stats_dart_facts"."completed_at" AT TIME ZONE 'Europe/Amsterdam') AT TIME ZONE 'Europe/Amsterdam')) AT TIME ZONE 'UTC', 'YYYY-MM-DD"T"HH24:MI:SS.MS"Z"'), to_char((((date_trunc('week', "v_stats_dart_facts"."completed_at" AT TIME ZONE 'Europe/Amsterdam') + interval '1 week') AT TIME ZONE 'Europe/Amsterdam')) AT TIME ZONE 'UTC', 'YYYY-MM-DD"T"HH24:MI:SS.MS"Z"'), "v_stats_dart_facts"."intended_target_number", "v_stats_dart_facts"."intended_zone_key"",
+  },
+]
+`;
+
+exports[`statistics readers rendered SQL > bucket week > findMarksFoldRows 1`] = `
+[
+  {
+    "params": [
+      "0190a000-0000-7000-8000-000000000001",
+      "501",
+      "2026-01-01T00:00:00.000Z",
+      "2026-02-01T00:00:00.000Z",
+      "COMPLETED",
+      "VISUAL_BOARD",
+      "0190a000-0000-7000-8000-000000000001",
+    ],
+    "sql": "select "v_game_replay"."session_id", "v_game_replay"."stage_id", "v_game_replay"."stage_sequence", "v_game_replay"."stage_type_key", "v_game_replay"."parent_stage_id", "v_game_replay"."turn_sequence", "v_game_replay"."participant_id", "v_game_replay"."participant_name", "v_game_replay"."participant_type_key", "v_game_replay"."turn_total_score", "v_game_replay"."dart_number", "v_game_replay"."intended_target_number", "v_game_replay"."intended_zone_key", "v_game_replay"."hit_target_number", "v_game_replay"."hit_zone_key", "v_game_replay"."score", "v_game_replay"."location_x", "v_game_replay"."location_y", "v_game_replay"."kept", "v_stats_session_facts"."game_type_key", "v_stats_session_facts"."ruleset_version_key", "v_stats_session_facts"."configuration", to_char(((date_trunc('week', "v_stats_session_facts"."completed_at" AT TIME ZONE 'Europe/Amsterdam') AT TIME ZONE 'Europe/Amsterdam')) AT TIME ZONE 'UTC', 'YYYY-MM-DD"T"HH24:MI:SS.MS"Z"'), to_char((((date_trunc('week', "v_stats_session_facts"."completed_at" AT TIME ZONE 'Europe/Amsterdam') + interval '1 week') AT TIME ZONE 'Europe/Amsterdam')) AT TIME ZONE 'UTC', 'YYYY-MM-DD"T"HH24:MI:SS.MS"Z"') from "v_game_replay" inner join "v_stats_session_facts" on "v_game_replay"."session_id" = "v_stats_session_facts"."session_id" where (("v_stats_session_facts"."player_id" = $1 and "v_stats_session_facts"."game_type_key" = $2 and "v_stats_session_facts"."completed_at" >= $3 and "v_stats_session_facts"."completed_at" < $4 and "v_stats_session_facts"."status_key" in ($5) and "v_stats_session_facts"."input_mode_key" = $6) and "v_game_replay"."player_id" = $7) order by "v_game_replay"."session_id", "v_game_replay"."stage_sequence", "v_game_replay"."turn_sequence", "v_game_replay"."dart_number"",
   },
 ]
 `;

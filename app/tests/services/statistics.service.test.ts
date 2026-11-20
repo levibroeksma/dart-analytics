@@ -25,6 +25,7 @@ vi.mock("@repositories/statistics.repository", () => ({
   findVisitScoring: vi.fn(),
   findHitNumberCells: vi.fn(),
   findDartFoldRows: vi.fn(),
+  findMarksFoldRows: vi.fn(),
   findReplaySession: vi.fn(),
   findReplayStages: vi.fn(),
   findReplayParticipants: vi.fn(),
@@ -2178,6 +2179,63 @@ describe("getGameSection dispatches derived-intent and game-specific sections (p
         shanghais: 0,
         byRound: {},
       });
+    }
+  });
+
+  it("dispatches marks through the replay fold on CRICKET, counting skipped sessions", async () => {
+    vi.mocked(repo.findGameDataVersion).mockResolvedValue({
+      count: 2,
+      maxCompletedAt: null,
+    });
+    vi.mocked(repo.findScopeDartCount).mockResolvedValue(2);
+    const marksRow = {
+      sessionId: "s-cricket",
+      gameTypeKey: "CRICKET",
+      rulesetVersionKey: "CRICKET_V1",
+      configuration: { seats: SEATS },
+      bucketStart: "2026-01-01T00:00:00.000Z",
+      bucketEnd: "2026-02-01T00:00:00.000Z",
+      stageId: "01900000-0000-7000-9000-0000000000a1",
+      stageSequence: 1,
+      stageTypeKey: "EXERCISE_BLOCK",
+      parentStageId: null,
+      turnSequence: 1,
+      participantId: SEATS[0]!.participantRef,
+      participantName: "Levi",
+      participantTypeKey: "PLAYER",
+      turnTotalScore: 0,
+      dartNumber: 1,
+      intendedTargetNumber: null,
+      intendedZoneKey: null,
+      hitTargetNumber: 20,
+      hitZoneKey: "TREBLE",
+      score: 60,
+      locationX: null,
+      locationY: null,
+      kept: false,
+    };
+    vi.mocked(repo.findMarksFoldRows).mockResolvedValue([
+      marksRow,
+      { ...marksRow, sessionId: "s-ghost", participantId: "ghost" },
+    ] as never);
+
+    const result = await getGameSection(playerId, "CRICKET", "marks", {
+      ...baseRangeQuery,
+      status: "completed",
+    });
+
+    expect(result.ok).toBe(true);
+    if (result.ok) {
+      expect(result.data.sectionId).toBe("marks");
+      const metrics = result.data.buckets[0]!.metrics as unknown as {
+        marks: number;
+        darts: number;
+      };
+      expect(metrics.marks).toBe(3);
+      expect(metrics.darts).toBe(1);
+      expect(
+        (result.data as { skippedSessions?: number }).skippedSessions,
+      ).toBe(1);
     }
   });
 

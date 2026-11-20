@@ -58,6 +58,8 @@ import type {
   StatsSessionRow,
   StepBucketRow,
   StepFoldBucketRow,
+  StagedReplayRow,
+  MarksFoldRow,
   StepScope,
   StepSessionRow,
   TrainedRoutineRow,
@@ -2364,11 +2366,36 @@ export async function findStepSessionPage(
   });
 }
 
-function mapStepFoldRow(row: {
+/** `v_game_replay`'s stage, turn and dart columns every replay fold read selects. */
+const REPLAY_TURN_COLUMNS = {
+  stageId: vGameReplay.stageId,
+  stageSequence: vGameReplay.stageSequence,
+  stageTypeKey: vGameReplay.stageTypeKey,
+  parentStageId: vGameReplay.parentStageId,
+  turnSequence: vGameReplay.turnSequence,
+  participantId: vGameReplay.participantId,
+  participantName: vGameReplay.participantName,
+  participantTypeKey: vGameReplay.participantTypeKey,
+  turnTotalScore: vGameReplay.turnTotalScore,
+  dartNumber: vGameReplay.dartNumber,
+  intendedTargetNumber: vGameReplay.intendedTargetNumber,
+  intendedZoneKey: vGameReplay.intendedZoneKey,
+  hitTargetNumber: vGameReplay.hitTargetNumber,
+  hitZoneKey: vGameReplay.hitZoneKey,
+  score: vGameReplay.score,
+  locationX: vGameReplay.locationX,
+  locationY: vGameReplay.locationY,
+  kept: vGameReplay.kept,
+};
+
+/** `REPLAY_TURN_COLUMNS` with the session id, keyed as `StagedReplayRow`. */
+const REPLAY_FOLD_COLUMNS = {
+  sessionId: vGameReplay.sessionId,
+  ...REPLAY_TURN_COLUMNS,
+};
+
+type ReplayFoldColumns = {
   sessionId: string | null;
-  completedAt: string | null;
-  exerciseRulesetVersionKey: string | null;
-  configuration: unknown;
   stageId: string | null;
   stageSequence: number | null;
   stageTypeKey: string | null;
@@ -2389,12 +2416,14 @@ function mapStepFoldRow(row: {
   kept: boolean | null;
   bucketStart: string | null;
   bucketEnd: string | null;
-}): StepFoldBucketRow {
+};
+
+/** `REPLAY_FOLD_COLUMNS` plus the bucket window as a typed row; the two `NUMERIC` landing columns are parsed. */
+function mapReplayFoldColumns(
+  row: ReplayFoldColumns,
+): StagedReplayRow & { bucketStart: string; bucketEnd: string } {
   return {
     sessionId: nonNull(row.sessionId, "session_id"),
-    completedAt: nonNull(row.completedAt, "completed_at"),
-    exerciseRulesetVersionKey: row.exerciseRulesetVersionKey,
-    configuration: row.configuration as Record<string, unknown> | null,
     stageId: nonNull(row.stageId, "stage_id"),
     stageSequence: nonNull(row.stageSequence, "stage_sequence"),
     stageTypeKey: nonNull(row.stageTypeKey, "stage_type_key"),
@@ -2418,29 +2447,27 @@ function mapStepFoldRow(row: {
   };
 }
 
+function mapStepFoldRow(
+  row: ReplayFoldColumns & {
+    completedAt: string | null;
+    exerciseRulesetVersionKey: string | null;
+    configuration: unknown;
+  },
+): StepFoldBucketRow {
+  return {
+    ...mapReplayFoldColumns(row),
+    completedAt: nonNull(row.completedAt, "completed_at"),
+    exerciseRulesetVersionKey: row.exerciseRulesetVersionKey,
+    configuration: row.configuration as Record<string, unknown> | null,
+  };
+}
+
 const STEP_FOLD_COLUMNS = {
   sessionId: vGameReplay.sessionId,
   completedAt: vStatsRoutineStepFacts.completedAt,
   exerciseRulesetVersionKey: vStatsRoutineStepFacts.exerciseRulesetVersionKey,
   configuration: vStatsRoutineStepFacts.configuration,
-  stageId: vGameReplay.stageId,
-  stageSequence: vGameReplay.stageSequence,
-  stageTypeKey: vGameReplay.stageTypeKey,
-  parentStageId: vGameReplay.parentStageId,
-  turnSequence: vGameReplay.turnSequence,
-  participantId: vGameReplay.participantId,
-  participantName: vGameReplay.participantName,
-  participantTypeKey: vGameReplay.participantTypeKey,
-  turnTotalScore: vGameReplay.turnTotalScore,
-  dartNumber: vGameReplay.dartNumber,
-  intendedTargetNumber: vGameReplay.intendedTargetNumber,
-  intendedZoneKey: vGameReplay.intendedZoneKey,
-  hitTargetNumber: vGameReplay.hitTargetNumber,
-  hitZoneKey: vGameReplay.hitZoneKey,
-  score: vGameReplay.score,
-  locationX: vGameReplay.locationX,
-  locationY: vGameReplay.locationY,
-  kept: vGameReplay.kept,
+  ...REPLAY_TURN_COLUMNS,
 };
 
 /**
@@ -2482,6 +2509,47 @@ export async function findStepFoldRows(
     .where(whereClause)
     .orderBy(...order);
   return rows.map(mapStepFoldRow);
+}
+
+/**
+ * Every `v_game_replay` dart, every participant's, of the requesting
+ * player's own sessions `sessionScopeWhere` selects on
+ * `v_stats_session_facts`, each row carrying its session's snapshot and the
+ * bucket its `completed_at` falls in. Ordered by session, stage sequence,
+ * turn and dart; `sessionFactsOf` re-sorts each session into stage
+ * pre-order.
+ */
+export async function findMarksFoldRows(
+  db: Db,
+  q: SessionScope & { bucket: Bucket; tz: string | undefined },
+): Promise<MarksFoldRow[]> {
+  const window = bucketWindow(vStatsSessionFacts.completedAt, q);
+  const rows = await db
+    .select({
+      ...REPLAY_FOLD_COLUMNS,
+      gameTypeKey: vStatsSessionFacts.gameTypeKey,
+      rulesetVersionKey: vStatsSessionFacts.rulesetVersionKey,
+      configuration: vStatsSessionFacts.configuration,
+      ...window.columns,
+    })
+    .from(vGameReplay)
+    .innerJoin(
+      vStatsSessionFacts,
+      eq(vGameReplay.sessionId, vStatsSessionFacts.sessionId),
+    )
+    .where(and(sessionScopeWhere(q), eq(vGameReplay.playerId, q.playerId)))
+    .orderBy(
+      vGameReplay.sessionId,
+      vGameReplay.stageSequence,
+      vGameReplay.turnSequence,
+      vGameReplay.dartNumber,
+    );
+  return rows.map((row) => ({
+    ...mapReplayFoldColumns(row),
+    gameTypeKey: nonNull(row.gameTypeKey, "game_type_key"),
+    rulesetVersionKey: nonNull(row.rulesetVersionKey, "ruleset_version_key"),
+    configuration: row.configuration as Record<string, unknown> | null,
+  }));
 }
 
 /**
