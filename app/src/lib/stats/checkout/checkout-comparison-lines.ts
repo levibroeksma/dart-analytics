@@ -10,10 +10,10 @@ function signed(points: number): string {
 }
 
 function peakDetail(peak: PeakMeasure): string {
-  if (peak.previousGoes === null || peak.previous === null)
-    return "No earlier period";
+  if (peak.previousGoes === null) return "No earlier period";
   if (
     peak.current === null ||
+    peak.previous === null ||
     peak.currentGoes < MIN_TARGET_SAMPLE ||
     peak.previousGoes < MIN_TARGET_SAMPLE
   )

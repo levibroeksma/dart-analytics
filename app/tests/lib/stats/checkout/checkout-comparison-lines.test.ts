@@ -54,6 +54,7 @@ describe("checkoutComparisonTiles", () => {
     expect(peak(40, 51)).toBe("±0 vs previous period");
     expect(peak(20, 51)).toBe("No comparison yet");
     expect(peak(null, null)).toBe("No earlier period");
+    expect(peak(0, null)).toBe("No comparison yet");
   });
 
   it("shows a dash for an empty peak and the empty-period texts", () => {

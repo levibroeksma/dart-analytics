@@ -139,4 +139,15 @@ describe("checkoutCardsSection", () => {
     await s.load(NOW);
     expect(loadGameSection).not.toHaveBeenCalled();
   });
+
+  it("keeps each instance's response when another instance loads", async () => {
+    respond({ "40": { D20: { visits: 3, finished: 1 } } });
+    const first = scope();
+    const second = scope();
+    await Promise.all([first.load(NOW), second.load(NOW)]);
+    expect(first.remaining).toBe(40);
+    expect(second.remaining).toBe(40);
+    expect(first.loading).toBe(false);
+    expect(second.loading).toBe(false);
+  });
 });

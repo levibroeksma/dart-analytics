@@ -98,11 +98,24 @@ describe("checkoutComparisonSection", () => {
   });
 
   it("reads the current period alone for all time", async () => {
-    ladderBy(heatmapWindow("all", NOW).from, ladder(40, 20, 61), {});
+    loadGameSection.mockImplementation((_game: string, sectionId: string) =>
+      Promise.resolve(
+        series(
+          sectionId === "ladder-progress"
+            ? { ...ladder(40, 20, 61), afterMiss: 40, recovered: 10 }
+            : { "41-60": { visits: 40, busts: 4 } },
+        ),
+      ),
+    );
     const s = scope("all");
     await s.load(NOW);
     expect(loadGameSection.mock.calls).toHaveLength(2);
-    expect(s.tiles.map((tile) => tile.detail)[0]).toBe("No earlier period");
+    expect(s.tiles.map((tile) => tile.detail)).toEqual([
+      "No earlier period",
+      "No earlier period",
+      "No earlier period",
+      "No earlier period",
+    ]);
   });
 
   it("shows the message and empty tiles when a read fails", async () => {

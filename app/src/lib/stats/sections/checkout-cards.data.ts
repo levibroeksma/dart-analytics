@@ -73,14 +73,17 @@ async function fetchCheckoutCards(
   }
 }
 
-const loadCards = latestCardLoad(fetchCheckoutCards);
-
-type CardsScope = ThisParameterType<typeof loadCards> & {
+type CardsScope = ThisParameterType<ReturnType<typeof cardsLoad>> & {
   remaining: number | null;
 };
 
+function cardsLoad() {
+  return latestCardLoad(fetchCheckoutCards);
+}
+
 /** Alpine scope of the Checkout cards: finish rate by target range, double hit rate and the routes thrown at a chosen target, over the page period. */
 export function checkoutCardsSection() {
+  const loadCards = cardsLoad();
   return {
     loading: true,
     error: null as string | null,
