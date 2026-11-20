@@ -73,6 +73,15 @@ describe("marksComparisonTiles", () => {
   });
 });
 
+describe("marksComparisonTiles with no darts", () => {
+  it("says no darts yet under Win rate when the period has none", () => {
+    const tiles = marksComparisonTiles(
+      comparison({ mpr: { current: r(0, 0), previous: null } }),
+    );
+    expect(tiles[3]!.detail).toBe("No darts yet");
+  });
+});
+
 describe("pointsTiles", () => {
   it("is empty without 1v1 darts", () => {
     expect(pointsTiles(comparison())).toEqual([]);

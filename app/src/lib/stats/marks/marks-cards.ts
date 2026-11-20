@@ -18,7 +18,7 @@ export function objectiveRows(m: MarksMetrics): AimTableRow[] {
   }));
 }
 
-/** Single, double and treble marking darts with their share; the share shows from `MIN_ROW_SAMPLE` marking darts in all. */
+/** Single, double and treble marks (effective marks by the ring of the dart that added them) with their share; the share shows from `MIN_ROW_SAMPLE` marks in all. */
 export function ringRows(m: MarksMetrics): AimTableRow[] {
   const { single, double, treble } = m.rings;
   const total = single + double + treble;

@@ -9,7 +9,11 @@ export function marksComparisonTiles(c: MarksComparison): TrackTile[] {
     meanTile("Marks per round", c.mpr, NO_DARTS, 2),
     meanTile("Darts to close out", c.close, "No close-outs yet", 1),
     ratioTile("Wasted darts", c.wasted, NO_DARTS),
-    ratioTile("Win rate", c.wins, "Solo games only"),
+    ratioTile(
+      "Win rate",
+      c.wins,
+      c.mpr.current.whole === 0 ? NO_DARTS : "Solo games only",
+    ),
   ];
 }
 

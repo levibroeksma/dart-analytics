@@ -119,7 +119,7 @@ describe("marksSessionMetrics", () => {
     expect(m.darts).toBe(9);
     expect(m.marks).toBe(9);
     expect(m.wasted).toBe(6);
-    expect(m.rings).toEqual({ single: 0, double: 0, treble: 3 });
+    expect(m.rings).toEqual({ single: 0, double: 0, treble: 9 });
     expect(m.objectives.find((o) => o.key === "20")).toEqual({
       key: "20",
       marks: 3,
@@ -136,6 +136,14 @@ describe("marksSessionMetrics", () => {
     ]);
     expect(m.closeOuts).toEqual({ games: 0, darts: 0 });
     expect(m.duel).toEqual({ games: 0, wins: 0, darts: 0, points: 0 });
+  });
+
+  it("credits a ring only with the marks its dart added after the cap", () => {
+    const m = marksSessionMetrics(
+      session("CRICKET", [[OWNER, [D(20), T(20), MISS]]]),
+    );
+    expect(m.rings).toEqual({ single: 0, double: 2, treble: 1 });
+    expect(m.marks).toBe(3);
   });
 
   it("counts a dart on an already-closed number as wasted in solo", () => {
@@ -160,7 +168,7 @@ describe("marksSessionMetrics", () => {
       ]),
     );
     expect(m.closeOuts).toEqual({ games: 1, darts: 9 });
-    expect(m.rings).toEqual({ single: 1, double: 1, treble: 6 });
+    expect(m.rings).toEqual({ single: 1, double: 2, treble: 18 });
     expect(m.objectives.find((o) => o.key === "BULL")).toEqual({
       key: "BULL",
       marks: 3,
@@ -221,7 +229,7 @@ describe("marksSessionMetrics", () => {
       marks: 1,
       darts: 1,
     });
-    expect(m.rings.double).toBe(1);
+    expect(m.rings.double).toBe(3);
   });
 
   it("keys Tactics objectives in the engine's order", () => {

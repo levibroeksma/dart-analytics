@@ -113,8 +113,8 @@ function ownerSeat(
 /**
  * Replays one marks session through its game's `foldMarks` once per dart,
  * reading each owner dart's effect off the owner seat before and after it:
- * a dart that adds no effective mark and no points is wasted, and a marking
- * dart counts toward its ring.
+ * a dart that adds no effective mark and no points is wasted, and the
+ * effective marks a dart adds count toward its ring.
  * @throws when a turn's participant or the owner holds no seat, or the
  *   engine refuses a dart.
  */
@@ -132,9 +132,10 @@ export function marksSessionMetrics(session: MarksSession): MarksMetrics {
       final = fold(prefixFacts(session.facts, turnIndex, dartIndex + 1));
       if (turn.participantRef !== session.ownerRef) return;
       const after = ownerSeat(final, session.ownerRef);
-      const marked = effectiveMarks(after) > effectiveMarks(before);
+      const added = effectiveMarks(after) - effectiveMarks(before);
+      const marked = added > 0;
       const ring = RING_OF[dart.hitZoneKey];
-      if (marked && ring) metrics.rings[ring] += 1;
+      if (marked && ring) metrics.rings[ring] += added;
       if (!marked && after.points === before.points) metrics.wasted += 1;
     });
   });
