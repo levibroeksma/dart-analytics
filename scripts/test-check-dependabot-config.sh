@@ -44,5 +44,49 @@ expect_fail limit open-pull-requests-limit
 mutate timezone 'd["updates"].each { |u| u["schedule"]["timezone"] = "UTC" }'
 expect_fail timezone timezone
 
+# Review workflow: mutate_wf <name> <ruby expression on d>, then expect_wf_fail.
+WF="$ROOT/.github/workflows/dependency-review.yml"
+mutate_wf() {
+  ruby -ryaml -e 'd = YAML.load_file(ARGV[0]); eval(ARGV[2]); File.write(ARGV[1], d.to_yaml)' \
+    "$WF" "$TMP/$1.yml" "$2"
+}
+expect_wf_fail() {
+  local out code
+  out="$(REVIEW_WORKFLOW="$TMP/$1.yml" bash "$GATE" 2>&1)"; code=$?
+  [ "$code" -ne 0 ] || { fail "$1 should fail"; return; }
+  grep -qF -- "$2" <<< "$out" || fail "$1 failure should mention '$2'"
+}
+steps='d["jobs"].values.flat_map { |j| j["steps"] }'
+claude="$steps.find { |s| s[\"uses\"].to_s.start_with?(\"anthropics/claude-code-action\") }"
+
+mutate_wf wf-write 'd["permissions"]["contents"] = "write"'
+expect_wf_fail wf-write permissions
+mutate_wf wf-tag "$claude[\"uses\"] = \"anthropics/claude-code-action@v1\""
+expect_wf_fail wf-tag SHA
+mutate_wf wf-no-if 'd["jobs"].each_value { |j| j.delete("if") }'
+expect_wf_fail wf-no-if 'dependabot[bot]'
+mutate_wf wf-edit "$claude[\"with\"][\"claude_args\"] = $claude[\"with\"][\"claude_args\"].sub(\"Read,\", \"Read,Edit,\")"
+expect_wf_fail wf-edit Edit
+mutate_wf wf-write-tool "$claude[\"with\"][\"claude_args\"] = $claude[\"with\"][\"claude_args\"].sub(\"Read,\", \"Read,Write,\")"
+expect_wf_fail wf-write-tool Write
+mutate_wf wf-any-bot "$claude[\"with\"][\"allowed_bots\"] = \"*\""
+expect_wf_fail wf-any-bot allowed_bots
+
+# Selector: select <json> <expected breaking value>.
+SELECT="$ROOT/scripts/dependency-review-select.sh"
+select_case() {
+  local out
+  out="$(bash "$SELECT" "$1" 2>&1)" || { fail "selector errored on $1: $out"; return; }
+  [ "$out" = "breaking=$2" ] || fail "selector on $1: want breaking=$2, got '$out'"
+}
+dep() { printf '{"dependencyName":"%s","prevVersion":"%s","newVersion":"%s","updateType":"version-update:semver-%s"}' "$@"; }
+select_case "[$(dep astro 6.3.0 7.0.0 major)]" true
+select_case "[$(dep actions/checkout v4 v5 major)]" true
+select_case "[$(dep drizzle-orm 0.45.2 0.46.0 minor)]" true
+select_case "[$(dep drizzle-orm 0.45.2 0.45.3 patch)]" false
+select_case "[$(dep alpinejs 3.15.12 3.16.0 minor)]" false
+select_case "[$(dep clsx 2.1.1 2.1.2 patch),$(dep drizzle-orm 0.45.2 0.46.0 minor)]" true
+select_case "[]" false
+
 [ "$FAILED" -eq 0 ] || { echo "test-check-dependabot-config: $FAILED failure(s)" >&2; exit 1; }
 echo "test-check-dependabot-config: ok"
