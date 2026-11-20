@@ -9,7 +9,7 @@ scope: repository
 decision-makers: [owner]
 consulted: []
 informed: []
-supersedes:
+supersedes: D0036
 superseded-by:
 ---
 

@@ -1,6 +1,6 @@
 ---
 id: D0036
-status: accepted
+status: superseded
 date: 2026-07-08
 origin: contemporaneous
 original-date:
@@ -10,7 +10,7 @@ decision-makers: [owner]
 consulted: []
 informed: []
 supersedes:
-superseded-by:
+superseded-by: D0063
 ---
 
 # Statistics v1 scope = `GET /api/statistics/overview` only
