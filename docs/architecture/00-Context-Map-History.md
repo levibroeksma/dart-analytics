@@ -17,6 +17,8 @@ updated: 2026-11-22
 
 # Version History
 
+> **Version:** 1.245.0 (2026-11-22 — Gate wiring: `check-gate-wiring.sh` also requires every per-file-mode `check-*.sh` to sit in `edit-gate.py` CHECKS and have a `test-check-file-mode.sh` case; its header carries the add-a-gate wiring list, pointed to from `run-all-gates`.)
+
 > **Version:** 1.244.0 (2026-11-22 — `syncing-design-system` §3 opens with an access probe (`Artifact read` `project/design-system.json`), so a session without artifact access stops before the code diff, the run lock or the agent launch; later steps renumbered.)
 
 > **Version:** 1.243.0 (2026-11-22 — Statistics session-level population (#1332): `gameWindowConditions` filters `input_mode_key = 'VISUAL_BOARD'`, so `completion`, `volume`, `session-result`, the session list and its count read the same sessions as the dart sections and the 501 variations count; QUICK_SCORE 501/121/Score Training sessions drop out. Statistics Overview §1 and Endpoint Contracts 1.21.0 updated.)
