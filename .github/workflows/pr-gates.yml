@@ -10,7 +10,7 @@ jobs:
     permissions:
       pull-requests: read
     steps:
-      - name: Fail if this PR's base is already one level deep in an open-PR stack
+      - name: Fail if this PR's base is one level deep in an open-PR stack, or already landed
         uses: actions/github-script@v7
         with:
           script: |
@@ -33,6 +33,22 @@ jobs:
                   `targeting another; this PR would add a second, stacking three deep. ` +
                   `At most one open branch may target another task branch (root CLAUDE.md ` +
                   `Hard Invariant) — land '${thisBase}' first, or merge the work into one branch.`
+                );
+              }
+
+              const { data: closed } = await github.rest.pulls.list({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                state: "closed",
+                head: `${context.repo.owner}:${thisBase}`,
+                per_page: 100,
+              });
+              const baseSha = context.payload.pull_request.base.sha;
+              const landed = closed.find((pr) => pr.merged_at && pr.head.sha === baseSha);
+              if (landed) {
+                core.setFailed(
+                  `This PR targets '${thisBase}', which already landed (#${landed.number}). ` +
+                  `Merging here strands these commits on a dead branch — retarget to '${defaultBranch}'.`
                 );
               }
             }
