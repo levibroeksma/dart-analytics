@@ -8,6 +8,7 @@
     },
     "mi_average": {
       "dir": "min",
+      "margin": 0.2,
       "now": 91.0,
       "target": 91.0
     },

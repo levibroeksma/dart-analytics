@@ -57,6 +57,13 @@ expect fail "score improved past tolerance" "stale benchmark, tighten it: health
 current '.health_score = 87.9'
 expect pass "score improved within tolerance" ""
 
+jq '.rows.mi_average.margin = 0.2' "$D/bench.json" > "$D/m.json" && mv "$D/m.json" "$D/bench.json"
+current '.mi_average = 90.8'
+expect pass "mi_average dip within margin" ""
+current '.mi_average = 90.7'
+expect fail "mi_average dip past margin" "regressed: mi_average 90.7 < 91.0 - margin 0.2"
+bench
+
 current '.large_functions_src = 113'
 expect fail "integer row improved" "stale benchmark, tighten it: large_functions_src"
 

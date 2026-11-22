@@ -17,6 +17,8 @@ updated: 2026-11-22
 
 # Version History
 
+> **Version:** 1.253.0 (2026-11-22 — Ratchet margin (#1327, owner-approved): a `quality-benchmarks.json` row may carry `margin`, the amount it may worsen before it counts as regressed; `mi_average` gets 0.2, so fallow's 0.1 rounding edge cannot fail a PR. Fixture cases added.)
+
 > **Version:** 1.252.0 (2026-11-22 — Related tests at commit (#1322): new `scripts/run-related-tests.sh` pre-commit row (scoped `^app/(src|tests)/`) runs `vitest related --run` over the staged app files, ~7 s; `app/CLAUDE.md` §Formatting and the File Inventory list it. The type check stays out of pre-commit (~39 s).)
 
 > **Version:** 1.251.0 (2026-11-22 — Landed-base guard (#1321): `branch-stack-cap` in `pr-gates.yml` also fails a PR whose base branch tip is the head of an already-merged PR ("retarget to main"); `finishing-a-dart-branch` says to target `main` once the base landed, and PR 3 onward of a longer chain targets `main`, naming the PRs it carries.)
