@@ -55,15 +55,16 @@ export function formatTargetKey(
   return `${zone}:${number}`;
 }
 
-/** Parses a `TargetKey`: 1-20 on the numbered rings, only 25 on the bulls; anything else is `null`. */
+/** Parses a `TargetKey`: 1-20 on the numbered rings, only 25 on the bulls, written canonically (no leading zeros); anything else is `null`. */
 export function parseTargetKey(
   value: string,
 ): { number: number; zone: IntentZoneKey } | null {
   const [zone = "", numberPart] = value.split(":");
   const number = Number(numberPart);
-  return ZONE_NUMBERS.get(zone)?.has(number)
-    ? { number, zone: zone as IntentZoneKey }
-    : null;
+  const valid =
+    ZONE_NUMBERS.get(zone)?.has(number) === true &&
+    formatTargetKey(number, zone as IntentZoneKey) === value;
+  return valid ? { number, zone: zone as IntentZoneKey } : null;
 }
 
 /** Builds the `WIRE:a-b` key for two board-adjacent numbers, ordered with the smaller first; throws when they are not neighbours. */
@@ -78,9 +79,9 @@ export function formatWireKey(a: number, b: number): WireKey {
   return `WIRE:${low}-${high}`;
 }
 
-/** Parses a `WireKey` into its two numbers, smaller first; `null` unless both are board-adjacent and written `a < b`. */
+/** Parses a `WireKey` into its two numbers, smaller first; `null` unless both are board-adjacent, written `a < b` and without leading zeros. */
 export function parseWireKey(value: string): readonly [number, number] | null {
-  const match = /^WIRE:(\d+)-(\d+)$/.exec(value);
+  const match = /^WIRE:([1-9]\d*)-([1-9]\d*)$/.exec(value);
   if (match === null) return null;
   const low = Number(match[1]);
   const high = Number(match[2]);
