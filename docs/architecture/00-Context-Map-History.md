@@ -17,6 +17,20 @@ updated: 2026-11-22
 
 # Version History
 
+> **Version:** 1.253.0 (2026-11-22 — Ratchet margin (#1327, owner-approved): a `quality-benchmarks.json` row may carry `margin`, the amount it may worsen before it counts as regressed; `mi_average` gets 0.2, so fallow's 0.1 rounding edge cannot fail a PR. Fixture cases added.)
+
+> **Version:** 1.252.0 (2026-11-22 — Related tests at commit (#1322): new `scripts/run-related-tests.sh` pre-commit row (scoped `^app/(src|tests)/`) runs `vitest related --run` over the staged app files, ~7 s; `app/CLAUDE.md` §Formatting and the File Inventory list it. The type check stays out of pre-commit (~39 s).)
+
+> **Version:** 1.251.0 (2026-11-22 — Landed-base guard (#1321): `branch-stack-cap` in `pr-gates.yml` also fails a PR whose base branch tip is the head of an already-merged PR ("retarget to main"); `finishing-a-dart-branch` says to target `main` once the base landed, and PR 3 onward of a longer chain targets `main`, naming the PRs it carries.)
+
+> **Version:** 1.250.0 (2026-11-22 — Hook runtime (#1368): `app/CLAUDE.md` §Formatting says an `app/` commit takes about 2 minutes, so `git commit`/`git push` run in the foreground with a 600 s timeout and no edits until they return.)
+
+> **Version:** 1.249.0 (2026-11-22 — Plan units (#1373): root `CLAUDE.md` plugin-skill table gains a `superpowers:writing-plans` row: every count or ratio in a Produces block names its unit in the spec's own words, checked at self-review step 1.)
+
+> **Version:** 1.248.0 (2026-11-22 — Replay facts documented outside code (#1372): Statistics Overview says `v_game_replay.kept` marks a Follow the Leader keep turn and is not a filter; Pattern 18 `MARKS` row says Mickey Mouse's dip adds 1 mark to Doubles/Triples, up to 4 marks per dart.)
+
+> **Version:** 1.247.0 (2026-11-22 — Statistics Overview view table gains a `v_game_replay` row (#1366): every seat's darts in the owner's sessions, scoped by `player_id`, so opponent darts need no new view or migration.)
+
 > **Version:** 1.246.0 (2026-11-22 — Branch invariant exception D0567: issue fixes may share one branch, one commit per issue, each closing its issue; other tasks keep a dedicated branch.)
 
 > **Version:** 1.245.0 (2026-11-22 — Gate wiring: `check-gate-wiring.sh` also requires every per-file-mode `check-*.sh` to sit in `edit-gate.py` CHECKS and have a `test-check-file-mode.sh` case; its header carries the add-a-gate wiring list, pointed to from `run-all-gates`.)
