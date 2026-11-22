@@ -18,14 +18,6 @@ const STAT_ROWS = [
 ---
 
 <ResultsModalShell overline="Ten Up One Down · Summary">
-  <h2
-    slot="title"
-    id="results-title"
-    class="text-balance font-display text-xl text-foreground"
-    x-text="resultsTitle()"
-  >
-  </h2>
-
   <SinglePlayerSummary statRows={STAT_ROWS} />
   <ComparisonSummary statRows={STAT_ROWS} />
 </ResultsModalShell>

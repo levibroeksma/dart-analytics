@@ -17,6 +17,8 @@ updated: 2026-11-22
 
 # Version History
 
+> **Version:** 1.254.0 (2026-11-22 — Results title skeleton (#1294): `ResultsModalShell` renders the `results-title` heading itself, `resultsTitle()` in a `ResultValue` pulse bar until the save succeeds; the 18 per-game `title` slot copies are gone, so no modal flashes a fallback such as "Winner!" before the outcome. Component Inventory row updated.)
+
 > **Version:** 1.253.0 (2026-11-22 — Ratchet margin (#1327, owner-approved): a `quality-benchmarks.json` row may carry `margin`, the amount it may worsen before it counts as regressed; `mi_average` gets 0.2, so fallow's 0.1 rounding edge cannot fail a PR. Fixture cases added.)
 
 > **Version:** 1.252.0 (2026-11-22 — Related tests at commit (#1322): new `scripts/run-related-tests.sh` pre-commit row (scoped `^app/(src|tests)/`) runs `vitest related --run` over the staged app files, ~7 s; `app/CLAUDE.md` §Formatting and the File Inventory list it. The type check stays out of pre-commit (~39 s).)

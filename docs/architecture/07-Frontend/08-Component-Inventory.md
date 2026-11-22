@@ -2,7 +2,7 @@
 status: canonical
 scope: shared Astro component inventory
 read-when: before writing markup for any recurring UI shape
-updated: 2026-11-01
+updated: 2026-11-22
 -->
 
 # Component Inventory
@@ -108,7 +108,7 @@ evaluated in the page's own Alpine scope.
 | `PlayPageShell.astro` | Body of a game play page: reconciliation-blocked panel, no-session panel, then the slotted interface and results modal | `setupHref` |
 | `PlayStatTile.astro` | Inset play stat: value over a mono caps label in a 76px tile, or a 44px label/value row with `compact` (D432, 2026-10-08) | `label`, `valueExpr`, `compact`, `highlight` (lit value, `accent-bright`), `fit` (flexes to share its column, max 76px; 2026-10-13) |
 | `ReconciliationBlocked.astro` | Blocked-upload explanation panel | none |
-| `ResultsModalShell.astro` | Shared results-sheet chrome: `Modal` sheet, mandatory `SaveStatus` row (failed → error + Retry), play-again error, Back to games / Rematch buttons; named `title` slot plus a default slot for stat rows (D437, 2026-10-09) Rematch on two seats opens `StarterStep` first (`requestPlayAgain`, `playAgainStarterData()`; D464, 2026-10-16). | `overline` |
+| `ResultsModalShell.astro` | Shared results-sheet chrome: `Modal` sheet, mandatory `SaveStatus` row (failed → error + Retry), play-again error, Back to games / Rematch buttons; default slot for stat rows (D437, 2026-10-09); the title is the game's `resultsTitle()` in a `ResultValue`, a pulse bar until the save succeeds (#1294, 2026-11-22) Rematch on two seats opens `StarterStep` first (`requestPlayAgain`, `playAgainStarterData()`; D464, 2026-10-16). | `overline` |
 | `OutOrderRow.astro` | Results-sheet "Out order" row: label left, `outOrderLabel()` right, hidden while empty; Killer and Follow the Leader render it (2026-11-05) | none |
 | `ResultValue.astro` | One results value in its final line box: the value once `readyExpr` holds, else a one-line pulse bar of `skeletonWidth`, so saving → saved never shifts layout (D437, 2026-10-09) | `valueExpr`, `skeletonWidth`, `readyExpr` (default `completionStatus === 'succeeded'`), `class` |
 | `RouteChips.astro` | Checkout route as a 28px `inset-well` pill of mono parts split by dots; hidden while blank (D432, 2026-10-08) | `routeExpr`, `currentIndexExpr` (the part at that index lit, the rest dimmed; 2026-10-13, D457) |

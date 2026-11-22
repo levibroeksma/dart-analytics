@@ -33,14 +33,6 @@ const LIVES_ROWS = [
 ---
 
 <ResultsModalShell overline="Around the Clock · Summary">
-  <h2
-    slot="title"
-    id="results-title"
-    class="text-balance font-display text-xl text-foreground"
-    x-text="resultsTitle()"
-  >
-  </h2>
-
   <template x-if="!isTimed() && !hasLives()">
     <div class="contents">
       <SinglePlayerSummary statRows={STAT_ROWS} />
