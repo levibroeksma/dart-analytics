@@ -17,6 +17,8 @@ updated: 2026-11-22
 
 # Version History
 
+> **Version:** 1.258.0 (2026-11-22 — Statistics Overview §2 (#1326): registry field table gains `siteByTagWhenFiltered`. The issue's File Inventory decision count for `decisions/api.md` no longer exists after the MADR split.)
+
 > **Version:** 1.257.0 (2026-11-22 — Decision ID gaps (#1346): `DECISIONS.md`'s ID-gap note lists 25 never-issued ids, adding `D354 D384 D389 D400 D438`; full git history holds no record of any of them, and `D389` was renumbered `D390` before merge.)
 
 > **Version:** 1.256.0 (2026-11-22 — Split script removed (#1347): the one-shot MADR ledger `scripts/decisions/split.mjs`, its type stub, test and fixture are deleted now that the split has merged. File Inventory row updated.)
