@@ -17,6 +17,8 @@ updated: 2026-11-22
 
 # Version History
 
+> **Version:** 1.244.0 (2026-11-22 — `syncing-design-system` §3 opens with an access probe (`Artifact read` `project/design-system.json`), so a session without artifact access stops before the code diff, the run lock or the agent launch; later steps renumbered.)
+
 > **Version:** 1.243.0 (2026-11-22 — Statistics session-level population (#1332): `gameWindowConditions` filters `input_mode_key = 'VISUAL_BOARD'`, so `completion`, `volume`, `session-result`, the session list and its count read the same sessions as the dart sections and the 501 variations count; QUICK_SCORE 501/121/Score Training sessions drop out. Statistics Overview §1 and Endpoint Contracts 1.21.0 updated.)
 
 > **Version:** 1.242.0 (2026-11-22 — Mock-reset hooks gate (#1374, #1369): new `scripts/check-mock-reset-hooks.sh` rejects expression-bodied `mockReset`/`mockClear`/`mockRestore` in Vitest hooks under `app/tests/` (the returned mock runs as teardown); wired into pre-commit (scoped to `app/tests/`), `edit-gate.py`, `quality.yml` and `run-all-gates`, with file-mode fixtures; the 7 offending test files use block bodies.)
