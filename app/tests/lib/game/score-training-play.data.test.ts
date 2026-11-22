@@ -2141,17 +2141,21 @@ describe("scoreTrainingPlay — visual board input", () => {
     expect(play.$store.game.turns[0].totalScore).toBe(20);
   });
 
-  it("defers a session-completing dart to the finish confirm instead of uploading", async () => {
+  it("records a session-completing dart before the finish confirm, without uploading", async () => {
     const play = boardPlay({ configSnapshot: rounds(1) });
     await play.init.call(play);
     play.recordDart.call(play, SINGLE_20);
     play.recordDart.call(play, SINGLE_20);
 
-    play.recordDart.call(play, SINGLE_20);
+    play.recordDart.call(play, TREBLE_20);
 
     expect(play.showFinishConfirm).toBe(true);
-    expect(play.pendingDartObservation).toEqual(SINGLE_20);
-    expect(play.$store.game.turns[0].darts).toHaveLength(2);
+    expect(play.pendingDartObservation).toEqual(TREBLE_20);
+    expect(play.$store.game.turns[0].darts).toHaveLength(3);
+    expect(play.$store.game.turns[0].totalScore).toBe(100);
+    expect(play.totalScoreFor(play.$store.game.turns[0].participantRef)).toBe(
+      100,
+    );
     expect(play.finished).toBe(false);
     expect(appendBatch).not.toHaveBeenCalled();
   });
@@ -2181,7 +2185,7 @@ describe("scoreTrainingPlay — visual board input", () => {
     expect(completeSession).toHaveBeenCalledWith("s1", "COMPLETED");
   });
 
-  it("cancelFinish discards the deferred dart and leaves the session open", async () => {
+  it("cancelFinish undoes the recorded dart and leaves the session open", async () => {
     const play = boardPlay({ configSnapshot: rounds(1) });
     await play.init.call(play);
     play.recordDart.call(play, SINGLE_20);
