@@ -62,6 +62,15 @@ describe("FiveOhOneConfig starting_score floor", () => {
     });
     expect(result.success).toBe(true);
   });
+
+  it("bounds starting_score at 999, the highest variation the statistics read accepts", () => {
+    expect(
+      FiveOhOneConfig.safeParse({ ...validRest, starting_score: 999 }).success,
+    ).toBe(true);
+    expect(
+      FiveOhOneConfig.safeParse({ ...validRest, starting_score: 1000 }).success,
+    ).toBe(false);
+  });
 });
 
 describe("ScoreTrainingConfig duration_value bounds", () => {

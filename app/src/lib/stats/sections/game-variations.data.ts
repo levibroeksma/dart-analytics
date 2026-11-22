@@ -8,7 +8,6 @@ type VariationsScope = {
   $data: { game: string; variation: number };
   $store: { statsVariation: { set(score: number): void } };
   $watch(key: "variation", callback: (value: number) => void): void;
-  $watch(key: "game", callback: () => void): void;
   options: VariationOption[];
   loading: boolean;
   load(): Promise<void>;
@@ -38,7 +37,8 @@ function keptOptions(
  * The 501 `/statistics` "Variations" picker's options: the owner's starting
  * scores with their completed-session counts, `501` first. The pick lives in
  * the page scope's `variation`, remembered through `$store.statsVariation`;
- * a remembered score absent from the list, or a game change, resets it to 501.
+ * a remembered score absent from the list resets it to 501. The section
+ * mounts only while a 501 ruleset is picked, and `/statistics` lists one.
  * A failed read keeps the pick and the options already shown.
  */
 export function gameVariations() {
@@ -50,10 +50,6 @@ export function gameVariations() {
       this.$watch("variation", (value) =>
         this.$store.statsVariation.set(value),
       );
-      this.$watch("game", () => {
-        this.$data.variation = DEFAULT_VARIATION;
-        void this.load();
-      });
       void this.load();
     },
 

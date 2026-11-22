@@ -1,5 +1,9 @@
 import { z } from "zod";
 import { aroundTheClockDurationBounds } from "../around-the-clock-duration";
+import {
+  FIVE_OH_ONE_STARTING_SCORE_MAX,
+  FIVE_OH_ONE_STARTING_SCORE_MIN,
+} from "../five-oh-one-starting-score";
 
 /**
  * Every ruleset schema is `.strict()`: an unrecognized key fails the parse
@@ -178,7 +182,12 @@ export const DoublesTrainingConfig = z
   .strict()
   .superRefine(targetOrderRefinement);
 
-const startingScoreField = z.number().int().min(2).default(501);
+const startingScoreField = z
+  .number()
+  .int()
+  .min(FIVE_OH_ONE_STARTING_SCORE_MIN)
+  .max(FIVE_OH_ONE_STARTING_SCORE_MAX)
+  .default(501);
 
 /**
  * The fields 501 V1 and V2 share after `starting_score`, in schema order. V1
