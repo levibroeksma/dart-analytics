@@ -2197,6 +2197,7 @@ describe("scoreTrainingPlay — visual board input", () => {
     expect(play.showFinishConfirm).toBe(false);
     expect(play.pendingDartObservation).toBeNull();
     expect(play.$store.game.turns[0].darts).toHaveLength(2);
+    expect(play.$store.game.turns[0].totalScore).toBe(40);
     expect(play.finished).toBe(false);
     expect(play.scoreInput.value).toBe("");
     expect(appendBatch).not.toHaveBeenCalled();

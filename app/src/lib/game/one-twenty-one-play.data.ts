@@ -23,7 +23,9 @@ import {
   playCommitDart,
   playUploadAndCompleteSession,
   runPlayAgain,
+  holdFinishingDart,
   isInputBlocked,
+  releaseHeldDart,
   undoBotAwareVisit,
 } from "@lib/game/play-lifecycle";
 import {
@@ -364,11 +366,11 @@ const oneTwentyOnePlayMethods2 = {
   /**
    * The board's per-dart counterpart to `recordVisit`: every dart the
    * player throws arrives here from `boardInputData`'s `onCommit`. A dart
-   * that would complete the whole session is gated behind
-   * `showSessionFinishConfirm`, because recording it uploads and completes
-   * the session immediately and that step is irreversible; a
-   * ladder-climbing checkout or a bust commits straight away — mirrors
-   * `five-oh-one-play.data.ts`'s `recordDart`.
+   * that would complete the whole session is recorded, so the board and
+   * remaining total show it, and then gated behind
+   * `showSessionFinishConfirm`, because uploading and completing the
+   * session is irreversible; `cancelSessionFinish` undoes the dart. A
+   * ladder-climbing checkout or a bust commits straight away.
    */
   async recordDart(
     this: OneTwentyOnePlayContext,
@@ -385,7 +387,7 @@ const oneTwentyOnePlayMethods2 = {
       return;
 
     if (this.engine.wouldComplete(observation)) {
-      this.pendingDartObservation = observation;
+      holdFinishingDart(this, observation);
       this.showSessionFinishConfirm = true;
       return;
     }
@@ -460,19 +462,19 @@ const oneTwentyOnePlayMethods2 = {
   },
 
   /**
-   * Confirm on the second, session-ending dialog: records whichever the
-   * player was deferred on — the board's dart (`recordDart`'s gate) or the
-   * keypad's checkout (`confirmDouble`'s deferral) — mirrors
-   * `five-oh-one-play.data.ts`'s `confirmMatchFinish`.
+   * Confirm on the second, session-ending dialog: completes the session on
+   * the board dart `recordDart` already recorded, or records the keypad's
+   * checkout (`confirmDouble`'s deferral) and completes it.
    */
   async confirmSessionFinish(this: OneTwentyOnePlayContext) {
     if (!this.engine || this.finished || !this.showSessionFinishConfirm) return;
 
     if (this.pendingDartObservation) {
-      const observation = this.pendingDartObservation;
       this.pendingDartObservation = null;
       this.showSessionFinishConfirm = false;
-      await this.commitDart(observation);
+      this.finished = true;
+      this.completionStatus = "pending";
+      await this.uploadAndCompleteSession();
       return;
     }
 
@@ -484,16 +486,15 @@ const oneTwentyOnePlayMethods2 = {
   },
 
   /**
-   * Cancel on the second, session-ending dialog. Nothing is recorded; a
-   * deferred keypad score returns to the keypad, a deferred dart is simply
-   * discarded (the player throws again) — mirrors
-   * `five-oh-one-play.data.ts`'s `cancelMatchFinish`.
+   * Cancel on the second, session-ending dialog. A deferred keypad score
+   * returns to the keypad; a deferred dart, already recorded by
+   * `recordDart`, is undone so the player throws again.
    */
   cancelSessionFinish(this: OneTwentyOnePlayContext) {
     if (!this.showSessionFinishConfirm) return;
 
     if (this.pendingDartObservation) {
-      this.pendingDartObservation = null;
+      releaseHeldDart(this);
       this.showSessionFinishConfirm = false;
       return;
     }

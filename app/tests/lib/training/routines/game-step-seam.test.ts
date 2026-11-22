@@ -186,7 +186,7 @@ describe("Finishing step over the real TUOD store", () => {
     expect(component.showFinishConfirm).toBe(true);
     expect(component.pendingDartObservation).toEqual(DOUBLE_20);
     expect(component.finished).toBe(false);
-    expect(store.turns).toHaveLength(0);
+    expect(store.turns).toHaveLength(1);
     expect(appendBatch).not.toHaveBeenCalled();
     expect(onStepComplete).not.toHaveBeenCalled();
   });
