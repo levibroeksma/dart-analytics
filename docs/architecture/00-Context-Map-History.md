@@ -17,6 +17,8 @@ updated: 2026-11-22
 
 # Version History
 
+> **Version:** 1.256.0 (2026-11-22 — Split script removed (#1347): the one-shot MADR ledger `scripts/decisions/split.mjs`, its type stub, test and fixture are deleted now that the split has merged. File Inventory row updated.)
+
 > **Version:** 1.255.0 (2026-11-22 — Board key row (#1304): `BoardInputPanel`'s undo / Bounce out row sizes columns from the keys it renders (`grid-flow-col auto-cols-fr`); `Astro.slots.has("actions")` was true for `SeatedPlayScreen`'s conditional slot even when empty, so two keys sat in three columns. Component Inventory row updated.)
 
 > **Version:** 1.254.0 (2026-11-22 — Results title skeleton (#1294): `ResultsModalShell` renders the `results-title` heading itself, `resultsTitle()` in a `ResultValue` pulse bar until the save succeeds; the 18 per-game `title` slot copies are gone, so no modal flashes a fallback such as "Winner!" before the outcome. Component Inventory row updated.)
