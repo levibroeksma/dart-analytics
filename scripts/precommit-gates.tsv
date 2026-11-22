@@ -20,6 +20,7 @@ scripts/check-alias-sync.sh
 scripts/check-constraint-mirror.sh	
 scripts/check-no-inline-comments.sh	
 scripts/check-style-tokens.sh	
+scripts/check-mock-reset-hooks.sh	^(app/tests/|scripts/check-mock-reset-hooks\.sh)
 scripts/check-game-wiring.sh	
 scripts/check-game-rules.sh	^(docs/game-rules/|scripts/(test-)?check-game-rules\.sh)
 scripts/test-check-game-rules.sh	^(docs/game-rules/|scripts/(test-)?check-game-rules\.sh)

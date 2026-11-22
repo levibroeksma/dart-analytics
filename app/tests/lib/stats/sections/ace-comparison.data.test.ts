@@ -43,7 +43,9 @@ function accuracyBy(from: string, current: unknown, previous: unknown) {
 }
 
 describe("aceComparisonSection", () => {
-  beforeEach(() => loadGameSection.mockReset());
+  beforeEach(() => {
+    loadGameSection.mockReset();
+  });
 
   it("reads the three sections over the current and the preceding period", async () => {
     accuracyBy(heatmapWindow("30d", NOW).from, {}, {});

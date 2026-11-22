@@ -52,7 +52,9 @@ function scope(game = "TUOD_V1") {
 }
 
 describe("checkoutCardsSection", () => {
-  beforeEach(() => loadGameSection.mockReset());
+  beforeEach(() => {
+    loadGameSection.mockReset();
+  });
 
   it("reads three sections over the current period only", async () => {
     respond({});

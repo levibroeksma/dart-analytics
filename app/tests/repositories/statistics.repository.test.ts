@@ -610,7 +610,14 @@ describe("countGameSessions", () => {
     expect(total).toBe(56);
   });
 
-  it("opens its WHERE with the same player, game, window and status predicates findBucketedSessionAggregates opens with", async () => {
+  it("counts only VISUAL_BOARD sessions, the population the dart sections read", async () => {
+    const { db, statements } = renderingDb([["0"]]);
+    await countGameSessions(db, baseQuery);
+    expect(onlyStatement(statements)).toMatch(/"input_mode_key" = \$/);
+    expect(statements[0].params).toContain("VISUAL_BOARD");
+  });
+
+  it("opens its WHERE with the same player, game, window, status and input-mode predicates findBucketedSessionAggregates opens with", async () => {
     const whereOf = (sql: string) =>
       sql
         .split(/ where /i)[1]
@@ -626,7 +633,7 @@ describe("countGameSessions", () => {
       tz: undefined,
     });
     const window =
-      '"v_stats_session_facts"."player_id" = $ and "v_stats_session_facts"."game_type_key" = $ and "v_stats_session_facts"."completed_at" >= $ and "v_stats_session_facts"."completed_at" < $ and "v_stats_session_facts"."status_key" in ($)';
+      '"v_stats_session_facts"."player_id" = $ and "v_stats_session_facts"."game_type_key" = $ and "v_stats_session_facts"."completed_at" >= $ and "v_stats_session_facts"."completed_at" < $ and "v_stats_session_facts"."status_key" in ($) and "v_stats_session_facts"."input_mode_key" = $';
 
     expect(
       whereOf(onlyStatement(counted.statements)).startsWith(`(${window} and `),
@@ -715,6 +722,13 @@ describe("findBucketedSessionAggregates", () => {
     await findBucketedSessionAggregates(db, baseQuery);
     const sql = onlyStatement(statements);
     expect(sql).toContain('"v_stats_session_facts"');
+  });
+
+  it("reads only VISUAL_BOARD sessions, the population the dart sections read", async () => {
+    const { db, statements } = renderingDb([]);
+    await findBucketedSessionAggregates(db, baseQuery);
+    expect(onlyStatement(statements)).toMatch(/"input_mode_key" = \$/);
+    expect(statements[0].params).toContain("VISUAL_BOARD");
   });
 
   it("renders date_trunc('month', … AT TIME ZONE '<tz>') for the bucket expression", async () => {

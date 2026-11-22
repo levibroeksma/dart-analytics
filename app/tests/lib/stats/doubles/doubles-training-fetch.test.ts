@@ -26,7 +26,9 @@ function failLooseDarts(reason: unknown) {
 }
 
 describe("loadDoublesTrainingCard", () => {
-  beforeEach(() => loadGameSection.mockReset());
+  beforeEach(() => {
+    loadGameSection.mockReset();
+  });
 
   it("joins the three sections into a card with no error", async () => {
     loadGameSection.mockImplementation((_game: string, sectionId: string) =>
@@ -56,7 +58,9 @@ describe("loadDoublesTrainingCard", () => {
 });
 
 describe("loadTargetInputs", () => {
-  beforeEach(() => loadGameSection.mockReset());
+  beforeEach(() => {
+    loadGameSection.mockReset();
+  });
 
   it("reads the three sections un-bucketed for the game", async () => {
     loadGameSection.mockImplementation((_game: string, sectionId: string) =>
@@ -84,7 +88,9 @@ describe("loadTargetInputs", () => {
 });
 
 describe("loadTargetInputsOver", () => {
-  beforeEach(() => loadGameSection.mockReset());
+  beforeEach(() => {
+    loadGameSection.mockReset();
+  });
 
   it("reads the three sections un-bucketed over the given span", async () => {
     loadGameSection.mockImplementation(() => series({}));
