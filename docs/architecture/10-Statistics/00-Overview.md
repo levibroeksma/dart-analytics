@@ -2,7 +2,7 @@
 status: canonical
 scope: architecture/statistics
 read-when: designing or building any detailed statistics page, insight section, statistics endpoint, or the statistics client cache
-updated: 2026-11-13
+updated: 2026-11-22
 -->
 
 # Statistics — Overview
@@ -53,7 +53,10 @@ re-expressed as registry sections, which this design allows but does not require
   on its first activation, never at page load.
 - **Capture mode:** `ANALYTICS` + `VISUAL_BOARD` only in this version — the only mode
   with per-dart coordinates. The `inputMode` parameter (§5) exists from day one so
-  recreational-mode sections are additive later.
+  recreational-mode sections are additive later. Session-level reads (`completion`,
+  `volume`, `session-result`, the session list and its count) apply the same
+  `VISUAL_BOARD` filter as the dart sections, so one page reads one population
+  (2026-11-22, #1332).
 - **Population:** sessions whose game pair (game type + ruleset version) matches the
   page's ruleset, in **both** play contexts (§8). No exercise-type-to-game mapping:
   a routine step counts toward a game only when it runs that game's engine.

@@ -1111,7 +1111,11 @@ type GameSessionsFilter = {
   variation?: number;
 };
 
-/** One game's terminal sessions of `statuses` completed in `[from, to)`. */
+/**
+ * One game's terminal `VISUAL_BOARD` sessions of `statuses` completed in
+ * `[from, to)`: the same population `sessionScopeWhere` gives the dart
+ * sections, so completion, the session list and the sections agree.
+ */
 function gameWindowConditions(q: {
   playerId: string;
   gameTypeKey: GameTypeKey;
@@ -1125,6 +1129,7 @@ function gameWindowConditions(q: {
     gte(vStatsSessionFacts.completedAt, q.from),
     lt(vStatsSessionFacts.completedAt, q.to),
     inArray(vStatsSessionFacts.statusKey, q.statuses),
+    eq(vStatsSessionFacts.inputModeKey, "VISUAL_BOARD"),
   ];
 }
 
