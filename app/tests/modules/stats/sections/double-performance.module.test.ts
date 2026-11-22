@@ -3,6 +3,7 @@ import {
   doublePerformanceBuckets,
   doubleTargetKey,
 } from "@modules/stats/sections/double-performance.module";
+import { DOUBLE_OUT_FINISHES } from "@lib/game/board/board-geometry.module";
 import type { BucketedSession, DartFact, StagedVisit } from "@modules/types";
 
 const CTX = {
@@ -66,6 +67,14 @@ describe("doubleTargetKey", () => {
     expect(doubleTargetKey(41)).toBeNull();
     expect(doubleTargetKey(45)).toBeNull();
     expect(doubleTargetKey(0)).toBeNull();
+  });
+
+  it("keys exactly the one-dart double-out finishes", () => {
+    for (let remaining = 0; remaining <= 60; remaining += 1) {
+      expect(doubleTargetKey(remaining) !== null).toBe(
+        DOUBLE_OUT_FINISHES.has(remaining),
+      );
+    }
   });
 });
 

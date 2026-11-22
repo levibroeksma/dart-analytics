@@ -1,3 +1,4 @@
+import { DOUBLE_OUT_FINISHES } from "@lib/game/board/board-geometry.module";
 import { formatTargetKey } from "@lib/stats/target-key";
 import {
   checkoutDarts,
@@ -13,16 +14,13 @@ import type { SeriesBucket, TargetKey } from "@lib/types";
 
 /**
  * The double (or inner bull) a `remaining` requires to finish in one dart,
- * as a `TargetKey` -- `null` when no double can finish it (`classifyDart`'s
- * own `isDirectlyFinishable` gate: any remaining a checkout attempt is
- * classified against is either 50 or an even value 2-40).
+ * as a `TargetKey` -- `null` when no double can finish it (not in
+ * `DOUBLE_OUT_FINISHES`, the same gate `classifyDart` uses).
  */
 export function doubleTargetKey(remaining: number): TargetKey | null {
+  if (!DOUBLE_OUT_FINISHES.has(remaining)) return null;
   if (remaining === 50) return formatTargetKey(25, "INNER_BULL");
-  if (remaining % 2 === 0 && remaining >= 2 && remaining <= 40) {
-    return formatTargetKey(remaining / 2, "DOUBLE");
-  }
-  return null;
+  return formatTargetKey(remaining / 2, "DOUBLE");
 }
 
 type BucketAccumulator = {
