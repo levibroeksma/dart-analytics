@@ -17,6 +17,8 @@ updated: 2026-11-22
 
 # Version History
 
+> **Version:** 1.257.0 (2026-11-22 — Decision ID gaps (#1346): `DECISIONS.md`'s ID-gap note lists 25 never-issued ids, adding `D354 D384 D389 D400 D438`; full git history holds no record of any of them, and `D389` was renumbered `D390` before merge.)
+
 > **Version:** 1.256.0 (2026-11-22 — Split script removed (#1347): the one-shot MADR ledger `scripts/decisions/split.mjs`, its type stub, test and fixture are deleted now that the split has merged. File Inventory row updated.)
 
 > **Version:** 1.255.0 (2026-11-22 — Board key row (#1304): `BoardInputPanel`'s undo / Bounce out row sizes columns from the keys it renders (`grid-flow-col auto-cols-fr`); `Astro.slots.has("actions")` was true for `SeatedPlayScreen`'s conditional slot even when empty, so two keys sat in three columns. Component Inventory row updated.)

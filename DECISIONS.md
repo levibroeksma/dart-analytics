@@ -2,12 +2,12 @@
 status: canonical
 scope: repository-wide decision ledger routing
 read-when: "why was X decided?" before touching any history — routes to the domain file, doesn't hold the decisions itself
-updated: 2026-11-19
+updated: 2026-11-22
 -->
 
 # Architectural Decision Ledger
 
-> This file is a **router**, not a record. All decisions live in `decisions/**`, one MADR record file per decision, one directory per row of the table below (20 ids never issued — see the ID-gap note below). This file holds only what's shared across all of them: the authority note, the Source key, the routing table, the Deferred list, and the rules for adding a new decision.
+> This file is a **router**, not a record. All decisions live in `decisions/**`, one MADR record file per decision, one directory per row of the table below (25 ids never issued — see the ID-gap note below). This file holds only what's shared across all of them: the authority note, the Source key, the routing table, the Deferred list, and the rules for adding a new decision.
 >
 > Canonical docs always win over this ledger — a decision explains *why*, `docs/architecture/**` states *what is*. On conflict, `docs/architecture/00-Context-Map.md`'s authority order governs.
 >
@@ -62,4 +62,4 @@ A record's chosen option and `Decided:` date never change. Context, drivers, opt
 
 ## ID-gap note
 
-Ids are non-contiguous: derive the current count and highest id with `bash scripts/decision-index.sh | tail -1` rather than trusting a number here. These 20 were never issued: `D18 D19 D29 D38 D39 D42 D43 D44 D45 D46 D47 D48 D49 D53 D54 D55 D56 D57 D58 D59`. These are numbering artifacts from the original distillation of the raw design history into this ledger (2026-07-11), not lost or deleted decisions. Do not renumber numbered decisions or try to "fill" these ids.
+Ids are non-contiguous: derive the current count and highest id with `bash scripts/decision-index.sh | tail -1` rather than trusting a number here. These 25 were never issued: `D18 D19 D29 D38 D39 D42 D43 D44 D45 D46 D47 D48 D49 D53 D54 D55 D56 D57 D58 D59`, numbering artifacts from the original distillation of the raw design history into this ledger (2026-07-11), and `D354 D384 D389 D400 D438`, skipped when later records were numbered (`D389` was filed and renumbered `D390` before merge; no record of the others exists anywhere in git history). None is a lost or deleted decision. Do not renumber numbered decisions or try to "fill" these ids.
