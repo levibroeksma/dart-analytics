@@ -62,6 +62,16 @@ expect pass "no-inline-comments: JSDoc" "$T" no-inline-comments - $B
 T=$(tree $B $'// Task 3 added this\nexport const a = 1;')
 expect fail "no-inline-comments: history citation" "$T" no-inline-comments "D255" $B
 
+M=app/tests/lib/x.test.ts
+T=$(tree $M 'beforeEach(() => fn.mockReset());')
+expect fail "mock-reset-hooks: expression body" "$T" mock-reset-hooks "$M:1" $M
+T=$(tree $M 'afterEach(() =>  vi.mocked(f).mockClear() );')
+expect fail "mock-reset-hooks: mockClear" "$T" mock-reset-hooks "$M:1" $M
+T=$(tree $M $'beforeEach(() => {\n  fn.mockReset();\n});')
+expect pass "mock-reset-hooks: block body" "$T" mock-reset-hooks - $M
+T=$(tree $M 'afterEach(() => vi.useRealTimers());')
+expect pass "mock-reset-hooks: non-mock call" "$T" mock-reset-hooks - $M
+
 T=$(mktemp -d)
 expect fail "file-locations: ts under components" "$T" file-locations "app/src/components/a/x.ts" app/src/components/a/x.ts
 T=$(mktemp -d)
@@ -78,6 +88,9 @@ done
 T=$(tree app/src/lib/bad.ts $'function f(): void { // x\n}')
 printf 'export const a = 1;\n' > "$T/$B"
 expect pass "no-inline-comments: sibling ignored" "$T" no-inline-comments - $B
+T=$(tree app/tests/lib/bad.test.ts 'beforeEach(() => fn.mockReset());')
+printf 'export const a = 1;\n' > "$T/$M"
+expect pass "mock-reset-hooks: sibling ignored" "$T" mock-reset-hooks - $M
 T=$(tree app/src/components/a/x.ts 'export const a = 1;')
 expect pass "file-locations: sibling ignored" "$T" file-locations - app/src/lib/x.ts
 

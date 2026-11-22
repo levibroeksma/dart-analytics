@@ -42,7 +42,9 @@ const SAMPLE = {
 };
 
 describe("trackGamesCardSection", () => {
-  beforeEach(() => loadGameSection.mockReset());
+  beforeEach(() => {
+    loadGameSection.mockReset();
+  });
 
   it("loads the three sections for the page game over the period", async () => {
     respond(SAMPLE);

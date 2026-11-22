@@ -52,7 +52,9 @@ function ladderBy(from: string, current: unknown, previous: unknown) {
 }
 
 describe("checkoutComparisonSection", () => {
-  beforeEach(() => loadGameSection.mockReset());
+  beforeEach(() => {
+    loadGameSection.mockReset();
+  });
 
   it("reads ladder and bust rate over the current and the preceding period", async () => {
     ladderBy(

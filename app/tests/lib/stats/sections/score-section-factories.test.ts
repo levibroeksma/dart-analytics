@@ -22,7 +22,9 @@ function respond(metrics: unknown) {
   });
 }
 
-beforeEach(() => loadGameSection.mockReset());
+beforeEach(() => {
+  loadGameSection.mockReset();
+});
 
 describe("score section factories", () => {
   it("gameCompletionSection requests completion and summarises it", async () => {

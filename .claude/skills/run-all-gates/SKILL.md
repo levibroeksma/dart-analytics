@@ -72,6 +72,7 @@ bash scripts/check-alias-sync.sh
 bash scripts/check-constraint-mirror.sh
 bash scripts/check-no-inline-comments.sh
 bash scripts/check-style-tokens.sh
+bash scripts/check-mock-reset-hooks.sh
 bash scripts/check-game-wiring.sh
 bash scripts/check-dupes.sh
 bash scripts/check-quality-benchmarks.sh

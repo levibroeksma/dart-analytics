@@ -2,7 +2,7 @@
 status: historical
 scope: context-map version history and point-in-time task records
 read-when: never during a task — provenance only
-updated: 2026-11-13
+updated: 2026-11-22
 -->
 
 # Context Map History
@@ -16,6 +16,8 @@ updated: 2026-11-13
 ---
 
 # Version History
+
+> **Version:** 1.242.0 (2026-11-22 — Mock-reset hooks gate (#1374, #1369): new `scripts/check-mock-reset-hooks.sh` rejects expression-bodied `mockReset`/`mockClear`/`mockRestore` in Vitest hooks under `app/tests/` (the returned mock runs as teardown); wired into pre-commit (scoped to `app/tests/`), `edit-gate.py`, `quality.yml` and `run-all-gates`, with file-mode fixtures; the 7 offending test files use block bodies.)
 
 > **Version:** 1.241.0 (2026-11-20 — Marks statistics page (D0566): new server section `marks` for Cricket, Tactics and Mickey Mouse, replayed from `v_game_replay` through the engines' `foldMarks` (no migration; `findMarksFoldRows`, `marks.module.ts`); layout `MarksStatsOverview.astro`, `MARKS_LAYOUTS`, `lib/stats/marks/`, `marksSection()`; `meanTile` joins `ratioTile`; `groupBySession`/`sessionFactsOf` move into `replay.module.ts`; Section Catalog 1.15.0.)
 
