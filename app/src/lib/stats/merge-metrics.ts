@@ -1,3 +1,4 @@
+import { addMarksMetrics } from "@modules/stats/sections/marks.module";
 import type {
   Bucket,
   ChunkWindow,
@@ -448,6 +449,7 @@ const MERGERS: {
   "atc-darts-per-target": mergeNestedCountRecord,
   "bobs27-survival": mergeBobs27Survival,
   "shanghai-count": mergeShanghaiCount,
+  marks: addMarksMetrics,
   "training-result": mergeTrainingResult,
   heatmap: mergeHeatmap,
 };

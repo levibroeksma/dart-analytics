@@ -409,6 +409,29 @@ describe("foldStepResult", () => {
     expect(result.sessions).toBe(1);
   });
 
+  it("folds the same two-stage session identically whatever order its rows arrive in", () => {
+    const ROOT = "01900000-0000-7000-9000-0000000000b1";
+    const rows = [1, 2, 3].map((turnSequence) =>
+      dartRow({
+        sessionId: "ts-reversed",
+        exerciseRulesetVersionKey: "TARGET_SCORING_V1",
+        configuration: { targets: [20] },
+        stageId: ROOT,
+        turnSequence,
+        dartNumber: 1,
+        intendedTargetNumber: 20,
+        intendedZoneKey: "TREBLE" as DartZoneKey,
+        hitTargetNumber: turnSequence === 2 ? 5 : 20,
+        hitZoneKey: "SINGLE" as DartZoneKey,
+        score: turnSequence === 2 ? 0 : 1,
+      }),
+    );
+
+    expect(foldStepResult("TARGET_SCORING", rows.slice().reverse())).toEqual(
+      foldStepResult("TARGET_SCORING", rows),
+    );
+  });
+
   it("skips a session whose ruleset has no registered engine, without throwing, a retired ruleset key included", () => {
     const rows = switchingSession("session-a", "2026-01-05T00:00:00.000Z", [
       { target: 20, hitTargetNumber: 20, hitZoneKey: "TREBLE" as DartZoneKey },

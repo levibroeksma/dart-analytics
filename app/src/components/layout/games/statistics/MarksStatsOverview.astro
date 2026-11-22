@@ -1,0 +1,61 @@
+---
+/**
+ * The Marks statistics layout for Cricket, Tactics and Mickey Mouse: the
+ * completion tile, the marks per round, darts to close out, wasted darts and
+ * win rate tiles against the preceding period, the objective and ring mix
+ * cards, the 1v1 points tile, then the heatmap and the session list.
+ */
+import AimTable from "./AimTable.astro";
+import GameCompletionSection from "./GameCompletionSection.astro";
+import GameHeatmapSection from "./GameHeatmapSection.astro";
+import GameSessionList from "./GameSessionList.astro";
+import StatTileRow from "./StatTileRow.astro";
+import ErrorAlert from "@components/ui/ErrorAlert.astro";
+---
+
+<div class="flex flex-col gap-2">
+  <div class="grid grid-cols-2 gap-2">
+    <GameCompletionSection />
+  </div>
+  <div
+    class="flex flex-col gap-2"
+    x-data="marksSection()"
+  >
+    <ErrorAlert
+      showExpr="error !== null"
+      textExpr="error"
+    />
+    <StatTileRow />
+    <div
+      class="glass flex flex-col gap-2 rounded-xl px-3 py-3.5"
+      x-data="{ get table() { return card.objectives } }"
+    >
+      <span class="font-mono text-eyebrow font-semibold text-muted-foreground">
+        OBJECTIVES
+      </span>
+      <div class="overflow-x-auto">
+        <AimTable headers={["Objective", "Marks"]} />
+      </div>
+    </div>
+    <div
+      class="glass flex flex-col gap-2 rounded-xl px-3 py-3.5"
+      x-data="{ get table() { return card.rings } }"
+    >
+      <span class="font-mono text-eyebrow font-semibold text-muted-foreground">
+        RING MIX
+      </span>
+      <div class="overflow-x-auto">
+        <AimTable headers={["Ring", "Share"]} />
+      </div>
+    </div>
+    <div
+      x-data="{ get tiles() { return card.points } }"
+      x-show="card.points.length"
+      x-cloak
+    >
+      <StatTileRow />
+    </div>
+  </div>
+  <GameHeatmapSection />
+  <GameSessionList />
+</div>

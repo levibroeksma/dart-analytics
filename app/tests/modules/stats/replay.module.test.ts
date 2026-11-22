@@ -7,8 +7,10 @@ import { ReplayTurnSchema } from "@routes/statistics/types";
 import {
   decodeReplayCursor,
   encodeReplayCursor,
+  groupBySession,
   replayFacts,
   rowsToTurns,
+  sessionFactsOf,
   stageOrder,
 } from "@modules/stats/replay.module";
 import { toBase64Url } from "@modules/stats/sections/series.module";
@@ -17,6 +19,7 @@ import type {
   FollowTheLeaderState,
   ReplayRow,
   ReplayStageRow,
+  StagedReplayRow,
 } from "@modules/types";
 import {
   PLAYER_ONE,
@@ -433,5 +436,64 @@ describe("a Follow the Leader keep replayed from database rows", () => {
         fold.snapshot,
       )[1],
     ).toEqual({ kind: "value", label: "Result", value: "Keep" });
+  });
+});
+
+describe("groupBySession", () => {
+  it("groups by session in first-appearance order, keeping each session's row order", () => {
+    const groups = groupBySession([
+      { sessionId: "b", n: 1 },
+      { sessionId: "a", n: 2 },
+      { sessionId: "b", n: 3 },
+    ]);
+    expect([...groups.keys()]).toEqual(["b", "a"]);
+    expect(groups.get("b")!.map((row) => row.n)).toEqual([1, 3]);
+  });
+});
+
+describe("sessionFactsOf", () => {
+  const ROOT = "01900000-0000-7000-9000-0000000000a1";
+  const CHILD = "01900000-0000-7000-9000-0000000000a2";
+
+  function staged(
+    stageId: string,
+    turnSequence: number,
+    dartNumber: number,
+  ): StagedReplayRow {
+    return {
+      sessionId: "s-1",
+      stageId,
+      stageSequence: 1,
+      stageTypeKey: "EXERCISE_BLOCK",
+      parentStageId: stageId === CHILD ? ROOT : null,
+      turnSequence,
+      participantId: "p-1",
+      participantName: "Levi",
+      participantTypeKey: "PLAYER",
+      turnTotalScore: 0,
+      dartNumber,
+      intendedTargetNumber: null,
+      intendedZoneKey: null,
+      hitTargetNumber: dartNumber,
+      hitZoneKey: "OUTER_SINGLE",
+      score: dartNumber,
+      locationX: null,
+      locationY: null,
+      kept: false,
+    };
+  }
+
+  it("rebuilds stages in pre-order and turns in play order, darts sorted", () => {
+    const facts = sessionFactsOf([
+      staged(CHILD, 1, 1),
+      staged(ROOT, 1, 2),
+      staged(ROOT, 1, 1),
+    ]);
+    expect(facts.stages.map((stage) => stage.clientKey)).toEqual([ROOT, CHILD]);
+    expect(facts.turns.map((turn) => turn.stageClientKey)).toEqual([
+      ROOT,
+      CHILD,
+    ]);
+    expect(facts.turns[0]!.darts.map((dart) => dart.sequence)).toEqual([1, 2]);
   });
 });

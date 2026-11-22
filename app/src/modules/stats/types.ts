@@ -2,6 +2,7 @@ import type {
   AimKey,
   ContextFilter,
   GameTypeKey,
+  SeatFact,
   SeriesBucket,
   TargetKey,
   WireKey,
@@ -10,6 +11,7 @@ import type {
   CheckoutVisitTotals,
   DartFact,
   DartZoneKey,
+  EngineFacts,
   SeatFoldStep,
 } from "@modules/types";
 
@@ -774,6 +776,49 @@ export type SessionSteps<TSeat> = {
   steps: readonly SeatFoldStep<TSeat>[];
 };
 
+/** A marks game the `marks` section replays. */
+export type MarksGameKey = "CRICKET" | "TACTICS" | "MICKEY_MOUSE";
+
+/**
+ * One marks session ready to replay: every seat's kept turns in play order,
+ * and the seat the requesting player held (`ownerRef`).
+ */
+export type MarksSession = {
+  sessionId: string;
+  gameTypeKey: MarksGameKey;
+  bucketStart: string;
+  bucketEnd: string;
+  seats: readonly SeatFact[];
+  ownerRef: string;
+  facts: EngineFacts;
+};
+
+/** One objective's owner marks and landed darts; `key` is `"20"`, `"BULL"`, `"DOUBLES"` or `"TRIPLES"`. */
+export type MarksObjectiveCount = { key: string; marks: number; darts: number };
+
+/**
+ * `marks` section metrics for the owner's seat. `objectives` lists the
+ * game's own objectives in display order; `duel` counts two-seat sessions
+ * only.
+ */
+export type MarksMetrics = {
+  darts: number;
+  marks: number;
+  wasted: number;
+  rings: { single: number; double: number; treble: number };
+  objectives: MarksObjectiveCount[];
+  closeOuts: { games: number; darts: number };
+  duel: { games: number; wins: number; darts: number; points: number };
+};
+
+/** One replayed marks session's metrics, tagged with its bucket. */
+export type MarksFoldedSession = {
+  sessionId: string;
+  bucketStart: string;
+  bucketEnd: string;
+  metrics: MarksMetrics;
+};
+
 /** `shanghai-count` section metrics — one bucket (phase-4 decision 12). */
 export type ShanghaiCountMetrics = {
   sessions: number;
@@ -902,6 +947,30 @@ export type ReplayRow = {
 };
 
 /**
+ * A `v_game_replay` row with its session and its stage's own columns, so a
+ * fold rebuilds the session's real stage tree (`sessionFactsOf`).
+ */
+export type StagedReplayRow = ReplayRow & {
+  sessionId: string;
+  stageSequence: number;
+  stageTypeKey: string;
+  parentStageId: string | null;
+};
+
+/**
+ * `findMarksFoldRows`' row: every participant's dart of one owner session in
+ * scope, with the session's snapshot and the bucket its `completed_at`
+ * falls in.
+ */
+export type MarksFoldRow = StagedReplayRow & {
+  gameTypeKey: string;
+  rulesetVersionKey: string;
+  configuration: Record<string, unknown> | null;
+  bucketStart: string;
+  bucketEnd: string;
+};
+
+/**
  * A `ReplayRow`'s dart half, narrowed to a real dart: `dartNumber`, `score`
  * and `hitZoneKey` are non-null, which `rowsToTurns` proves row by row (R3).
  */
@@ -949,14 +1018,10 @@ export type ReplayCursor = {
  * rather than assumed, so the fold rebuilds each session's real stage tree
  * through `stageOrder` instead of inventing one.
  */
-export type StepFoldRow = ReplayRow & {
-  sessionId: string;
+export type StepFoldRow = StagedReplayRow & {
   completedAt: string;
   exerciseRulesetVersionKey: string | null;
   configuration: Record<string, unknown> | null;
-  stageSequence: number;
-  stageTypeKey: string;
-  parentStageId: string | null;
 };
 
 /**
