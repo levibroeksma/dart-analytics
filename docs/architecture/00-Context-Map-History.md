@@ -17,6 +17,8 @@ updated: 2026-11-22
 
 # Version History
 
+> **Version:** 1.248.0 (2026-11-22 — Replay facts documented outside code (#1372): Statistics Overview says `v_game_replay.kept` marks a Follow the Leader keep turn and is not a filter; Pattern 18 `MARKS` row says Mickey Mouse's dip adds 1 mark to Doubles/Triples, up to 4 marks per dart.)
+
 > **Version:** 1.247.0 (2026-11-22 — Statistics Overview view table gains a `v_game_replay` row (#1366): every seat's darts in the owner's sessions, scoped by `player_id`, so opponent darts need no new view or migration.)
 
 > **Version:** 1.246.0 (2026-11-22 — Branch invariant exception D0567: issue fixes may share one branch, one commit per issue, each closing its issue; other tasks keep a dedicated branch.)

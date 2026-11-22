@@ -419,6 +419,9 @@ per-section views are still planned.
   participant's darts read `v_game_replay` too: `step-result` and `marks`
   (the opponent's darts decide points and the winner,
   D0566).
+- `v_game_replay.kept` (migration `0053`) marks a Follow the Leader keep
+  turn; it is not a filter (marks turns carry `kept = false`). Folds pass it
+  through `replayFacts`.
 - Index for the date-range entry point: `exercise_sessions (player_id, game_type_id,
   completed_at DESC)`. Others only when measured.
 - Every view change is a new numbered migration; applied migrations stay untouched.
