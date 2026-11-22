@@ -17,6 +17,8 @@ updated: 2026-11-22
 
 # Version History
 
+> **Version:** 1.249.0 (2026-11-22 — Plan units (#1373): root `CLAUDE.md` plugin-skill table gains a `superpowers:writing-plans` row: every count or ratio in a Produces block names its unit in the spec's own words, checked at self-review step 1.)
+
 > **Version:** 1.248.0 (2026-11-22 — Replay facts documented outside code (#1372): Statistics Overview says `v_game_replay.kept` marks a Follow the Leader keep turn and is not a filter; Pattern 18 `MARKS` row says Mickey Mouse's dip adds 1 mark to Doubles/Triples, up to 4 marks per dart.)
 
 > **Version:** 1.247.0 (2026-11-22 — Statistics Overview view table gains a `v_game_replay` row (#1366): every seat's darts in the owner's sessions, scoped by `player_id`, so opponent darts need no new view or migration.)
