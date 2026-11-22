@@ -414,7 +414,7 @@ per-section views are still planned.
   `v_stats_session_facts` (`0043`). Server folds that need every
   participant's darts read `v_game_replay` too: `step-result` and `marks`
   (the opponent's darts decide points and the winner,
-  [pending:marks-statistics-page]).
+  D0566).
 - Index for the date-range entry point: `exercise_sessions (player_id, game_type_id,
   completed_at DESC)`. Others only when measured.
 - Every view change is a new numbered migration; applied migrations stay untouched.

@@ -40,7 +40,7 @@ Version and `Applies to` vocabulary: see `../templates/GAME_RULESET_TEMPLATE.md`
 | Killer Cricket (mark-stripping) | V2+ | 2+ | Wanted, unscheduled: depends on Multiplayer — there is no opponent to strip marks from with one seat — and its allocation, elimination and win rules are open questions below |
 | No Doubles/Triples categories (see Tactics) | Dropped | All | Not a feature of this ruleset: Classic Cricket has no Doubles/Triples objectives by definition, and the UK variant that adds them is its own ruleset, `tactics.md` |
 | Visit = up to 3 darts | V1 | All | |
-| Cricket statistics section (MPR, darts-to-close trend) | V2+ | All | Shipped ([pending:marks-statistics-page]): the `marks` section replays `v_game_replay` through the engine, no view or migration needed |
+| Cricket statistics section (MPR, darts-to-close trend) | V2+ | All | Shipped (D0566): the `marks` section replays `v_game_replay` through the engine, no view or migration needed |
 | Standard dartboard scoring (assumed) | V1 | All | |
 
 ## Identity
