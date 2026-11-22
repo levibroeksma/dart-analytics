@@ -5,7 +5,13 @@
 #   2. every one of them is named in .claude/skills/run-all-gates/SKILL.md;
 #   3. every row of scripts/precommit-gates.tsv names an existing script;
 #   4. every scripts/check-*.sh is in that table or in NOT_IN_PRECOMMIT below;
-#   5. every script .claude/hooks/edit-gate.py names exists.
+#   5. every script .claude/hooks/edit-gate.py names exists;
+#   6. every scripts/check-*.sh with a per-file mode (sets FILE_MODE) is in
+#      edit-gate.py CHECKS and has a case in scripts/test-check-file-mode.sh.
+#
+# ADDING A GATE: the script, a precommit-gates.tsv row (or NOT_IN_PRECOMMIT),
+# a quality.yml step, a run-all-gates SKILL.md line and a File Inventory row;
+# a per-file-mode gate also an edit-gate.py CHECKS entry and file-mode fixtures.
 #
 # WHAT THIS CANNOT CATCH: a script named in a comment but run nowhere; a gate
 # wired with the wrong arguments or working directory.
@@ -54,5 +60,13 @@ for s in $(grep -oE 'scripts/[a-z0-9-]+\.sh' .claude/hooks/edit-gate.py | sort -
   [ -f "$s" ] || { echo "edit-gate.py names a missing script: $s" >&2; FAIL=1; }
 done
 
+for f in $(grep -l '^FILE_MODE=' scripts/check-*.sh); do
+  b="$(basename "$f" .sh)"
+  grep -qF -- "scripts/$b.sh" .claude/hooks/edit-gate.py ||
+    { echo "per-file gate not in edit-gate.py CHECKS: $b.sh" >&2; FAIL=1; }
+  grep -qE -- "^ *expect (pass|fail) .* ${b#check-} " scripts/test-check-file-mode.sh ||
+    { echo "per-file gate has no test-check-file-mode.sh case: $b.sh" >&2; FAIL=1; }
+done
+
 if [ "$FAIL" -ne 0 ]; then exit 1; fi
-echo "OK: $N gate scripts wired in quality.yml and run-all-gates; pre-commit rows resolve."
+echo "OK: $N gate scripts wired in quality.yml and run-all-gates; pre-commit rows resolve; per-file gates in edit-gate and fixtures."

@@ -121,6 +121,10 @@ bash scripts/check-decision-pending.sh
 
 The "Always run" scripts above already cover doc consistency (context map, links, token budget). No additional scripts apply — also review `docs/CLAUDE.md`'s Editing Workflow by hand (canonical-doc-first, cascade to secondary docs), which is not mechanized. If the changed docs are under `decisions/` or `DECISIONS.md`, see the section above instead.
 
+## Adding a gate
+
+The wiring list is the `ADDING A GATE` comment in `scripts/check-gate-wiring.sh`, which fails until every place is wired; run it after adding a `scripts/check-*.sh` or `scripts/test-*.sh`.
+
 ## Reporting
 
 State each script's result (`OK` or `FAIL` and why) explicitly in the completion report. Do not summarize as "gates pass" without having actually run every applicable script in this session.

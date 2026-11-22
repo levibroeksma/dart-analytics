@@ -44,20 +44,21 @@ Runs when the session-start hook asks, quietly, before the first answer. Output 
 
 Paths: `<root>` is the main checkout, the parent of `git rev-parse --path-format=absolute --git-common-dir`. The run lock is `<root>/.worktrees/design-sync.lock`.
 
-1. `git fetch origin main`. If `gh pr list --state open --json number,headRefName` has a `headRefName` starting with `chore/design-sync-`, say `design sync PR #<n> still open` and stop.
-2. If the run lock exists and is less than 2 hours old, say `design sync already running` and stop. If it is older, delete it and go on.
-3. Cheap check. `Artifact read` `project/sync-ready.json` (missing = no marks). Take the lock's last commit, `git log -1 --format=%H origin/main -- docs/design-system/design-sync.lock.json`, and run `git diff --quiet <that commit> origin/main -- app/src/styles/global.css app/src/icons app/src/assets app/public`. If there are no marks and the code did not move, stay silent and stop. A design edit without a mark starts nothing.
-4. Write the run lock (session id and time), then launch one background agent with the `Agent` tool. Do not wait for it. Its brief is steps 5–10 below, with `<root>` spelled out.
-5. The agent runs `git worktree add <root>/.worktrees/design-sync-<YYYY-MM-DD-HHMM> -b chore/design-sync-<YYYY-MM-DD-HHMM> origin/main` and works only there. It mirrors all three areas (§ 2), then runs `ready --mirror <m>` and `publish-plan --mirror <m>`.
-6. **Clear done marks:** if `ready`'s `inSync` holds marked ids, publish `project/sync-ready.json` without them (§ 7). Those changes already match `main`, so their PR has merged.
-7. **Ready (design → code):** apply every `apply` id as design-wins (§ 6), then `record --area <area> --decision design-wins`, once per area.
-8. **After merge (code → design):** for `publish` ids, run `write-tokens --mirror <m> --ids <token ids>` and copy the changed asset files from the code into the mirror. Publish (§ 7), then `record --area <area> --decision code-wins --last-change-at <published at>`, once per area.
-9. If steps 7 and 8 changed nothing, open no PR. Otherwise commit the lock and code changes, run `run-all-gates` (and `validate-app` if `app/` changed), push and open one PR. List `conflicts`, `oneSided`, `newOnMain` and `unknown` ids in the PR body, or in the report when there is no PR. Remove an unused worktree and branch.
-10. Delete the run lock, also on failure.
+1. **Access probe (§ 1), before anything else:** `Artifact read` `project/design-system.json`. If the tool is missing or the read fails, stop silently: no diff, no lock, no agent.
+2. `git fetch origin main`. If `gh pr list --state open --json number,headRefName` has a `headRefName` starting with `chore/design-sync-`, say `design sync PR #<n> still open` and stop.
+3. If the run lock exists and is less than 2 hours old, say `design sync already running` and stop. If it is older, delete it and go on.
+4. Cheap check. `Artifact read` `project/sync-ready.json` (missing = no marks). Take the lock's last commit, `git log -1 --format=%H origin/main -- docs/design-system/design-sync.lock.json`, and run `git diff --quiet <that commit> origin/main -- app/src/styles/global.css app/src/icons app/src/assets app/public`. If there are no marks and the code did not move, stay silent and stop. A design edit without a mark starts nothing.
+5. Write the run lock (session id and time), then launch one background agent with the `Agent` tool. Do not wait for it. Its brief is steps 6–11 below, with `<root>` spelled out.
+6. The agent runs `git worktree add <root>/.worktrees/design-sync-<YYYY-MM-DD-HHMM> -b chore/design-sync-<YYYY-MM-DD-HHMM> origin/main` and works only there. It mirrors all three areas (§ 2), then runs `ready --mirror <m>` and `publish-plan --mirror <m>`.
+7. **Clear done marks:** if `ready`'s `inSync` holds marked ids, publish `project/sync-ready.json` without them (§ 7). Those changes already match `main`, so their PR has merged.
+8. **Ready (design → code):** apply every `apply` id as design-wins (§ 6), then `record --area <area> --decision design-wins`, once per area.
+9. **After merge (code → design):** for `publish` ids, run `write-tokens --mirror <m> --ids <token ids>` and copy the changed asset files from the code into the mirror. Publish (§ 7), then `record --area <area> --decision code-wins --last-change-at <published at>`, once per area.
+10. If steps 8 and 9 changed nothing, open no PR. Otherwise commit the lock and code changes, run `run-all-gates` (and `validate-app` if `app/` changed), push and open one PR. List `conflicts`, `oneSided`, `newOnMain` and `unknown` ids in the PR body, or in the report when there is no PR. Remove an unused worktree and branch.
+11. Delete the run lock, also on failure.
 
 The session reports one line per outcome: `2 ready design changes → PR #…`, `3 code changes published`, `1 conflict: var:--accent`.
 
-Ready marks stay until their change is on `main`: step 6 clears them on the first run after the PR merges. A closed, unmerged PR leaves them in place.
+Ready marks stay until their change is on `main`: step 7 clears them on the first run after the PR merges. A closed, unmerged PR leaves them in place.
 
 ## 4. Manual run (per item)
 
