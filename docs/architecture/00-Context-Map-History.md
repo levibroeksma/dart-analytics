@@ -17,7 +17,7 @@ updated: 2026-11-22
 
 # Version History
 
-> **Version:** 1.246.0 (2026-11-22 — Branch invariant exception [pending:issue-fixes-may-share-one-branch]: issue fixes may share one branch, one commit per issue, each closing its issue; other tasks keep a dedicated branch.)
+> **Version:** 1.246.0 (2026-11-22 — Branch invariant exception D0567: issue fixes may share one branch, one commit per issue, each closing its issue; other tasks keep a dedicated branch.)
 
 > **Version:** 1.245.0 (2026-11-22 — Gate wiring: `check-gate-wiring.sh` also requires every per-file-mode `check-*.sh` to sit in `edit-gate.py` CHECKS and have a `test-check-file-mode.sh` case; its header carries the add-a-gate wiring list, pointed to from `run-all-gates`.)
 
