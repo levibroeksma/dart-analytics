@@ -77,6 +77,8 @@ mutate_wf wf-auto-mode "$claude[\"with\"][\"claude_args\"] = $claude[\"with\"][\
 expect_wf_fail wf-auto-mode permission-mode
 mutate_wf wf-any-fetch "$claude[\"with\"][\"claude_args\"] = $claude[\"with\"][\"claude_args\"].sub(\"Read,\", \"Read,WebFetch,\")"
 expect_wf_fail wf-any-fetch WebFetch
+mutate_wf wf-inline-deps "$claude[\"with\"][\"prompt\"] += \"\\n\\\${{ steps.metadata.outputs.updated-dependencies-json }}\""
+expect_wf_fail wf-inline-deps prompt
 mutate_wf wf-human-push 'd["jobs"].each_value { |j| j["if"] = "github.event.pull_request.user.login == '"'dependabot[bot]'"'" }'
 expect_wf_fail wf-human-push github.actor
 

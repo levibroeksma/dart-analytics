@@ -87,6 +87,7 @@ claude_seen = false
     errs << "claude step: allowed_bots must be dependabot[bot]" unless w["allowed_bots"] == "dependabot[bot]"
     errs << "claude step: must not set anthropic_api_key (free tier only)" if w.key?("anthropic_api_key")
     errs << "claude step: github_token must be ${{ github.token }} (no OIDC app token)" unless w["github_token"] == "${{ github.token }}"
+    errs << "claude step: prompt must not interpolate step outputs; pass them through a file" if w["prompt"].to_s.include?("${{ steps.")
     errs << "claude step: claude_args must set --permission-mode default" unless w["claude_args"].to_s =~ /--permission-mode\s+default\b/
     m = w["claude_args"].to_s.match(/--allowedTools\s+"([^"]*)"/)
     if m.nil?

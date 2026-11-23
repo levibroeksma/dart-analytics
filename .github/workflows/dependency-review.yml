@@ -36,7 +36,10 @@ jobs:
       - id: select
         env:
           DEPS: ${{ steps.metadata.outputs.updated-dependencies-json }}
-        run: bash scripts/dependency-review-select.sh "$DEPS" >> "$GITHUB_OUTPUT"
+        run: |
+          bash scripts/dependency-review-select.sh "$DEPS" >> "$GITHUB_OUTPUT"
+          mkdir -p .dependency-review
+          printf '%s\n' "$DEPS" > .dependency-review/updated-dependencies.json
 
       - if: steps.select.outputs.breaking == 'true'
         env:
@@ -56,7 +59,7 @@ jobs:
           claude_args: --permission-mode default --allowedTools "Read,Grep,Glob,WebFetch(domain:github.com),WebFetch(domain:www.npmjs.com),WebFetch(domain:registry.npmjs.org),Bash(gh pr comment:*),Bash(gh pr view:*)"
           prompt: |
             You review Dependabot PR #${{ github.event.pull_request.number }} in ${{ github.repository }}.
-            Updated dependencies (JSON): ${{ steps.metadata.outputs.updated-dependencies-json }}
+            The updated dependencies are in `.dependency-review/updated-dependencies.json` (JSON from dependabot/fetch-metadata). Read that file first.
 
             For each dependency whose update is major, or a minor bump of a 0.x version:
             1. Read its changelog or release notes for every version between the old and new one.
