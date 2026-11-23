@@ -18,7 +18,7 @@ import {
 import type { GameTypeKey, RoutineSectionMeta, SectionMeta } from "@lib/types";
 import type { CachedSeries, CacheScope } from "@client/types";
 
-/** A game page's scope for `gameTypeKey`, as `game-stats.store.ts` builds it (controller ruling R4). */
+/** A game page's scope for `gameTypeKey` (controller ruling R4). */
 function gameScope(gameTypeKey: string): CacheScope {
   const key = gameTypeKey as GameTypeKey;
   return { key: gameScopeKey(key), gameTypeKey: key };

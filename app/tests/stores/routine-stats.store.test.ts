@@ -37,8 +37,8 @@ vi.mock("@client/api/statistics", () => ({
     fetchRoutineStepSessions(...args),
 }));
 
-const { routineStatsStore } = await import("@stores/routine-stats.store");
-const { defaultRange } = await import("@stores/game-stats.store");
+const { routineStatsStore, defaultRange } =
+  await import("@stores/routine-stats.store");
 
 const ROUTINE_KEY = "0190a1b2-c3d4-7e5f-8a9b-0c1d2e3f4a5b";
 const FP = "0123456789abcdef0123456789abcdef";
@@ -175,7 +175,7 @@ beforeEach(() => {
 });
 
 describe("routineStatsStore loading", () => {
-  it("starts on game-stats.store's default range and bucket", () => {
+  it("starts on the default range and bucket", () => {
     const store = routineStatsStore();
     const expected = defaultRange();
 

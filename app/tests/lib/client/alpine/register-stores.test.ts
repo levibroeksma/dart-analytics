@@ -27,7 +27,6 @@ describe("registerStores", () => {
       "settings",
       "profile",
       "stats",
-      "gameStats",
       "routineStats",
       "replay",
       "trainingSession",
