@@ -77,6 +77,14 @@ mutate_wf wf-auto-mode "$claude[\"with\"][\"claude_args\"] = $claude[\"with\"][\
 expect_wf_fail wf-auto-mode permission-mode
 mutate_wf wf-any-fetch "$claude[\"with\"][\"claude_args\"] = $claude[\"with\"][\"claude_args\"].sub(\"Read,\", \"Read,WebFetch,\")"
 expect_wf_fail wf-any-fetch WebFetch
+mutate_wf wf-loose-if 'd["jobs"].each_value { |j| j["if"] = "always() || " + j["if"] }'
+expect_wf_fail wf-loose-if 'if must be exactly'
+mutate_wf wf-skip-perms "$claude[\"with\"][\"claude_args\"] += \" --dangerously-skip-permissions\""
+expect_wf_fail wf-skip-perms dangerously-skip-permissions
+mutate_wf wf-second-tools "$claude[\"with\"][\"claude_args\"] += ' --allowedTools \"Bash\"'"
+expect_wf_fail wf-second-tools 'more than once'
+mutate_wf wf-alt-flag "$claude[\"with\"][\"claude_args\"] += ' --allowed-tools \"Edit\"'"
+expect_wf_fail wf-alt-flag allowed-tools
 mutate_wf wf-inline-deps "$claude[\"with\"][\"prompt\"] += \"\\n\\\${{ steps.metadata.outputs.updated-dependencies-json }}\""
 expect_wf_fail wf-inline-deps prompt
 mutate_wf wf-human-push 'd["jobs"].each_value { |j| j["if"] = "github.event.pull_request.user.login == '"'dependabot[bot]'"'" }'

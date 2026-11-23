@@ -58,7 +58,7 @@ exit(errs.empty? ? 0 : 1)
 RUBY
 dep_status=$?
 
-ruby -ryaml - "$REVIEW_WORKFLOW" <<'RUBY'
+ruby -ryaml -rshellwords - "$REVIEW_WORKFLOW" <<'RUBY'
 path = ARGV[0]
 errs = []
 unless File.file?(path)
@@ -71,11 +71,11 @@ errs << "workflow permissions must be exactly #{want_perms}" unless d["permissio
 
 tools = ["Read", "Grep", "Glob", "WebFetch(domain:github.com)", "WebFetch(domain:www.npmjs.com)",
          "WebFetch(domain:registry.npmjs.org)", "Bash(gh pr comment:*)", "Bash(gh pr view:*)"]
+want_if = "github.event.pull_request.user.login == 'dependabot[bot]' && github.actor == 'dependabot[bot]'"
+flags = { "--permission-mode" => nil, "--allowedTools" => nil }
 claude_seen = false
 (d["jobs"] || {}).each do |name, j|
-  cond = j["if"].to_s
-  errs << "job #{name}: if must restrict to dependabot[bot]" unless cond.include?("pull_request.user.login == 'dependabot[bot]'")
-  errs << "job #{name}: if must also require github.actor == 'dependabot[bot]'" unless cond.include?("github.actor == 'dependabot[bot]'")
+  errs << "job #{name}: if must be exactly: #{want_if}" unless j["if"].to_s.strip == want_if
   errs << "job #{name}: must not override permissions" if j.key?("permissions")
   (j["steps"] || []).each do |s|
     u = s["uses"].to_s
@@ -88,12 +88,23 @@ claude_seen = false
     errs << "claude step: must not set anthropic_api_key (free tier only)" if w.key?("anthropic_api_key")
     errs << "claude step: github_token must be ${{ github.token }} (no OIDC app token)" unless w["github_token"] == "${{ github.token }}"
     errs << "claude step: prompt must not interpolate step outputs; pass them through a file" if w["prompt"].to_s.include?("${{ steps.")
-    errs << "claude step: claude_args must set --permission-mode default" unless w["claude_args"].to_s =~ /--permission-mode\s+default\b/
-    m = w["claude_args"].to_s.match(/--allowedTools\s+"([^"]*)"/)
-    if m.nil?
+    seen = flags.dup
+    args = Shellwords.split(w["claude_args"].to_s)
+    until args.empty?
+      flag = args.shift
+      if !seen.key?(flag)
+        errs << "claude step: claude_args argument #{flag} is not allowed"
+      elsif !seen[flag].nil?
+        errs << "claude step: claude_args sets #{flag} more than once"
+      else
+        seen[flag] = args.shift.to_s
+      end
+    end
+    errs << "claude step: claude_args must set --permission-mode default" unless seen["--permission-mode"] == "default"
+    if seen["--allowedTools"].nil?
       errs << "claude step: claude_args must set --allowedTools"
     else
-      (m[1].split(",").map(&:strip) - tools).each { |t| errs << "claude step: tool #{t} is not allowed" }
+      (seen["--allowedTools"].split(",").map(&:strip) - tools).each { |t| errs << "claude step: tool #{t} is not allowed" }
     end
   end
 end
