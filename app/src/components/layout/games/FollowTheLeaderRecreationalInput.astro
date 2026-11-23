@@ -3,7 +3,8 @@
  * Follow the Leader's tap pad: `RingKeyRow`, the numbers 1–20 on a
  * five-column grid, then a fixed BULL / MISS / STOP row. STOP stays in place
  * and is disabled until a dart has matched (`canStop()`). Treble cannot apply
- * to the bull, so BULL is disabled while T is armed. The target banner and
+ * to the bull, so BULL is disabled while T is armed. With D armed, BULL
+ * reads 50: D then BULL enters the inner bull. The target banner and
  * the Keep/Set prompt live in the interface, not here. Reads `canStop()`,
  * `ring` and `finished` from the surrounding play scope.
  */
@@ -31,6 +32,8 @@ import NumberPadRecreationalInput from "./NumberPadRecreationalInput.astro";
       class="text-2xl uppercase"
       :disabled="finished || ring === 'TREBLE'"
       @click="recordBull()"
+      :aria-label="$ringKeyActive(ring, 'D') ? 'Inner bull' : 'Outer bull'"
+      x-text="$ringKeyActive(ring, 'D') ? '50' : 'Bull'"
     >
       BULL
     </InputButton>
