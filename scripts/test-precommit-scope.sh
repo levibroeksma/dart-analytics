@@ -10,7 +10,7 @@ PASSED=0
 FAILED=0
 D="$(mktemp -d)"
 trap 'rm -rf "$D"' EXIT
-SCOPED="check-type-barrels.sh check-game-rules.sh test-check-game-rules.sh check-tag-seeds.sh test-check-tag-seeds.sh test-check-context-budget.sh"
+SCOPED="check-type-barrels.sh check-dupes.sh check-context-budget.sh check-game-rules.sh test-check-game-rules.sh check-tag-seeds.sh test-check-tag-seeds.sh test-check-context-budget.sh"
 ALWAYS="$(grep -cvE '^#|^$|	.' "$ROOT/scripts/precommit-gates.tsv")"
 
 ok() { PASSED=$((PASSED + 1)); }
@@ -20,9 +20,15 @@ plan() { printf '%s' "${1:+$1$'\n'}" > "$D/staged"; (cd "$ROOT" && PRECOMMIT_STA
 has() { grep -qx "scripts/$1" "$D/out"; }
 count() { grep -c '^scripts/' "$D/out"; }
 
-plan "docs/architecture/01-Principles.md"
+plan "docs/superpowers/specs/x.md"
 none=1; for s in $SCOPED; do has "$s" && none=0; done
-if [ "$(count)" = "$ALWAYS" ] && [ "$none" = 1 ]; then ok; else bad "doc path runs only the always-gates"; fi
+if [ "$(count)" = "$ALWAYS" ] && [ "$none" = 1 ]; then ok; else bad "historical doc path runs only the always-gates"; fi
+
+plan "docs/architecture/01-Principles.md"
+if has check-context-budget.sh && ! has check-dupes.sh; then ok; else bad "architecture doc runs context-budget, not dupes"; fi
+
+plan "app/src/lib/game/x.ts"
+if [ "$(head -3 "$D/out" | tr '\n' ' ')" = "scripts/check-test-coverage.sh scripts/check-type-barrels.sh scripts/check-dupes.sh " ]; then ok; else bad "app/src path runs test-coverage, type-barrels, dupes first"; fi
 
 plan "app/src/lib/game/x.ts"
 if has check-type-barrels.sh && ! has check-tag-seeds.sh; then ok; else bad "app/src path runs type-barrels, not tag-seeds"; fi

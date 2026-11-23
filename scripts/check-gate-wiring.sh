@@ -27,10 +27,8 @@ NOT_IN_PRECOMMIT="
 check-doc-sync.sh          fails the code commit that precedes its docs commit
 check-context-map.sh       docs gate; CI and skill only
 check-doc-links.sh         docs gate; CI and skill only
-check-context-budget.sh    docs gate; CI and skill only
 check-decision-ids.sh      silent unless decisions/** changed
 check-decision-pending.sh  fails while a pending-*.md exists; CI blocks merge
-check-dupes.sh             needs fallow
 check-quality-benchmarks.sh pre-push when app/src changed (needs fallow)
 check-test-repointing.sh   advisory, diff-based (pr-gates.yml)
 check-html-parity.sh       compares against a base built from another commit; run by hand

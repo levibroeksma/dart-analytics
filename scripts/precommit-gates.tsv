@@ -2,6 +2,11 @@
 # only when a staged path matches it; no regex means every commit. CI
 # (quality.yml) runs every gate on every PR, so scoping delays a failure and
 # never hides one. Each regex includes the gate's own script path.
+# The gates agents trip most and that run fastest come first: the runner
+# stops at the first failure (#1367).
+scripts/check-test-coverage.sh	
+scripts/check-type-barrels.sh	^(app/src/|app/tests/|app/tsconfig\.json|scripts/check-type-barrels\.sh)
+scripts/check-dupes.sh	^(app/src/|scripts/check-dupes\.sh|scripts/dupes-baseline\.txt)
 scripts/check-file-locations.sh	
 scripts/check-agent-mirrors.sh	
 scripts/check-skill-pointers.sh	
@@ -15,7 +20,6 @@ scripts/check-game-engines.sh
 scripts/check-engine-kernels.sh	
 scripts/test-check-engine-kernels.sh	
 scripts/check-refinement-coverage.sh	
-scripts/check-type-barrels.sh	^(app/src/|app/tests/|app/tsconfig\.json|scripts/check-type-barrels\.sh)
 scripts/check-alias-sync.sh	
 scripts/check-constraint-mirror.sh	
 scripts/check-no-inline-comments.sh	
@@ -28,6 +32,6 @@ scripts/check-tag-seeds.sh	^(docs/game-rules/|database/seeds/|app/scripts/(tags/
 scripts/test-check-tag-seeds.sh	^(docs/game-rules/|database/seeds/|app/scripts/(tags/|generate-tag-seed)|scripts/(test-)?check-(tag-seeds|game-rules)\.sh)
 scripts/check-seed-ids.sh	
 scripts/test-check-seed-ids.sh	
-scripts/check-test-coverage.sh	
 scripts/run-related-tests.sh	^(app/(src|tests)/|scripts/run-related-tests\.sh)
+scripts/check-context-budget.sh	^(docs/architecture/|decisions/|\.claude/(skills|rules)/|(.*/)?CLAUDE\.md|scripts/(test-)?check-context-budget\.sh)
 scripts/test-check-context-budget.sh	^scripts/(test-)?check-context-budget\.sh
