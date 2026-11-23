@@ -1136,6 +1136,9 @@ export type MickeyMouseSeatResult = {
   participantRef: string;
   sideKey: string;
   darts: number;
+  marksPerRound: string;
+  bulls: number;
+  points: number;
   dartsToClose: (number | null)[];
 };
 
