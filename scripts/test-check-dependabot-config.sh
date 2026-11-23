@@ -98,6 +98,8 @@ select_case "[]" false
 select_case '[{"dependencyName":"actions/setup-node","prevVersion":"4","newVersion":"5","updateType":null}]' true
 select_case '[{"dependencyName":"actions/checkout","prevVersion":"v4.2.0","newVersion":"v5.0.0","updateType":null}]' true
 select_case '[{"dependencyName":"clsx","prevVersion":"2.1.1","newVersion":"2.2.0","updateType":null}]' false
+select_case "[$(dep tiny-lib 0.0.1 0.0.2 patch)]" true
+select_case "[$(dep tiny-lib 0.1.1 0.1.2 patch)]" false
 
 [ "$FAILED" -eq 0 ] || { echo "test-check-dependabot-config: $FAILED failure(s)" >&2; exit 1; }
 echo "test-check-dependabot-config: ok"
