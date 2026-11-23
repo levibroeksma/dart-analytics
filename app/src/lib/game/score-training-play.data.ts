@@ -12,6 +12,7 @@ import {
   resumeGameEngine,
   runPlayAgain,
   isInputBlocked,
+  releaseHeldDart,
   undoBotAwareVisit,
   playBotQuickScoreVisit,
 } from "@lib/game/play-lifecycle";
@@ -351,9 +352,7 @@ const scoreTrainingPlayMethods2 = {
     if (!this.showFinishConfirm) return;
 
     if (this.pendingDartObservation !== null) {
-      this.engine?.undo();
-      if (this.engine) this.$store.game.recordFacts(this.engine.facts());
-      this.pendingDartObservation = null;
+      releaseHeldDart(this);
       this.showFinishConfirm = false;
       return;
     }

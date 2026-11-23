@@ -30,9 +30,10 @@ export const DOUBLE_OUT_FINISHES: ReadonlySet<number> = new Set([
   50,
 ]);
 
-/** The two numbers either side of board number `number`, anticlockwise first, wrapping from 5 back to 20. */
+/** The two numbers either side of board number `number`, anticlockwise first, wrapping from 5 back to 20. Throws `RangeError` for a number not on the board (1–20). */
 export function boardNeighbours(number: number): readonly [number, number] {
   const index = SECTOR_ORDER.indexOf(number);
+  if (index === -1) throw new RangeError(`${number} is not a board number`);
   const size = SECTOR_ORDER.length;
   return [
     SECTOR_ORDER[(index - 1 + size) % size]!,

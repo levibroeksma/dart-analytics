@@ -1966,6 +1966,14 @@ describe("StatisticsRangeQuery variation", () => {
     if (result.success) expect(result.data.variation).toBeUndefined();
   });
 
+  it("accepts both starting-score bounds", () => {
+    for (const variation of ["2", "999"]) {
+      expect(
+        StatisticsRangeQuery.safeParse({ ...base, variation }).success,
+      ).toBe(true);
+    }
+  });
+
   it.each(["", "abc", "1", "1000", "301.5"])(
     "rejects variation %j",
     (variation) => {

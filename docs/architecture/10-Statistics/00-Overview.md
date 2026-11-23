@@ -77,6 +77,7 @@ favorite double, …). Each section is one entry in a typed registry
 | `requires` | `readonly Requirement[]`, `Requirement = StatsTag \| { anyOf: readonly StatsTag[] }` (§3) | a new game gets every section its tags admit, no list edits; `anyOf` lets one section serve two families that reach the same fact by different means (D370 decision 5) |
 | `computeSite` | `sql` \| `server` \| `client` (§4) | picked per section by cost, recorded with a reason |
 | `siteByTag` | `Partial<Record<StatsTag, ComputeSite>>`, optional | overrides `computeSite` when the game carries that tag; `sectionSite(meta, gameTypeKey)` is the one resolver the service and client both read (D370 decision 5) |
+| `siteByTagWhenFiltered` | `Partial<Record<StatsTag, ComputeSite>>`, optional | consulted before `siteByTag` when the request carries a `target` filter — `heatmap` folds a filtered request on the server for `intent-derived` and `intent-inferred` games (D408) |
 | `games` | `readonly GameTypeKey[]`, optional | narrows a section to named games on top of its tags — how a game-specific section (`bobs27-survival`, …) attaches to exactly one game (D370 decision 10) |
 | `excludedGames` | `readonly GameTypeKey[]`, optional | drops a section from the named games' pages although its tags admit it — 501 drops `treble-rate`, `volume`, `checkout-path`, `double-performance` (D555) |
 | `bucketable` | supports `bucket` (§5) | enables MoM / YoY series |
