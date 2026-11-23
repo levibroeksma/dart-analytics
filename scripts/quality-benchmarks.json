@@ -3,7 +3,7 @@
   "rows": {
     "health_score": {
       "dir": "min",
-      "now": 92.5,
+      "now": 92.6,
       "target": 95.0
     },
     "mi_average": {
@@ -19,7 +19,7 @@
     },
     "large_functions_src": {
       "dir": "max",
-      "now": 55,
+      "now": 53,
       "target": 20
     },
     "large_test_bodies": {
@@ -39,7 +39,7 @@
     },
     "dup_pct_semantic": {
       "dir": "max",
-      "now": 17.2,
+      "now": 17,
       "target": 12.0
     }
   }
