@@ -234,7 +234,7 @@ Before release, verify:
 
 # Dependency Updates
 
-Dependabot keeps the `app/` npm packages and the GitHub Actions in `.github/workflows/` up to date [pending:dependabot-weekly-updates]. `scripts/check-dependabot-config.sh` pins every value below.
+Dependabot keeps the `app/` npm packages and the GitHub Actions in `.github/workflows/` up to date D0568. `scripts/check-dependabot-config.sh` pins every value below.
 
 | What | When it arrives | Review |
 | --- | --- | --- |
