@@ -256,6 +256,8 @@ The Claude impact comment comes from `.github/workflows/dependency-review.yml`. 
 
 If the token is missing, the review job fails on every breaking PR with `CLAUDE_CODE_OAUTH_TOKEN is not set as a Dependabot secret`.
 
+The repo setting *Settings → Actions → General → "Allow GitHub Actions to create and approve pull requests"* stays on, because `graph.yml` and `schema.yml` open PRs with it. That setting lets the review job's token approve a PR. Claude cannot use it: its tool list allows only `gh pr comment` and `gh pr view`, in default permission mode, and `check-dependabot-config.sh` fails if that list grows.
+
 ---
 
 # Decision Framework
