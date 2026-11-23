@@ -238,7 +238,7 @@ describe("mickeyMousePlay", () => {
     expect(resumed.objectiveRowsFor("participant-1")[1].marks).toBe(1);
   });
 
-  it("builds results with darts thrown and the dart each objective closed on", () => {
+  it("builds results with darts, MPR to 2 dp, bull hits, points and the dart each objective closed on", () => {
     const config = { seats: SEATS };
     const engine = new MickeyMouseEngine(config);
     for (const dart of [
@@ -262,6 +262,9 @@ describe("mickeyMousePlay", () => {
       participantRef: "participant-1",
       sideKey: "A",
       darts: 12,
+      marksPerRound: "8.50",
+      bulls: 2,
+      points: 0,
       dartsToClose: [1, 2, 3, 4, 5, 6, 7, 8, 9, null, 3, 11],
     });
   });

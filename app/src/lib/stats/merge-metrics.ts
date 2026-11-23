@@ -214,16 +214,26 @@ function mergeCounts<T extends Record<string, number>>(a: T, b: T): T {
   return result as T;
 }
 
+/** Merges two records key by key, key sets unioned: a key missing on one side reads as `empty` before `merge`. */
+function mergeByKey<V>(
+  a: Record<string, V>,
+  b: Record<string, V>,
+  empty: V,
+  merge: (left: V, right: V) => V,
+): Record<string, V> {
+  const result: Record<string, V> = {};
+  for (const key of unionKeys(a, b)) {
+    result[key] = merge(a[key] ?? empty, b[key] ?? empty);
+  }
+  return result;
+}
+
 /** Sums two records of same-shaped numeric leaves, one level deep (`checkout-rate`, `double-performance`, `bust-rate`, `ladder-progress.targets`). */
 function mergeCountRecord<V extends Record<string, number>>(
   a: Record<string, V>,
   b: Record<string, V>,
 ): Record<string, V> {
-  const result: Record<string, V> = {};
-  for (const key of unionKeys(a, b)) {
-    result[key] = mergeCounts(a[key] ?? ({} as V), b[key] ?? ({} as V));
-  }
-  return result;
+  return mergeByKey(a, b, {} as V, mergeCounts);
 }
 
 /**
@@ -235,11 +245,7 @@ function mergeNestedCountRecord<V extends Record<string, number>>(
   a: Record<string, Record<string, V>>,
   b: Record<string, Record<string, V>>,
 ): Record<string, Record<string, V>> {
-  const result: Record<string, Record<string, V>> = {};
-  for (const key of unionKeys(a, b)) {
-    result[key] = mergeCountRecord(a[key] ?? {}, b[key] ?? {});
-  }
-  return result;
+  return mergeByKey(a, b, {}, mergeCountRecord);
 }
 
 /** Merges two records key by key: a key on one side only keeps that side's value as is; a key on both goes through `merge`. */
@@ -297,11 +303,7 @@ function mergeMissDirection(
   a: ServerSectionMetrics["miss-direction"],
   b: ServerSectionMetrics["miss-direction"],
 ): ServerSectionMetrics["miss-direction"] {
-  const result: ServerSectionMetrics["miss-direction"] = {};
-  for (const key of unionKeys(a, b)) {
-    result[key] = mergeMissEntries(a[key] ?? [], b[key] ?? []);
-  }
-  return result;
+  return mergeByKey(a, b, [], mergeMissEntries);
 }
 
 /** One `scoreAfter` target's counts: `runs`/`sum` add, `min`/`max` merge to the smaller/larger side (phase-4 decision 15). */

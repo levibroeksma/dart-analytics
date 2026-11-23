@@ -427,6 +427,17 @@ describe("mergeMetrics", () => {
     ]);
   });
 
+  it("keeps a miss-direction aim that only the first chunk has", () => {
+    const merged = mergeMetrics(
+      "miss-direction",
+      { "DOUBLE:16": [{ sector: 2, radial: "OUTSIDE", darts: 4 }] },
+      {},
+    );
+    expect(merged).toEqual({
+      "DOUBLE:16": [{ sector: 2, radial: "OUTSIDE", darts: 4 }],
+    });
+  });
+
   it("sums shanghai-count", () => {
     const merged = mergeMetrics(
       "shanghai-count",

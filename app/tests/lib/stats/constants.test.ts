@@ -3,7 +3,6 @@ import { GAME_TYPE_BY_RULESET } from "@lib/game/rulesets/capabilities";
 import {
   ACE_LAYOUTS,
   CHECKOUT_LAYOUTS,
-  DEDICATED_STATS_LAYOUTS,
   DOUBLES_TRAINING_LAYOUTS,
   HEATMAP_ONLY_LAYOUTS,
   MARKS_LAYOUTS,
@@ -22,11 +21,10 @@ describe("MIN_TARGET_SAMPLE", () => {
   });
 });
 
-describe("DEDICATED_STATS_LAYOUTS", () => {
-  it("holds SCORE_TRAINING_V1 only", () => {
-    expect([...DEDICATED_STATS_LAYOUTS]).toEqual(["SCORE_TRAINING_V1"]);
-  });
-});
+/** Score Training's dedicated layout, selected by name on `/statistics` (`index.astro`); no other layout set may claim it. */
+const SCORE_TRAINING_LAYOUT: ReadonlySet<string> = new Set([
+  "SCORE_TRAINING_V1",
+]);
 
 describe("HEATMAP_ONLY_LAYOUTS", () => {
   it("holds the plain-heatmap games, never a dedicated layout", () => {
@@ -41,7 +39,7 @@ describe("HEATMAP_ONLY_LAYOUTS", () => {
       ].sort(),
     );
     for (const key of HEATMAP_ONLY_LAYOUTS)
-      expect(DEDICATED_STATS_LAYOUTS.has(key)).toBe(false);
+      expect(SCORE_TRAINING_LAYOUT.has(key)).toBe(false);
   });
 });
 
@@ -50,7 +48,7 @@ describe("ACE_LAYOUTS", () => {
     expect([...ACE_LAYOUTS]).toEqual(["ACE_V1"]);
     for (const other of [
       HEATMAP_ONLY_LAYOUTS,
-      DEDICATED_STATS_LAYOUTS,
+      SCORE_TRAINING_LAYOUT,
       DOUBLES_TRAINING_LAYOUTS,
       TRACK_LAYOUTS,
       X01_LAYOUTS,
@@ -69,7 +67,7 @@ describe("TRACK_LAYOUTS", () => {
     ]);
     for (const key of TRACK_LAYOUTS) {
       expect(HEATMAP_ONLY_LAYOUTS.has(key)).toBe(false);
-      expect(DEDICATED_STATS_LAYOUTS.has(key)).toBe(false);
+      expect(SCORE_TRAINING_LAYOUT.has(key)).toBe(false);
       expect(DOUBLES_TRAINING_LAYOUTS.has(key)).toBe(false);
       expect(X01_LAYOUTS.has(key)).toBe(false);
     }
@@ -82,7 +80,7 @@ describe("DOUBLES_TRAINING_LAYOUTS", () => {
     expect([...DOUBLES_TRAINING_LAYOUTS]).toEqual(["DOUBLES_TRAINING_V1"]);
     for (const key of DOUBLES_TRAINING_LAYOUTS) {
       expect(HEATMAP_ONLY_LAYOUTS.has(key)).toBe(false);
-      expect(DEDICATED_STATS_LAYOUTS.has(key)).toBe(false);
+      expect(SCORE_TRAINING_LAYOUT.has(key)).toBe(false);
       expect(X01_LAYOUTS.has(key)).toBe(false);
     }
   });
@@ -93,7 +91,7 @@ describe("X01_LAYOUTS", () => {
     expect([...X01_LAYOUTS].sort()).toEqual(["501_V1", "501_V2"]);
     for (const key of X01_LAYOUTS) {
       expect(HEATMAP_ONLY_LAYOUTS.has(key)).toBe(false);
-      expect(DEDICATED_STATS_LAYOUTS.has(key)).toBe(false);
+      expect(SCORE_TRAINING_LAYOUT.has(key)).toBe(false);
     }
   });
 });
@@ -135,7 +133,7 @@ describe("CHECKOUT_LAYOUTS", () => {
     ]);
     for (const other of [
       HEATMAP_ONLY_LAYOUTS,
-      DEDICATED_STATS_LAYOUTS,
+      SCORE_TRAINING_LAYOUT,
       DOUBLES_TRAINING_LAYOUTS,
       TRACK_LAYOUTS,
       ACE_LAYOUTS,
@@ -156,7 +154,7 @@ describe("MARKS_LAYOUTS", () => {
     ]);
     for (const other of [
       HEATMAP_ONLY_LAYOUTS,
-      DEDICATED_STATS_LAYOUTS,
+      SCORE_TRAINING_LAYOUT,
       DOUBLES_TRAINING_LAYOUTS,
       TRACK_LAYOUTS,
       ACE_LAYOUTS,

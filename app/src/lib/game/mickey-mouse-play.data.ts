@@ -1,3 +1,4 @@
+import { BULL_TARGET_NUMBER } from "@modules/game/board-progression.module";
 import { playAgainStarterData } from "@lib/game/play-again-starter";
 import {
   playUploadAndCompleteSession,
@@ -40,6 +41,7 @@ import {
   MICKEY_MOUSE_OBJECTIVES,
   MickeyMouseEngine,
 } from "@modules/game/mickey-mouse.engine.module";
+import { marksPerRound } from "@modules/game/marks-close.module";
 
 const GAME_TYPE_KEY = "MICKEY_MOUSE";
 const RESUMABLE = new Set<RulesetVersionKey>(["MICKEY_MOUSE_V1"]);
@@ -53,7 +55,7 @@ const LOW_TARGETS: MickeyMouseTapTarget[] = Array.from(
   (_, i) => ({ number: 11 - i, label: String(11 - i) }),
 );
 
-/** One seat's results row: darts thrown and the dart each objective closed on. */
+/** One seat's results row: darts, MPR to 2 dp, bull hits, points, the dart each objective closed on. */
 export function mickeyMouseSeatResult(
   seat: MickeyMouseSeatState,
 ): MickeyMouseSeatResult {
@@ -61,6 +63,10 @@ export function mickeyMouseSeatResult(
     participantRef: seat.participantRef,
     sideKey: seat.sideKey,
     darts: seat.dartsThrown,
+    marksPerRound: marksPerRound(seat).toFixed(2),
+    bulls:
+      seat.objectiveHits[MICKEY_MOUSE_OBJECTIVES.indexOf(BULL_TARGET_NUMBER)],
+    points: seat.points,
     dartsToClose: [...seat.closedAtDart],
   };
 }

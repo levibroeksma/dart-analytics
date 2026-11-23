@@ -611,14 +611,6 @@
       "date": "2026-11-05"
     },
     {
-      "id": "component:StatsHeatmap",
-      "area": "components",
-      "designHash": null,
-      "codeHash": "b91fb5bfbe5a3754ccfba3a17c5f2edc7761e9e70224cb0c4354d30a16d47461",
-      "decision": "accepted-divergence",
-      "date": "2026-11-05"
-    },
-    {
       "id": "component:StatTile",
       "area": "components",
       "designHash": "91988fe73998c6fc9b2004f71c02babb8e9898e6330c4b544b9f3c1b43e4e8bc",

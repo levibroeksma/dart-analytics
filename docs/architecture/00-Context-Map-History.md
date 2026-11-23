@@ -17,6 +17,8 @@ updated: 2026-11-23
 
 # Version History
 
+> **Version:** 1.260.0 (2026-11-23 — Issue fixes #1385, #1216, #1219: stats helpers orphaned by the `gameStats` removal and `StatsHeatmap.astro` are deleted (File Inventory, Component Inventory and Statistics Overview/Section Catalog references updated; `RESULT_DIRECTION` stays as the D367 contract); `merge-metrics.ts` gains an internal `mergeByKey` and Doubles Lock's summary reuses `passRows` (File Inventory row); Mickey Mouse results gain marks per round, bulls and the 1v1 comparison through the new shared `MarksBullResults.astro` (File Inventory and Component Inventory rows).)
+
 > **Version:** 1.259.0 (2026-11-23 — Issue fixes #1382/#1325, #1381, #1161, #1367, #1323: the unread `gameStats` store is deleted (its File Inventory row removed, `defaultRange` moved to `routine-stats.store.ts`); 501 holds its match-winning board dart on the board during the confirm; the tap pad's BULL reads 50 while D is armed (Component Inventory rows updated); pre-commit runs test-coverage, type-barrels and dupes first and adds context-budget; `scripts/check-types.sh` and its fixture test are added (File Inventory rows) and replace `npm run check` in `validate:app` and CI D0568.)
 
 > **Version:** 1.258.0 (2026-11-22 — Statistics Overview §2 (#1326): registry field table gains `siteByTagWhenFiltered`. The issue's File Inventory decision count for `decisions/api.md` no longer exists after the MADR split.)

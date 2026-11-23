@@ -53,14 +53,16 @@ function hitRateRow(hits: number, darts: number): RoutineStatRow {
   };
 }
 
-/** A multi-pass exercise's closing rows: passes, darts, then hit rate. */
+/** A multi-pass exercise's closing rows: passes, any `afterPasses` rows, darts, then hit rate. */
 function passRows(
   passes: number,
   darts: number,
   hits: number,
+  afterPasses: readonly RoutineStatRow[] = [],
 ): RoutineStatRow[] {
   return [
     { label: "Passes", value: String(passes) },
+    ...afterPasses,
     { label: "Darts", value: String(darts) },
     hitRateRow(hits, darts),
   ];
@@ -355,14 +357,13 @@ export function summariseDoublesLock(
     rows: [
       { label: "Bonus", value: String(bonus) },
       { label: "Locks", value: String(locks) },
-      { label: "Passes", value: String(state.passes) },
-      {
-        label: "Best pass",
-        value:
-          state.bestPassDarts === null ? "—" : `${state.bestPassDarts} darts`,
-      },
-      { label: "Darts", value: String(darts) },
-      hitRateRow(hits, darts),
+      ...passRows(state.passes, darts, hits, [
+        {
+          label: "Best pass",
+          value:
+            state.bestPassDarts === null ? "—" : `${state.bestPassDarts} darts`,
+        },
+      ]),
     ],
   };
 }

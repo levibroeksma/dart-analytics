@@ -417,15 +417,21 @@ describe("summarise* over a real engine run", () => {
     });
   });
 
-  it("summariseDoublesLock shows the best pass's darts once a pass is done", () => {
+  it("summariseDoublesLock shows the best pass's darts between passes and darts once a pass is done", () => {
     const engine = doublesLockEngineFactory.create({});
     Array.from({ length: 20 }, (_, i) => 20 - i)
       .flatMap((n) => [dart(n, "DOUBLE"), dart(n, "DOUBLE"), dart(n, "DOUBLE")])
       .forEach((d) => engine.record(d));
-    expect(summariseDoublesLock(engine.state()).rows[3]).toEqual({
-      label: "Best pass",
-      value: "60 darts",
-    });
+    const rows = summariseDoublesLock(engine.state()).rows;
+    expect(rows.map((r) => r.label)).toEqual([
+      "Bonus",
+      "Locks",
+      "Passes",
+      "Best pass",
+      "Darts",
+      "Hit rate",
+    ]);
+    expect(rows[3]).toEqual({ label: "Best pass", value: "60 darts" });
   });
 
   it("summariseHalveIt reads total, halvings, each round's hits, passes, darts and rate", () => {
