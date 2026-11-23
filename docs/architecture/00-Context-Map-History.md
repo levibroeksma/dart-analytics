@@ -18,7 +18,8 @@ updated: 2026-11-22
 
 # Version History
 
-> **Version:** 1.240.0 (2026-11-20 — Weekly Dependabot updates [pending:dependabot-weekly-updates]: `.github/dependabot.yml` (npm `/app` + github-actions, Monday 06:00 Europe/Amsterdam, 2-day cooldown, limit 5, minor+patch grouped); `.github/workflows/dependency-review.yml` posts a Claude impact comment on breaking updates via `scripts/dependency-review-select.sh`; new gate `check-dependabot-config.sh` + fixture test; `03-Engineering-Workflow.md` § Dependency Updates with owner setup)
+> **Version:** 1.259.0 (2026-11-23 — Weekly Dependabot updates [pending:dependabot-weekly-updates]: `.github/dependabot.yml` (npm `/app` + github-actions, Monday 06:00 Europe/Amsterdam, 2-day cooldown, limit 5, minor+patch grouped); `.github/workflows/dependency-review.yml` posts a Claude impact comment on breaking updates via `scripts/dependency-review-select.sh`; new gate `check-dependabot-config.sh` + fixture test; `03-Engineering-Workflow.md` § Dependency Updates with owner setup)
+
 > **Version:** 1.258.0 (2026-11-22 — Statistics Overview §2 (#1326): registry field table gains `siteByTagWhenFiltered`. The issue's File Inventory decision count for `decisions/api.md` no longer exists after the MADR split.)
 
 > **Version:** 1.257.0 (2026-11-22 — Decision ID gaps (#1346): `DECISIONS.md`'s ID-gap note lists 25 never-issued ids, adding `D354 D384 D389 D400 D438`; full git history holds no record of any of them, and `D389` was renumbered `D390` before merge.)
