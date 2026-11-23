@@ -381,10 +381,12 @@ Registered for discoverability, not as reading material — the rules live in `0
 | `scripts/quality-benchmarks.json` | Committed benchmark rows (`dir`, `now`, `target`) read by `check-quality-benchmarks.sh`; `now` only moves toward `target` (D549, 2026-11-10) | canonical |
 | `app/.fallowrc.score.jsonc` | Score-only fallow config: extends `.fallowrc.jsonc`, leaves `tests/**` and `src/db/schema.ts` out of the health score (D549, 2026-11-10) | canonical |
 | `scripts/test-check-dupes.sh` | Fixture test for `check-dupes.sh` (D513, 2026-10-30) | canonical |
+| `scripts/check-types.sh` | Type gate wrapper: runs `npm run check` and ends with the verdict line `check: N errors, N warnings, N hints`; used by `validate:app` and CI's Type gate (#1323, 2026-11-23) | canonical |
+| `scripts/test-check-types.sh` | Fixture test for `check-types.sh` (#1323, 2026-11-23) | canonical |
 | `scripts/test-check-file-mode.sh` | Fixture test for the per-file mode (`CHECK_ROOT=<dir> bash scripts/check-X.sh <relpath>...`) of the five edit-time gate scripts (2026-10-30) | canonical |
 | `scripts/check-test-repointing.sh` | Non-blocking D148 nudge: lists changed test files whose assertions changed with no `describe`/`it` title changed; a pure `expect(...)` subject rename is skipped; run by the `test-repointing-heuristic` job in `pr-gates.yml` (2026-11-09) | canonical |
 | `scripts/test-check-test-repointing.sh` | Fixture test for `check-test-repointing.sh`: literal changed, subject renamed only, title changed, no assertion change (2026-11-09) | canonical |
-| `scripts/precommit-gates.tsv` | The pre-commit gate table: `<script><TAB><regex>`; a row with a regex runs only when a staged path matches (D551, 2026-11-10) | canonical |
+| `scripts/precommit-gates.tsv` | The pre-commit gate table: `<script><TAB><regex>`; a row with a regex runs only when a staged path matches (D551, 2026-11-10); test-coverage, type-barrels and dupes run first (#1367, 2026-11-23) | canonical |
 | `scripts/run-related-tests.sh` | Pre-commit row: `vitest related --run` over the staged `app/src`/`app/tests` files, so a broken importing test fails at commit, not push (#1322, 2026-11-22) | canonical |
 | `scripts/run-precommit-gates.sh` | Runs the gate table for `.husky/pre-commit`; prints `<ran> gates passed, <skipped> skipped by path` (D551, 2026-11-10) | canonical |
 | `scripts/test-precommit-scope.sh` | Fixture test for the gate table's path scoping (D551, 2026-11-10) | canonical |
