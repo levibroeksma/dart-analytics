@@ -19,7 +19,9 @@ import {
   playUploadAndCompleteSession,
   resumeGameEngine,
   runPlayAgain,
+  holdFinishingDart,
   isInputBlocked,
+  releaseHeldDart,
   undoBotAwareVisit,
   playBotQuickScoreVisit,
 } from "@lib/game/play-lifecycle";
@@ -424,11 +426,11 @@ const tuodPlayMethods2 = {
   /**
    * The board's per-dart counterpart to `recordAttempt`: every dart the
    * player throws arrives here from `boardInputData`'s `onCommit`. A dart
-   * that would end the session is gated behind `showFinishConfirm` — the
-   * same dialog the keypad path defers to — because recording it uploads
-   * and completes the session immediately and that step is irreversible;
-   * any other dart commits straight away. Mirrors
-   * `one-twenty-one-play.data.ts`'s `recordDart`.
+   * that would end the session is recorded, so the board and totals show
+   * it, and then gated behind `showFinishConfirm` — the same dialog the
+   * keypad path defers to — because uploading and completing the session
+   * is irreversible; `cancelFinish` undoes the dart. Any other dart commits
+   * straight away. Mirrors `score-training-play.data.ts`'s `recordDart`.
    */
   async recordDart(
     this: TuodPlayContext,
@@ -444,8 +446,7 @@ const tuodPlayMethods2 = {
       return;
 
     if (this.engine.wouldComplete(observation)) {
-      this.error = "";
-      this.pendingDartObservation = observation;
+      holdFinishingDart(this, observation);
       this.showFinishConfirm = true;
       return;
     }
@@ -487,11 +488,8 @@ const tuodPlayMethods2 = {
     if (!this.engine || this.finished || !this.showFinishConfirm) return;
 
     if (this.pendingDartObservation) {
-      const observation = this.pendingDartObservation;
       this.pendingDartObservation = null;
       this.showFinishConfirm = false;
-      this.engine.record(observation);
-      this.$store.game.recordFacts(this.engine.facts());
       this.finished = true;
       this.completionStatus = "pending";
       await this.uploadAndCompleteSession();
@@ -516,8 +514,8 @@ const tuodPlayMethods2 = {
 
   cancelFinish(this: TuodPlayContext) {
     if (!this.showFinishConfirm) return;
+    releaseHeldDart(this);
     this.pendingAttempt = null;
-    this.pendingDartObservation = null;
     this.showFinishConfirm = false;
   },
 

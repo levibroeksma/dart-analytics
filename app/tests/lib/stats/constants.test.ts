@@ -2,9 +2,11 @@ import { describe, it, expect } from "vitest";
 import { GAME_TYPE_BY_RULESET } from "@lib/game/rulesets/capabilities";
 import {
   ACE_LAYOUTS,
+  CHECKOUT_LAYOUTS,
   DEDICATED_STATS_LAYOUTS,
   DOUBLES_TRAINING_LAYOUTS,
   HEATMAP_ONLY_LAYOUTS,
+  MARKS_LAYOUTS,
   MAX_LANDING_DARTS,
   MIN_ROW_SAMPLE,
   MIN_TARGET_SAMPLE,
@@ -30,19 +32,12 @@ describe("HEATMAP_ONLY_LAYOUTS", () => {
   it("holds the plain-heatmap games, never a dedicated layout", () => {
     expect([...HEATMAP_ONLY_LAYOUTS].sort()).toEqual(
       [
-        "121_V1",
         "BASEBALL_V1",
         "BULL_500_V1",
-        "CRICKET_V1",
-        "CRICKET_V2",
         "FIVES_V1",
         "FOLLOW_THE_LEADER_V1",
         "KILLER_V1",
-        "MICKEY_MOUSE_V1",
         "PRISONER_V1",
-        "TACTICS_V1",
-        "TACTICS_V2",
-        "TUOD_V1",
       ].sort(),
     );
     for (const key of HEATMAP_ONLY_LAYOUTS)
@@ -128,5 +123,46 @@ describe("near-miss constants", () => {
 
   it("caps a per-dart landing read at 50,000 darts", () => {
     expect(MAX_LANDING_DARTS).toBe(50_000);
+  });
+});
+
+describe("CHECKOUT_LAYOUTS", () => {
+  it("holds 121 (both versions) and TUOD, outside every other layout set", () => {
+    expect([...CHECKOUT_LAYOUTS].sort()).toEqual([
+      "121_V1",
+      "121_V2",
+      "TUOD_V1",
+    ]);
+    for (const other of [
+      HEATMAP_ONLY_LAYOUTS,
+      DEDICATED_STATS_LAYOUTS,
+      DOUBLES_TRAINING_LAYOUTS,
+      TRACK_LAYOUTS,
+      ACE_LAYOUTS,
+      X01_LAYOUTS,
+    ])
+      for (const key of CHECKOUT_LAYOUTS) expect(other.has(key)).toBe(false);
+  });
+});
+
+describe("MARKS_LAYOUTS", () => {
+  it("holds Cricket, Tactics and Mickey Mouse, outside every other layout set", () => {
+    expect([...MARKS_LAYOUTS].sort()).toEqual([
+      "CRICKET_V1",
+      "CRICKET_V2",
+      "MICKEY_MOUSE_V1",
+      "TACTICS_V1",
+      "TACTICS_V2",
+    ]);
+    for (const other of [
+      HEATMAP_ONLY_LAYOUTS,
+      DEDICATED_STATS_LAYOUTS,
+      DOUBLES_TRAINING_LAYOUTS,
+      TRACK_LAYOUTS,
+      ACE_LAYOUTS,
+      CHECKOUT_LAYOUTS,
+      X01_LAYOUTS,
+    ])
+      for (const key of MARKS_LAYOUTS) expect(other.has(key)).toBe(false);
   });
 });

@@ -3,9 +3,10 @@
  * Shared chrome for every game's results sheet: `Modal` shell,
  * save-status region (SAVING…/SAVED, failed + retry), play-again error,
  * and the back/rematch button row. Rematch on a two-seat game opens the
- * who-throws-first `StarterStep` first (`requestPlayAgain`). Each game supplies its own
- * `<h2 id="results-title">` (`title` slot — win/tie/loss phrasing differs
- * per game) and its own stat rows (default slot).
+ * who-throws-first `StarterStep` first (`requestPlayAgain`). The title is the
+ * game's `resultsTitle()`, held as a pulse bar until the save succeeds so a
+ * fallback never flashes before the outcome is known; each game supplies its
+ * own stat rows (default slot).
  * @param {string} [overline] Eyebrow above the title
  */
 interface Props {
@@ -21,6 +22,7 @@ import SaveStatus from "@components/layout/games/SaveStatus.astro";
 import ErrorAlert from "@components/ui/ErrorAlert.astro";
 import Modal from "@components/ui/Modal.astro";
 import StarterStep from "@components/layout/games/StarterStep.astro";
+import ResultValue from "@components/layout/games/ResultValue.astro";
 import SheetActions from "@components/ui/SheetActions.astro";
 ---
 
@@ -33,10 +35,16 @@ import SheetActions from "@components/ui/SheetActions.astro";
     dismissible={false}
     overline={overline}
   >
-    <slot
-      name="title"
+    <h2
       slot="header"
-    />
+      id="results-title"
+      class="text-balance font-display text-xl text-foreground"
+    >
+      <ResultValue
+        valueExpr="resultsTitle()"
+        skeletonWidth="w-40"
+      />
+    </h2>
 
     <slot />
 

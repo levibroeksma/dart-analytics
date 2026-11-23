@@ -23,14 +23,6 @@ const INNING_LABELS = ["1", "2", "3", "4", "5", "6", "7", "8", "9"] as const;
 ---
 
 <ResultsModalShell overline="Baseball Darts · Summary">
-  <h2
-    slot="title"
-    id="results-title"
-    class="text-balance font-display text-xl text-foreground"
-    x-text="resultsTitle()"
-  >
-  </h2>
-
   <SinglePlayerSummary statRows={STAT_ROWS}>
     <TargetGrid
       title="Runs per inning"

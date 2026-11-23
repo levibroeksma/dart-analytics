@@ -13,6 +13,11 @@ import { CACHE_PLAYER_ID, loadGameSection } from "@lib/stats/load-game-section";
 import { parseTargetKey, targetLabel } from "@lib/stats/target-key";
 import { DOUBLES_PATH_KEYS } from "@lib/stats/heatmap-targets";
 import { variationParam } from "@lib/stats/variation";
+import {
+  ladderBands,
+  sumLadderTargets,
+} from "@lib/stats/checkout/ladder-totals";
+import { pathRemainings, routesFor } from "@lib/stats/checkout/checkout-routes";
 import { checkoutPathFor } from "@modules/game/checkout-path.module";
 import { groupingSummary } from "@modules/stats/sections/grouping.module";
 import {
@@ -61,7 +66,6 @@ import type {
   RulesetVersionKey,
   SectionId,
   SectionMeta,
-  SeriesBucket,
   TargetKey,
 } from "@lib/types";
 import type { CachedSeries } from "@client/types";
@@ -90,9 +94,6 @@ const REMAINING_BANDS: readonly { label: string; low: number; high: number }[] =
     { label: "131–170", low: 131, high: 170 },
   ];
 
-/** The width of one `ladderSummary` target band. */
-const LADDER_BAND_SIZE = 10;
-
 /** The four rings `ringSplit` reads off a `NUMBER:n` aim's `confusion` landings (phase-4 decision 9). */
 const NUMBER_AIM_RINGS = [
   "INNER_SINGLE",
@@ -120,72 +121,6 @@ function sumAtcTargets(
     }
   }
   return totals;
-}
-
-type LadderTargetTotal = { attempts: number; successes: number };
-
-/** `maxTarget` merges by `max`, with `null` as the identity (mirrors `lib/stats/merge-metrics.ts`). */
-function combineMaxTarget(a: number | null, b: number | null): number | null {
-  if (a === null) return b;
-  if (b === null) return a;
-  return Math.max(a, b);
-}
-
-/** `ladder-progress` buckets folded into per-target totals, the highest target attempted, and after-a-miss counts. */
-function sumLadderTargets(
-  buckets: readonly SeriesBucket<LadderProgressMetrics>[],
-): {
-  totals: Map<string, LadderTargetTotal>;
-  maxTarget: number | null;
-  afterMiss: number;
-  recovered: number;
-} {
-  const totals = new Map<string, LadderTargetTotal>();
-  let maxTarget: number | null = null;
-  let afterMiss = 0;
-  let recovered = 0;
-  for (const b of buckets) {
-    for (const [target, m] of Object.entries(b.metrics.targets)) {
-      const existing = totals.get(target) ?? { attempts: 0, successes: 0 };
-      existing.attempts += m.attempts;
-      existing.successes += m.successes;
-      totals.set(target, existing);
-    }
-    maxTarget = combineMaxTarget(maxTarget, b.metrics.maxTarget);
-    afterMiss += b.metrics.afterMiss;
-    recovered += b.metrics.recovered;
-  }
-  return { totals, maxTarget, afterMiss, recovered };
-}
-
-/** Per-target totals grouped into `LADDER_BAND_SIZE`-wide bands, each with its own gated success rate. */
-function bandLadderTargets(totals: ReadonlyMap<string, LadderTargetTotal>): {
-  start: number;
-  end: number;
-  attempts: number;
-  successes: number;
-  rate: number | null;
-}[] {
-  const bandTotals = new Map<number, LadderTargetTotal>();
-  for (const [targetKey, t] of totals.entries()) {
-    const target = Number(targetKey);
-    const start =
-      Math.floor((target - 1) / LADDER_BAND_SIZE) * LADDER_BAND_SIZE + 1;
-    const existing = bandTotals.get(start) ?? { attempts: 0, successes: 0 };
-    existing.attempts += t.attempts;
-    existing.successes += t.successes;
-    bandTotals.set(start, existing);
-  }
-
-  return Array.from(bandTotals.entries())
-    .sort(([a], [b]) => a - b)
-    .map(([start, t]) => ({
-      start,
-      end: start + LADDER_BAND_SIZE - 1,
-      attempts: t.attempts,
-      successes: t.successes,
-      rate: t.attempts >= MIN_TARGET_SAMPLE ? t.successes / t.attempts : null,
-    }));
 }
 
 /** A statistics page's opening range: the last twelve months to a minute from now, bucketed by month in the browser's own time zone. Shared with `routine-stats.store.ts`, so both tabs open on the same window. */
@@ -809,10 +744,7 @@ export function gameStatsStore() {
     get checkoutPathRemainings(): number[] {
       const series = this.sections["checkout-path"] as
         CachedSeries<CheckoutPathMetrics> | undefined;
-      const metrics = series?.buckets[0]?.metrics ?? {};
-      return Object.keys(metrics)
-        .map(Number)
-        .sort((a, b) => b - a);
+      return pathRemainings(series?.buckets[0]?.metrics ?? {});
     },
 
     /** The routes thrown at `remaining`, most-used first, each with its own finish rate. */
@@ -824,19 +756,11 @@ export function gameStatsStore() {
     }[] {
       const series = this.sections["checkout-path"] as
         CachedSeries<CheckoutPathMetrics> | undefined;
-      const routes = series?.buckets[0]?.metrics[String(remaining)] ?? {};
-      return Object.entries(routes)
-        .map(([route, m]) => ({
-          route,
-          visits: m.visits,
-          finished: m.finished,
-          finishRate: m.visits === 0 ? 0 : m.finished / m.visits,
-        }))
-        .sort((a, b) => b.visits - a.visits);
+      return routesFor(series?.buckets[0]?.metrics ?? {}, remaining);
     },
     ...gameStatsStoreMethods2,
 
-    /** `ladder-progress` totals: per-`LADDER_BAND_SIZE` success rate, the highest target attempted, and the after-a-miss recovery rate. */
+    /** `ladder-progress` totals: per-ten-target success rate, the highest target attempted, and the after-a-miss recovery rate. */
     get ladderSummary(): {
       maxTarget: number | null;
       bands: {
@@ -858,7 +782,12 @@ export function gameStatsStore() {
 
       return {
         maxTarget,
-        bands: bandLadderTargets(totals),
+        bands: ladderBands(totals, {
+          origin: 1,
+          size: 10,
+          cap: 170,
+          minSample: MIN_TARGET_SAMPLE,
+        }),
         recoveryRate:
           afterMiss >= MIN_TARGET_SAMPLE ? recovered / afterMiss : null,
       };

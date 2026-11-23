@@ -296,6 +296,45 @@ export function playUndoVisit<
 }
 
 /**
+ * Records a board dart that would end the session and holds it in
+ * `pendingDartObservation`, so the board and totals show it while the
+ * caller's finish confirm is open. `releaseHeldDart` undoes it on cancel.
+ */
+export function holdFinishingDart<
+  TConfig,
+  TEngine extends GameEngine<DartObservation, unknown>,
+  TResults,
+>(
+  context: PlayLifecycleContext<TConfig, TEngine, TResults> & {
+    pendingDartObservation: DartObservation | null;
+  },
+  observation: DartObservation,
+): void {
+  if (!context.engine) return;
+  context.engine.record(observation);
+  context.error = "";
+  context.$store.game.recordFacts(context.engine.facts());
+  context.pendingDartObservation = observation;
+}
+
+/** Undoes the dart `holdFinishingDart` recorded and clears it; a no-op when none is held. */
+export function releaseHeldDart<
+  TConfig,
+  TEngine extends GameEngine<DartObservation, unknown>,
+  TResults,
+>(
+  context: PlayLifecycleContext<TConfig, TEngine, TResults> & {
+    pendingDartObservation: DartObservation | null;
+  },
+): void {
+  if (!context.pendingDartObservation) return;
+  context.pendingDartObservation = null;
+  if (!context.engine) return;
+  context.engine.undo();
+  context.$store.game.recordFacts(context.engine.facts());
+}
+
+/**
  * Pops visits until `participantRef`'s own seat is active again, or the fact
  * log is empty. Always pops at least once, even when that seat is already
  * active — a solo session's only seat never stops being active, so a loop

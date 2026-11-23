@@ -83,16 +83,10 @@ describe("gameVariations", () => {
     expect(page.variation).toBe(301);
   });
 
-  it("a game change resets the selection to 501", async () => {
-    const { s, watchers, page } = section(301);
+  it("watches only the pick, since the section mounts for one game", () => {
+    const { s, watchers } = section();
     s.init();
-    await vi.waitFor(() => expect(s.loading).toBe(false));
-    page.game = "501_V2";
-    watchers.game();
-    expect(page.variation).toBe(501);
-    await vi.waitFor(() =>
-      expect(fetchGameVariations).toHaveBeenCalledTimes(2),
-    );
+    expect(Object.keys(watchers)).toEqual(["variation"]);
   });
 
   it("remembers the picked variation in the store", () => {

@@ -12,7 +12,6 @@ informed: []
 supersedes:
 superseded-by:
 ---
-<!-- backfill: pending -->
 
 # Doubles Lock path variants widen `DOUBLES_LOCK_V1`'s config; no V2 ruleset key
 
@@ -20,10 +19,10 @@ superseded-by:
 a variant that only narrows or reorders the target list changes no rule. Stored sessions and templates hold `{}`, which parses to the same behaviour, so replay is unchanged and no second engine factory, ruleset row, adapter or resume wiring is needed. The rules doc's `V2` is a feature version, not a ruleset key.
 
 ## Decision Drivers
-Rationale unknown — backfill pending.
+Rationale unknown — no source found.
 
 ## Considered Options
-Rationale unknown — backfill pending.
+Rationale unknown — no source found.
 
 ## Decision Outcome
 Chosen option: "`DoublesLockV1Config` takes optional `order` (`DESCENDING`|`ASCENDING`) and `doubles` (`ALL`|`EVEN`); `{}` stays the D20 to D1 ladder. The engine derives its path from config (`doublesLockPath`). Even Doubles Only and Ascending Order ship as system templates (seed `0059`) pinned to the existing `DOUBLES_LOCK_V1` row.".
@@ -32,16 +31,18 @@ Chosen option: "`DoublesLockV1Config` takes optional `order` (`DESCENDING`|`ASCE
 Strict Lock (changes the lock rule) and Head-to-head stay `V2+` and would need a new ruleset key. A second template per type breaks the one-catalog-row-per-type assumption in `0047_exercise_type_seed_checks.sql` step 4, now `>= 1`.
 
 ### Confidence
-Rationale unknown — backfill pending.
+Rationale unknown — no source found.
 
 ### Revisit When
-Rationale unknown — backfill pending.
+Rationale unknown — no source found.
 
 ### Confirmation
-Rationale unknown — backfill pending.
+`database/verification/0059_doubles_lock_variants_checks.sql` checks the variant seed; `app/tests/modules/training/exercises/doubles-lock.engine.module.test.ts` covers the engine path.
 
 ## Pros and Cons of the Options
-Rationale unknown — backfill pending.
+Rationale unknown — no source found.
 
 ## Evidence / More Information
 Decided: 2026-11-09
+
+* Commit `cb58489c` (#1287; adds seed `0059`, its verification file and the D541 row): rebuilt Confirmation.

@@ -33,6 +33,7 @@ import {
   AtcDartsPerTargetSeriesResponse,
   Bobs27SurvivalSeriesResponse,
   ShanghaiCountSeriesResponse,
+  MarksSeriesResponse,
   TrainingResultSeriesResponse,
   ReplayQuery,
   ReplaySessionIdParam,
@@ -1192,6 +1193,39 @@ describe("derived and game-specific series responses", () => {
     expect(result.success).toBe(true);
   });
 
+  it("parses a marks series response and rejects a negative count", () => {
+    const series = {
+      sectionId: "marks",
+      sectionVersion: 1,
+      dataVersion: "v1:1:0",
+      bucket: "none",
+      tz: null,
+      range: { from: "2026-01-01T00:00:00Z", to: "2026-02-01T00:00:00Z" },
+      skippedSessions: 0,
+      buckets: [
+        {
+          start: "2026-01-01T00:00:00Z",
+          end: "2026-02-01T00:00:00Z",
+          closed: true,
+          sampleSize: 1,
+          metrics: {
+            darts: 9,
+            marks: 9,
+            wasted: 0,
+            rings: { single: 0, double: 0, treble: 3 },
+            objectives: [{ key: "20", marks: 3, darts: 1 }],
+            closeOuts: { games: 0, darts: 0 },
+            duel: { games: 0, wins: 0, darts: 0, points: 0 },
+          },
+        },
+      ],
+    };
+    expect(MarksSeriesResponse.safeParse(series).success).toBe(true);
+    const negative = structuredClone(series);
+    negative.buckets[0]!.metrics.darts = -1;
+    expect(MarksSeriesResponse.safeParse(negative).success).toBe(false);
+  });
+
   it("parses a shanghai-count series response", () => {
     const result = ShanghaiCountSeriesResponse.safeParse({
       sectionId: "shanghai-count",
@@ -1930,6 +1964,14 @@ describe("StatisticsRangeQuery variation", () => {
     const result = StatisticsRangeQuery.safeParse(base);
     expect(result.success).toBe(true);
     if (result.success) expect(result.data.variation).toBeUndefined();
+  });
+
+  it("accepts both starting-score bounds", () => {
+    for (const variation of ["2", "999"]) {
+      expect(
+        StatisticsRangeQuery.safeParse({ ...base, variation }).success,
+      ).toBe(true);
+    }
   });
 
   it.each(["", "abc", "1", "1000", "301.5"])(

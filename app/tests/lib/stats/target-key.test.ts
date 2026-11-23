@@ -192,6 +192,16 @@ describe("target key edge cases", () => {
     expect(parseTargetKey("")).toBeNull();
   });
 
+  it("rejects a non-canonical number that would match no dart", () => {
+    expect(parseTargetKey("TREBLE:020")).toBeNull();
+    expect(parseTargetKey("TREBLE:20.0")).toBeNull();
+    expect(parseTargetKey("TREBLE:+20")).toBeNull();
+    expect(parseTargetKey("TREBLE: 20")).toBeNull();
+    expect(parseTargetKey("TREBLE:20:1")).toBeNull();
+    expect(parseWireKey("WIRE:06-10")).toBeNull();
+    expect(parseWireKey("WIRE:6-010")).toBeNull();
+  });
+
   it("BULL:25 is hit by either bull ring whatever the number, and nothing else", () => {
     const bull = { number: 25, zone: "BULL" } as const;
     expect(isAimHit(bull, { number: 25, zone: "OUTER_BULL" })).toBe(true);

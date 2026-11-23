@@ -46,7 +46,9 @@ const D16 = {
 };
 
 describe("doublesTrainingCardSection", () => {
-  beforeEach(() => loadGameSection.mockReset());
+  beforeEach(() => {
+    loadGameSection.mockReset();
+  });
 
   it("loads the three sections un-bucketed over the period", async () => {
     respond(D16);

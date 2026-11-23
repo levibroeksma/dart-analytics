@@ -2,7 +2,7 @@
 status: canonical
 scope: shared Astro component inventory
 read-when: before writing markup for any recurring UI shape
-updated: 2026-11-01
+updated: 2026-11-22
 -->
 
 # Component Inventory
@@ -81,7 +81,7 @@ evaluated in the page's own Alpine scope.
 
 | Component | Purpose | Key props |
 | --------- | ------- | --------- |
-| `BoardInputPanel.astro` | Visual-board capture in an `input-well`: square board that dims while pressed (`board-dim`) under a 44px pointer ring, then an undo / Bounce out key row; shown instead of the keypad for `ANALYTICS` + `VISUAL_BOARD` (D432, 2026-10-08) During a Dartbot visit, `BotVisitStrip` tops the panel and `BotDartFlight` draws the dart over the board (D463, 2026-10-16). | `showExpr`, `undoDisabledExpr` (a routine exercise mounts it: always `VISUAL_BOARD`, no pause, unmounts itself when the step ends; 2026-10-13, D454); slot `actions` adds keys to the bottom row, then three columns (D511); reads `boardInputData()` from the page scope |
+| `BoardInputPanel.astro` | Visual-board capture in an `input-well`: square board that dims while pressed (`board-dim`) under a 44px pointer ring, then an undo / Bounce out key row; shown instead of the keypad for `ANALYTICS` + `VISUAL_BOARD` (D432, 2026-10-08) During a Dartbot visit, `BotVisitStrip` tops the panel and `BotDartFlight` draws the dart over the board (D463, 2026-10-16). | `showExpr`, `undoDisabledExpr` (a routine exercise mounts it: always `VISUAL_BOARD`, no pause, unmounts itself when the step ends; 2026-10-13, D454); slot `actions` adds keys to the bottom row, which splits its width evenly over the keys it renders (D511; #1304, 2026-11-22); reads `boardInputData()` from the page scope |
 | `CheckoutConfirm.astro` | Double-out confirm (Cancel / Confirm checkout); collects the checkout's darts-to-finish and darts-at-a-double as segmented pill tracks | none (reads `checkoutDartOptions()`, `dartsToFinish`, `dartsAtDouble` from the page scope) |
 | `ComparisonSummary.astro` | 1v1 results-modal stat block: seat names (or, with `legsBars`, the legs score and one bar per leg to win) plus an inlay ledger of `StatRowComparison` rows, winner column tinted via `winnerExpr`, shown only for a 2-seat game; names, score and values pulse in place until saved (2026-08-30; ledger, D429, 2026-10-08; D437, 2026-10-09) | `statRows` (`{ label, key, fallback? }[]`), `winnerExpr`, `legsBars` |
 | `ContinueSessionModal.astro` | Resume-or-discard prompt for an unfinished session | `gameTitle` |
@@ -108,7 +108,7 @@ evaluated in the page's own Alpine scope.
 | `PlayPageShell.astro` | Body of a game play page: reconciliation-blocked panel, no-session panel, then the slotted interface and results modal | `setupHref` |
 | `PlayStatTile.astro` | Inset play stat: value over a mono caps label in a 76px tile, or a 44px label/value row with `compact` (D432, 2026-10-08) | `label`, `valueExpr`, `compact`, `highlight` (lit value, `accent-bright`), `fit` (flexes to share its column, max 76px; 2026-10-13) |
 | `ReconciliationBlocked.astro` | Blocked-upload explanation panel | none |
-| `ResultsModalShell.astro` | Shared results-sheet chrome: `Modal` sheet, mandatory `SaveStatus` row (failed → error + Retry), play-again error, Back to games / Rematch buttons; named `title` slot plus a default slot for stat rows (D437, 2026-10-09) Rematch on two seats opens `StarterStep` first (`requestPlayAgain`, `playAgainStarterData()`; D464, 2026-10-16). | `overline` |
+| `ResultsModalShell.astro` | Shared results-sheet chrome: `Modal` sheet, mandatory `SaveStatus` row (failed → error + Retry), play-again error, Back to games / Rematch buttons; default slot for stat rows (D437, 2026-10-09); the title is the game's `resultsTitle()` in a `ResultValue`, a pulse bar until the save succeeds (#1294, 2026-11-22) Rematch on two seats opens `StarterStep` first (`requestPlayAgain`, `playAgainStarterData()`; D464, 2026-10-16). | `overline` |
 | `OutOrderRow.astro` | Results-sheet "Out order" row: label left, `outOrderLabel()` right, hidden while empty; Killer and Follow the Leader render it (2026-11-05) | none |
 | `ResultValue.astro` | One results value in its final line box: the value once `readyExpr` holds, else a one-line pulse bar of `skeletonWidth`, so saving → saved never shifts layout (D437, 2026-10-09) | `valueExpr`, `skeletonWidth`, `readyExpr` (default `completionStatus === 'succeeded'`), `class` |
 | `RouteChips.astro` | Checkout route as a 28px `inset-well` pill of mono parts split by dots; hidden while blank (D432, 2026-10-08) | `routeExpr`, `currentIndexExpr` (the part at that index lit, the rest dimmed; 2026-10-13, D457) |
@@ -242,6 +242,9 @@ that split (2026-09-19, closes issue #423).
 | `TrackTargetsCard.astro` | The Track targets card: best/most-failed/weakest-three tiles and the sortable targets table over the page Period, with its own `trackGamesCardSection()` scope; used by the Track and Ace layouts (D562, D563) | none |
 | `StatTileRow.astro` | A row of glass summary tiles (`title`, `value`, `detail`) from the enclosing scope's `tiles`, with a pulse placeholder while `loading` (D563) | none |
 | `AceStatsOverview.astro` | Ace `/statistics` layout: completion tile, target hit rate / drift / near miss tiles against the preceding period, `TrackTargetsCard`, the heatmap and the replay list (D563) | none |
+| `CheckoutStatsOverview.astro` | Checkout `/statistics` layout: completion tile, finish rate / highest target / recovery / bust tiles against the preceding period, `CheckoutCards`, the heatmap and the replay list (D0565) | none |
+| `CheckoutCards.astro` | Checkout cards: target ranges, doubles and routes with a target `Select`, over `AimTable` (D0565) | none |
+| `MarksStatsOverview.astro` | Marks `/statistics` layout (Cricket, Tactics, Mickey Mouse): completion tile, marks per round / darts to close out / wasted darts / win rate tiles against the preceding period, OBJECTIVES and RING MIX `AimTable` cards, a 1v1 points tile, the heatmap and the replay list (D0566) | none |
 | `DoublesTrainingStatsOverview.astro` | Doubles Training `/statistics` layout: completion tile, a DOUBLES `AimCardSection` over the page Period, the heatmap and the replay list (D561) | none |
 | `ReplayCard.astro` | Session replay card for any statistics page: a `GrowingCard` row with a play icon that grows into the session's replay (`SessionReplay.astro`), opening it on `$store.replay`; for use inside an Alpine `x-for` (2026-10-03, D401; grows in place 2026-10-05, D414) | `sessionIdExpr`, `titleExpr`, `captionExpr` |
 | `SessionReplay.astro` | One session's replay read from `$store.replay`: header, result, score curve, board with the selected turn's darts, turns by stage, Load more; rendered inside an open `ReplayCard` (2026-10-05, D414) | — |

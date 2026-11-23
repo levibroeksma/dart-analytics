@@ -2,7 +2,7 @@
 status: canonical
 scope: architecture/statistics
 read-when: designing or building any detailed statistics page, insight section, statistics endpoint, or the statistics client cache
-updated: 2026-11-13
+updated: 2026-11-22
 -->
 
 # Statistics — Overview
@@ -53,7 +53,10 @@ re-expressed as registry sections, which this design allows but does not require
   on its first activation, never at page load.
 - **Capture mode:** `ANALYTICS` + `VISUAL_BOARD` only in this version — the only mode
   with per-dart coordinates. The `inputMode` parameter (§5) exists from day one so
-  recreational-mode sections are additive later.
+  recreational-mode sections are additive later. Session-level reads (`completion`,
+  `volume`, `session-result`, the session list and its count) apply the same
+  `VISUAL_BOARD` filter as the dart sections, so one page reads one population
+  (2026-11-22, #1332).
 - **Population:** sessions whose game pair (game type + ruleset version) matches the
   page's ruleset, in **both** play contexts (§8). No exercise-type-to-game mapping:
   a routine step counts toward a game only when it runs that game's engine.
@@ -74,6 +77,7 @@ favorite double, …). Each section is one entry in a typed registry
 | `requires` | `readonly Requirement[]`, `Requirement = StatsTag \| { anyOf: readonly StatsTag[] }` (§3) | a new game gets every section its tags admit, no list edits; `anyOf` lets one section serve two families that reach the same fact by different means (D370 decision 5) |
 | `computeSite` | `sql` \| `server` \| `client` (§4) | picked per section by cost, recorded with a reason |
 | `siteByTag` | `Partial<Record<StatsTag, ComputeSite>>`, optional | overrides `computeSite` when the game carries that tag; `sectionSite(meta, gameTypeKey)` is the one resolver the service and client both read (D370 decision 5) |
+| `siteByTagWhenFiltered` | `Partial<Record<StatsTag, ComputeSite>>`, optional | consulted before `siteByTag` when the request carries a `target` filter — `heatmap` folds a filtered request on the server for `intent-derived` and `intent-inferred` games (D408) |
 | `games` | `readonly GameTypeKey[]`, optional | narrows a section to named games on top of its tags — how a game-specific section (`bobs27-survival`, …) attaches to exactly one game (D370 decision 10) |
 | `excludedGames` | `readonly GameTypeKey[]`, optional | drops a section from the named games' pages although its tags admit it — 501 drops `treble-rate`, `volume`, `checkout-path`, `double-performance` (D555) |
 | `bucketable` | supports `bucket` (§5) | enables MoM / YoY series |
@@ -401,6 +405,7 @@ per-section views are still planned.
 | ---- | ----- | ------ | ------ |
 | `v_stats_session_facts` | one row per completed or abandoned session, owner-scoped | session lists, `completion`, `volume`, `session-result`; carries `context_key`, `activity_id`, status, ruleset version, input mode, configuration snapshot, turn count | built (0043) |
 | `v_stats_dart_facts` | one row per `VISUAL_BOARD` dart, owner-scoped | the base for every `board`/`intent-*` section; `v_dart_locations` columns plus `completed_at`, status, `ruleset_version_key`, `context_key` | built (0043) |
+| `v_game_replay` | one row per dart (or turn total), every seat, scoped by `player_id` | every seat's darts in the owner's sessions — opponent darts need no new view or migration (`step-result`, `marks`) | built (0023, widened 0044, 0053) |
 | `v_stats_routine_run_facts` | one row per completed or abandoned training activity, owner-scoped | routine statistics (§8, §12 item 6); routine identity resolved from the `activity_configurations` snapshot, step counts, owner-scoped dart count | built (0045) |
 | `v_stats_routine_step_facts` | one row per completed or abandoned routine step session, owner-scoped | routine statistics (§8, §12 item 6); step identity resolved by `sequenceNumber` (never array position), owner-scoped turn/dart/score counts | built (0045) |
 | thin per-section views (`v_stats_<section>`) | reduced rows | only where SQL is the compute site; each reads the two base views (dependency depth ≤ 2) | planned |
@@ -411,7 +416,13 @@ per-section views are still planned.
   (`participant_id`, `participant_type_key`) and dart coordinates
   (`location_x`/`location_y`) in place (migration `0044`) — no per-row
   `context_key`; that is a session fact, already exposed once by
-  `v_stats_session_facts` (`0043`).
+  `v_stats_session_facts` (`0043`). Server folds that need every
+  participant's darts read `v_game_replay` too: `step-result` and `marks`
+  (the opponent's darts decide points and the winner,
+  D0566).
+- `v_game_replay.kept` (migration `0053`) marks a Follow the Leader keep
+  turn; it is not a filter (marks turns carry `kept = false`). Folds pass it
+  through `replayFacts`.
 - Index for the date-range entry point: `exercise_sessions (player_id, game_type_id,
   completed_at DESC)`. Others only when measured.
 - Every view change is a new numbered migration; applied migrations stay untouched.

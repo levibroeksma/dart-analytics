@@ -12,7 +12,6 @@ informed: []
 supersedes:
 superseded-by:
 ---
-<!-- backfill: pending -->
 
 # No `current_stage` pointer stored
 
@@ -20,28 +19,30 @@ superseded-by:
 No derivable state persisted
 
 ## Decision Drivers
-Rationale unknown — backfill pending.
+Rationale unknown — no source found.
 
 ## Considered Options
-Rationale unknown — backfill pending.
+Rationale unknown — no source found.
 
 ## Decision Outcome
 Chosen option: "No `current_stage` pointer stored; derive from latest stage → turn → dart", because No derivable state persisted.
 
 ### Consequences
-Rationale unknown — backfill pending.
+Rationale unknown — no source found.
 
 ### Confidence
-Rationale unknown — backfill pending.
+Rationale unknown — no source found.
 
 ### Revisit When
-Rationale unknown — backfill pending.
+Rationale unknown — no source found.
 
 ### Confirmation
-Rationale unknown — backfill pending.
+Rationale unknown — no source found.
 
 ## Pros and Cons of the Options
-Rationale unknown — backfill pending.
+Rationale unknown — no source found.
 
 ## Evidence / More Information
 Source: P36–40
+
+* Commit `8b23f90e` (2026-07-11; adds `architecture/DECISIONS.md` ledger row D10): source of Context and Decision Outcome.

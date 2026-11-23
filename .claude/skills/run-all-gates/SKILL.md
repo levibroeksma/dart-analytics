@@ -76,6 +76,7 @@ bash scripts/check-alias-sync.sh
 bash scripts/check-constraint-mirror.sh
 bash scripts/check-no-inline-comments.sh
 bash scripts/check-style-tokens.sh
+bash scripts/check-mock-reset-hooks.sh
 bash scripts/check-game-wiring.sh
 bash scripts/check-dupes.sh
 bash scripts/check-quality-benchmarks.sh
@@ -123,6 +124,10 @@ bash scripts/check-decision-pending.sh
 ## If only `docs/` changed
 
 The "Always run" scripts above already cover doc consistency (context map, links, token budget). No additional scripts apply — also review `docs/CLAUDE.md`'s Editing Workflow by hand (canonical-doc-first, cascade to secondary docs), which is not mechanized. If the changed docs are under `decisions/` or `DECISIONS.md`, see the section above instead.
+
+## Adding a gate
+
+The wiring list is the `ADDING A GATE` comment in `scripts/check-gate-wiring.sh`, which fails until every place is wired; run it after adding a `scripts/check-*.sh` or `scripts/test-*.sh`.
 
 ## Reporting
 

@@ -12,7 +12,6 @@ informed: []
 supersedes:
 superseded-by:
 ---
-<!-- backfill: pending -->
 
 # Phase 2 ships six board sections over one shared dart-level aggregate, geometry single-sourced in TS, and a `target` parameter gated by registry `params` and the `intent-stored` tag
 
@@ -20,10 +19,16 @@ superseded-by:
 one shared aggregate for three sections avoids three near-identical SQL queries over the same dart-level facts, and keeps the intended×hit cross-tab — the thing all three actually read — computed once. Binding geometry as SQL parameters rather than duplicating ring radii/sector math in SQL keeps `board-geometry.module.ts` the single source of a dartboard's shape, consistent with the read-model rule against game rules in SQL (`05-Views/00-Overview.md` §Business Logic). The `target` parameter needed an explicit accept-list (`params`) rather than a blanket allow, because most sections have no meaningful per-target narrowing and a silently-ignored parameter is a worse failure mode than a rejected one (D365's own rule).
 
 ## Decision Drivers
-Rationale unknown — backfill pending.
+* Board geometry stays single-sourced in TypeScript (catalog § 1.1), so SQL never holds an aim point.
+* The `loose-darts` section works over unbounded ranges.
+* Sums re-aggregate exactly across buckets (`00-Overview.md` § 5.1).
+* A parameter is never silently ignored (`00-Overview.md` § 5).
+* A dart aimed at D16 is the same fact under any ruleset version.
 
 ## Considered Options
-Rationale unknown — backfill pending.
+* Keep `loose-darts` at the `server` site, as the catalog earlier listed it.
+* Return means from `grouping` instead of moment sums.
+* Phase 2 sections on shared aggregates, with geometry bound as SQL parameters (chosen).
 
 ## Decision Outcome
 Chosen option: "nine decisions for the phase 2 build (`docs/superpowers/plans/2026-09-26-statistics-phase-2-board-sections.md`):
@@ -41,18 +46,28 @@ Chosen option: "nine decisions for the phase 2 build (`docs/superpowers/plans/20
 `10-Statistics/00-Overview.md` §2 (`params` field), §5 (`target` parameter) and `01-Section-Catalog.md` §1 (site/reason columns) and §1.1 (adjacency table) are corrected/extended to match this block (version bump 1.2.0). `06-API/04-Endpoint-Contracts.md` gains the six sections' metric shapes and the `target` rule. `sectionsForGame` now filters by the union of a game's ruleset versions' `STATS_TAGS`, exercised for the first time outside `requires: []` sections. Task 3 Step 4's `EXPLAIN` measurement needs `DATABASE_URL`, unavailable in the implementing session's container; recorded as a known limitation in the PR rather than skipped silently, per D344's own carve-out logic (a session with no `DATABASE_URL` cannot produce the proof a schema change would need, and none was made here since this phase adds no migration).
 
 ### Confidence
-Rationale unknown — backfill pending.
+Rationale unknown — no source found.
 
 ### Revisit When
-Rationale unknown — backfill pending.
+Rationale unknown — no source found.
 
 ### Confirmation
-Rationale unknown — backfill pending.
+`app/tests/modules/stats/sections/intent-cells.module.test.ts` pins `isHit` parity with `isHitOn` for every intent Doubles Training and Bob's 27 store. `app/tests/lib/game/rulesets/stats-tags.test.ts` asserts that only Doubles Training and Bob's 27 carry `intent-stored`. `app/tests/modules/stats/sections/heatmap.module.test.ts` covers the heatmap cell size.
 
 ## Pros and Cons of the Options
-Rationale unknown — backfill pending.
+### `loose-darts` at the `server` site
+* Bad, because it does not work over unbounded ranges.
+
+### Means from `grouping`
+* Bad, because means do not re-aggregate exactly across buckets.
+
+### Shared aggregates with geometry in TypeScript
+* Good, because geometry stays single-sourced and sums re-aggregate exactly.
 
 ## Evidence / More Information
 Decided: 2026-09-26
 Refines: D367
 Referenced by D0560's `Supersedes:` line.
+
+* `docs/superpowers/plans/2026-09-26-statistics-phase-2-board-sections.md` (Plan-level decisions 1 to 7, Task 9): rebuilt Decision Drivers, Considered Options, Confirmation and Pros and Cons.
+* Partly superseded by D560 (decision 9). `docs/superpowers/specs/2026-11-17-near-miss-distance-rule-design.md` (Intent) says decision 9 defined a near miss as a neighbouring bed.

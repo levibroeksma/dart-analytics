@@ -662,7 +662,7 @@ describe("oneTwentyOnePlay", () => {
   });
 
   describe("recordDart — session-ending checkout defers to the confirm dialog", () => {
-    it("opens showSessionFinishConfirm instead of recording immediately", async () => {
+    it("records the dart, then opens showSessionFinishConfirm", async () => {
       const play = createPlay();
       const engine = oneTwentyOneEngineFactory.create(config) as any;
       for (let target = 121; target < 170; target += 1) {
@@ -692,6 +692,10 @@ describe("oneTwentyOnePlay", () => {
         locationY: -166,
       });
       expect(play.finished).toBe(false);
+      expect(play.$store.game.turns.at(-1)?.darts.at(-1)?.hitZoneKey).toBe(
+        "DOUBLE",
+      );
+      expect(play.remainingInAttempt()).toBe(0);
     });
 
     it("confirmSessionFinish records the deferred dart and finishes", async () => {
@@ -729,9 +733,10 @@ describe("oneTwentyOnePlay", () => {
       expect(play.showSessionFinishConfirm).toBe(false);
       expect(play.pendingDartObservation).toBeNull();
       expect(play.finished).toBe(true);
+      expect(play.$store.game.turns.at(-1)?.darts).toHaveLength(1);
     });
 
-    it("cancelSessionFinish records nothing", async () => {
+    it("cancelSessionFinish undoes the deferred dart", async () => {
       const play = createPlay();
       const engine = oneTwentyOneEngineFactory.create(config) as any;
       for (let target = 121; target < 170; target += 1) {
@@ -758,6 +763,7 @@ describe("oneTwentyOnePlay", () => {
       expect(play.showSessionFinishConfirm).toBe(false);
       expect(play.pendingDartObservation).toBeNull();
       expect(play.$store.game.turns).toHaveLength(turnCountBefore);
+      expect(play.remainingInAttempt()).toBe(40);
       expect(play.finished).toBe(false);
     });
   });

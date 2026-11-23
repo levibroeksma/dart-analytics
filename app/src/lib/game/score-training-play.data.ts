@@ -12,6 +12,7 @@ import {
   resumeGameEngine,
   runPlayAgain,
   isInputBlocked,
+  releaseHeldDart,
   undoBotAwareVisit,
   playBotQuickScoreVisit,
 } from "@lib/game/play-lifecycle";
@@ -244,12 +245,13 @@ const scoreTrainingPlayMethods2 = {
    * throws, including an unseen one, arrives here from `boardInputData`'s
    * `onCommit`.
    *
-   * A dart that would close the session's last visit is deferred to the same
-   * finish confirm a keypad total is, for the same reason: `confirmFinish`
+   * A dart that would close the session's last visit is recorded, so the
+   * board, the totals and the confirm's context row include it, and then
+   * held at the same finish confirm a keypad total is: `confirmFinish`
    * uploads the fact log and PATCHes the session COMPLETED, which is
-   * irreversible. Every other dart records immediately — Score Training has
-   * no double-out and no bust, so a dart's zone is never ambiguous the way
-   * 501's typed checkout total is, and there is nothing else to ask about.
+   * irreversible, and `cancelFinish` undoes the dart. Every other dart
+   * records and moves on — Score Training has no double-out and no bust,
+   * so there is nothing else to ask about.
    *
    * Completion is deliberately never inferred after recording, the way
    * 501's `commitDart` infers it from `isComplete()`. A Score Training
@@ -273,15 +275,15 @@ const scoreTrainingPlayMethods2 = {
     )
       return;
 
-    if (this.engine.wouldComplete(observation)) {
+    const completes = this.engine.wouldComplete(observation);
+    this.engine.record(observation);
+    this.error = "";
+    this.$store.game.recordFacts(this.engine.facts());
+    if (completes) {
       this.pendingDartObservation = observation;
       this.showFinishConfirm = true;
       return;
     }
-
-    this.engine.record(observation);
-    this.error = "";
-    this.$store.game.recordFacts(this.engine.facts());
     armHiddenTimer(this, this.$store.game.turns);
     await this.maybeRunBotVisit();
   },
@@ -316,24 +318,25 @@ const scoreTrainingPlayMethods2 = {
   },
 
   /**
-   * Records whichever input the player was deferred on — the board's dart
-   * (`recordDart`'s gate) or the keypad's total (`submitVisit`'s) — then
-   * finishes and uploads, so the record → mirror → complete sequence exists
-   * once for both input modes. `??` picks the dart first and still reads a
-   * `pendingFinishScore` of 0 correctly, since only null falls through.
+   * Finishes and uploads once the player confirms. The board's dart was
+   * already recorded by `recordDart`; the keypad's deferred total
+   * (`submitVisit`'s gate) is recorded here first.
    */
   async confirmFinish(this: ScoreTrainingPlayContext) {
     if (!this.engine || this.finished || !this.showFinishConfirm) return;
 
-    const input = this.pendingDartObservation ?? this.pendingFinishScore;
-    if (input === null) return;
+    const dartRecorded = this.pendingDartObservation !== null;
+    const total = this.pendingFinishScore;
+    if (!dartRecorded && total === null) return;
 
     this.pendingDartObservation = null;
     this.pendingFinishScore = null;
     this.showFinishConfirm = false;
 
-    this.engine.record(input);
-    this.$store.game.recordFacts(this.engine.facts());
+    if (!dartRecorded && total !== null) {
+      this.engine.record(total);
+      this.$store.game.recordFacts(this.engine.facts());
+    }
 
     this.finished = true;
     this.completionStatus = "pending";
@@ -342,14 +345,14 @@ const scoreTrainingPlayMethods2 = {
 
   /**
    * Cancel on the finish confirm. A deferred keypad total returns to the
-   * keypad so a mistyped entry is not lost; a deferred dart has no buffer to
-   * return to — the player simply throws again — so it is discarded.
+   * keypad so a mistyped entry is not lost; the recorded dart is undone —
+   * the player simply throws again.
    */
   cancelFinish(this: ScoreTrainingPlayContext) {
     if (!this.showFinishConfirm) return;
 
     if (this.pendingDartObservation !== null) {
-      this.pendingDartObservation = null;
+      releaseHeldDart(this);
       this.showFinishConfirm = false;
       return;
     }

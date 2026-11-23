@@ -287,6 +287,11 @@ describe("boardNeighbours", () => {
     expect(boardNeighbours(5)).toEqual([12, 20]);
   });
 
+  it("rejects a number that is not on the board", () => {
+    expect(() => boardNeighbours(25)).toThrow(RangeError);
+    expect(() => boardNeighbours(0)).toThrow(RangeError);
+  });
+
   it("agrees with areBoardNeighbours, which rejects equal and unknown numbers", () => {
     expect(areBoardNeighbours(20, 5)).toBe(true);
     expect(areBoardNeighbours(20, 20)).toBe(false);

@@ -40,6 +40,7 @@ import {
 import {
   armHiddenTimer,
   clearHiddenTimer,
+  holdFinishingDart,
   isInputBlocked,
   playAbandonAndExit,
   playBack,
@@ -55,6 +56,7 @@ import {
   playUndoVisit,
   playUploadAndCompleteSession,
   playVisitMarkers,
+  releaseHeldDart,
   resumeGameEngine,
   resumeVersionedEngine,
   runPlayAgain,
@@ -821,6 +823,50 @@ describe("playUndoVisit", () => {
     const context = makeContext({ finished: true, engine: new FakeEngine() });
     const undoSpy = vi.spyOn(context.engine!, "undo");
     playUndoVisit(context);
+    expect(undoSpy).not.toHaveBeenCalled();
+  });
+});
+
+describe("holdFinishingDart / releaseHeldDart", () => {
+  const DART: DartObservation = {
+    hitTargetNumber: 1,
+    hitZoneKey: "DOUBLE",
+    locationX: null,
+    locationY: null,
+  };
+
+  it("records and mirrors the dart while holding it", async () => {
+    const context = Object.assign(makeContext(), {
+      pendingDartObservation: null as DartObservation | null,
+    });
+    await playInit(context, GAME_TYPE_KEY, resumeEngine);
+
+    holdFinishingDart(context, DART);
+
+    expect(context.pendingDartObservation).toEqual(DART);
+    expect(context.$store.game.turns).toHaveLength(1);
+    expect(context.finished).toBe(false);
+  });
+
+  it("release undoes the held dart and clears it", async () => {
+    const context = Object.assign(makeContext(), {
+      pendingDartObservation: null as DartObservation | null,
+    });
+    await playInit(context, GAME_TYPE_KEY, resumeEngine);
+    holdFinishingDart(context, DART);
+
+    releaseHeldDart(context);
+
+    expect(context.pendingDartObservation).toBeNull();
+    expect(context.$store.game.turns).toHaveLength(0);
+  });
+
+  it("release is a no-op when no dart is held", () => {
+    const context = Object.assign(makeContext({ engine: new FakeEngine() }), {
+      pendingDartObservation: null as DartObservation | null,
+    });
+    const undoSpy = vi.spyOn(context.engine!, "undo");
+    releaseHeldDart(context);
     expect(undoSpy).not.toHaveBeenCalled();
   });
 });

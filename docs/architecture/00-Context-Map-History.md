@@ -3,6 +3,7 @@ status: historical
 scope: context-map version history and point-in-time task records
 read-when: never during a task — provenance only
 updated: 2026-11-20
+updated: 2026-11-22
 -->
 
 # Context Map History
@@ -18,6 +19,43 @@ updated: 2026-11-20
 # Version History
 
 > **Version:** 1.240.0 (2026-11-20 — Weekly Dependabot updates [pending:dependabot-weekly-updates]: `.github/dependabot.yml` (npm `/app` + github-actions, Monday 06:00 Europe/Amsterdam, 2-day cooldown, limit 5, minor+patch grouped); `.github/workflows/dependency-review.yml` posts a Claude impact comment on breaking updates via `scripts/dependency-review-select.sh`; new gate `check-dependabot-config.sh` + fixture test; `03-Engineering-Workflow.md` § Dependency Updates with owner setup)
+> **Version:** 1.258.0 (2026-11-22 — Statistics Overview §2 (#1326): registry field table gains `siteByTagWhenFiltered`. The issue's File Inventory decision count for `decisions/api.md` no longer exists after the MADR split.)
+
+> **Version:** 1.257.0 (2026-11-22 — Decision ID gaps (#1346): `DECISIONS.md`'s ID-gap note lists 25 never-issued ids, adding `D354 D384 D389 D400 D438`; full git history holds no record of any of them, and `D389` was renumbered `D390` before merge.)
+
+> **Version:** 1.256.0 (2026-11-22 — Split script removed (#1347): the one-shot MADR ledger `scripts/decisions/split.mjs`, its type stub, test and fixture are deleted now that the split has merged. File Inventory row updated.)
+
+> **Version:** 1.255.0 (2026-11-22 — Board key row (#1304): `BoardInputPanel`'s undo / Bounce out row sizes columns from the keys it renders (`grid-flow-col auto-cols-fr`); `Astro.slots.has("actions")` was true for `SeatedPlayScreen`'s conditional slot even when empty, so two keys sat in three columns. Component Inventory row updated.)
+
+> **Version:** 1.254.0 (2026-11-22 — Results title skeleton (#1294): `ResultsModalShell` renders the `results-title` heading itself, `resultsTitle()` in a `ResultValue` pulse bar until the save succeeds; the 18 per-game `title` slot copies are gone, so no modal flashes a fallback such as "Winner!" before the outcome. Component Inventory row updated.)
+
+> **Version:** 1.253.0 (2026-11-22 — Ratchet margin (#1327, owner-approved): a `quality-benchmarks.json` row may carry `margin`, the amount it may worsen before it counts as regressed; `mi_average` gets 0.2, so fallow's 0.1 rounding edge cannot fail a PR. Fixture cases added.)
+
+> **Version:** 1.252.0 (2026-11-22 — Related tests at commit (#1322): new `scripts/run-related-tests.sh` pre-commit row (scoped `^app/(src|tests)/`) runs `vitest related --run` over the staged app files, ~7 s; `app/CLAUDE.md` §Formatting and the File Inventory list it. The type check stays out of pre-commit (~39 s).)
+
+> **Version:** 1.251.0 (2026-11-22 — Landed-base guard (#1321): `branch-stack-cap` in `pr-gates.yml` also fails a PR whose base branch tip is the head of an already-merged PR ("retarget to main"); `finishing-a-dart-branch` says to target `main` once the base landed, and PR 3 onward of a longer chain targets `main`, naming the PRs it carries.)
+
+> **Version:** 1.250.0 (2026-11-22 — Hook runtime (#1368): `app/CLAUDE.md` §Formatting says an `app/` commit takes about 2 minutes, so `git commit`/`git push` run in the foreground with a 600 s timeout and no edits until they return.)
+
+> **Version:** 1.249.0 (2026-11-22 — Plan units (#1373): root `CLAUDE.md` plugin-skill table gains a `superpowers:writing-plans` row: every count or ratio in a Produces block names its unit in the spec's own words, checked at self-review step 1.)
+
+> **Version:** 1.248.0 (2026-11-22 — Replay facts documented outside code (#1372): Statistics Overview says `v_game_replay.kept` marks a Follow the Leader keep turn and is not a filter; Pattern 18 `MARKS` row says Mickey Mouse's dip adds 1 mark to Doubles/Triples, up to 4 marks per dart.)
+
+> **Version:** 1.247.0 (2026-11-22 — Statistics Overview view table gains a `v_game_replay` row (#1366): every seat's darts in the owner's sessions, scoped by `player_id`, so opponent darts need no new view or migration.)
+
+> **Version:** 1.246.0 (2026-11-22 — Branch invariant exception D0567: issue fixes may share one branch, one commit per issue, each closing its issue; other tasks keep a dedicated branch.)
+
+> **Version:** 1.245.0 (2026-11-22 — Gate wiring: `check-gate-wiring.sh` also requires every per-file-mode `check-*.sh` to sit in `edit-gate.py` CHECKS and have a `test-check-file-mode.sh` case; its header carries the add-a-gate wiring list, pointed to from `run-all-gates`.)
+
+> **Version:** 1.244.0 (2026-11-22 — `syncing-design-system` §3 opens with an access probe (`Artifact read` `project/design-system.json`), so a session without artifact access stops before the code diff, the run lock or the agent launch; later steps renumbered.)
+
+> **Version:** 1.243.0 (2026-11-22 — Statistics session-level population (#1332): `gameWindowConditions` filters `input_mode_key = 'VISUAL_BOARD'`, so `completion`, `volume`, `session-result`, the session list and its count read the same sessions as the dart sections and the 501 variations count; QUICK_SCORE 501/121/Score Training sessions drop out. Statistics Overview §1 and Endpoint Contracts 1.21.0 updated.)
+
+> **Version:** 1.242.0 (2026-11-22 — Mock-reset hooks gate (#1374, #1369): new `scripts/check-mock-reset-hooks.sh` rejects expression-bodied `mockReset`/`mockClear`/`mockRestore` in Vitest hooks under `app/tests/` (the returned mock runs as teardown); wired into pre-commit (scoped to `app/tests/`), `edit-gate.py`, `quality.yml` and `run-all-gates`, with file-mode fixtures; the 7 offending test files use block bodies.)
+
+> **Version:** 1.241.0 (2026-11-20 — Marks statistics page (D0566): new server section `marks` for Cricket, Tactics and Mickey Mouse, replayed from `v_game_replay` through the engines' `foldMarks` (no migration; `findMarksFoldRows`, `marks.module.ts`); layout `MarksStatsOverview.astro`, `MARKS_LAYOUTS`, `lib/stats/marks/`, `marksSection()`; `meanTile` joins `ratioTile`; `groupBySession`/`sessionFactsOf` move into `replay.module.ts`; Section Catalog 1.15.0.)
+
+> **Version:** 1.240.0 (2026-11-19 — Checkout statistics page (D0565): layout `CheckoutStatsOverview.astro` and `CheckoutCards.astro`, `CHECKOUT_LAYOUTS` for `121_V1`, `121_V2` and `TUOD_V1`; new `lib/stats/checkout/` ladder totals, routes, comparison and card rows, `checkoutComparisonSection()` and `checkoutCardsSection()`; the store's ladder and route helpers move there and `ratioTile` is shared with Ace; `01-Section-Catalog.md` 1.14.0.)
 
 > **Version:** 1.239.0 (2026-11-19 — Decision bot no longer dispatches `checks.yml` (D564): a throwaway PR showed the dispatched run does not count toward the PR's required checks; the owner approves the held `pull_request` run instead. `decision-ids.yml` drops the dispatch step and `actions: write`; `checks.yml` drops `workflow_dispatch`; `DECISIONS.md` step 8 and the `decision-ids.yml` inventory row updated.)
 

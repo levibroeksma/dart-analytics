@@ -1,6 +1,8 @@
 import { describe, expect, it } from "vitest";
 import {
   clampFiveOhOneStartingScore,
+  FIVE_OH_ONE_STARTING_SCORE_MAX,
+  FIVE_OH_ONE_STARTING_SCORE_MIN,
   FIVE_OH_ONE_STARTING_SCORE_NOTICE,
 } from "@lib/game/five-oh-one-starting-score";
 
@@ -64,6 +66,14 @@ describe("clampFiveOhOneStartingScore", () => {
   });
 
   it("states the allowed range in its notice", () => {
+    expect(FIVE_OH_ONE_STARTING_SCORE_NOTICE).toBe("Allowed range: 2–999");
+  });
+});
+
+describe("starting-score bounds", () => {
+  it("are 2 and 999, as the notice states", () => {
+    expect(FIVE_OH_ONE_STARTING_SCORE_MIN).toBe(2);
+    expect(FIVE_OH_ONE_STARTING_SCORE_MAX).toBe(999);
     expect(FIVE_OH_ONE_STARTING_SCORE_NOTICE).toBe("Allowed range: 2–999");
   });
 });

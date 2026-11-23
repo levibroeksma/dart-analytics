@@ -20,6 +20,7 @@ scripts/check-alias-sync.sh
 scripts/check-constraint-mirror.sh	
 scripts/check-no-inline-comments.sh	
 scripts/check-style-tokens.sh	
+scripts/check-mock-reset-hooks.sh	^(app/tests/|scripts/check-mock-reset-hooks\.sh)
 scripts/check-game-wiring.sh	
 scripts/check-game-rules.sh	^(docs/game-rules/|scripts/(test-)?check-game-rules\.sh)
 scripts/test-check-game-rules.sh	^(docs/game-rules/|scripts/(test-)?check-game-rules\.sh)
@@ -28,6 +29,7 @@ scripts/test-check-tag-seeds.sh	^(docs/game-rules/|database/seeds/|app/scripts/(
 scripts/check-seed-ids.sh	
 scripts/test-check-seed-ids.sh	
 scripts/check-test-coverage.sh	
+scripts/run-related-tests.sh	^(app/(src|tests)/|scripts/run-related-tests\.sh)
 scripts/test-check-context-budget.sh	^scripts/(test-)?check-context-budget\.sh
 scripts/check-dependabot-config.sh	^(\.github/(dependabot\.yml|workflows/dependency-review\.yml)|scripts/(test-)?check-dependabot-config\.sh)
 scripts/test-check-dependabot-config.sh	^(\.github/(dependabot\.yml|workflows/dependency-review\.yml)|scripts/(test-)?check-dependabot-config\.sh)

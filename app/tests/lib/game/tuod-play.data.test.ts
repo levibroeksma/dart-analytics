@@ -1473,7 +1473,9 @@ describe("recordDart (board input)", () => {
 
     expect(component.showFinishConfirm).toBe(true);
     expect(component.pendingDartObservation).toEqual(DOUBLE_20);
-    expect(store.turns).toHaveLength(0);
+    expect(store.turns).toHaveLength(1);
+    expect(store.turns[0].darts).toHaveLength(1);
+    expect(store.turns[0].totalScore).toBe(40);
   });
 
   it("confirmFinish commits a pending dart and completes the session", async () => {
@@ -1500,9 +1502,11 @@ describe("recordDart (board input)", () => {
     expect(component.pendingDartObservation).toBeNull();
     expect(component.showFinishConfirm).toBe(false);
     expect(component.finished).toBe(true);
+    expect(store.turns).toHaveLength(1);
+    expect(store.turns[0].darts).toHaveLength(1);
   });
 
-  it("cancelFinish discards a pending dart without recording it", async () => {
+  it("cancelFinish undoes the pending dart", async () => {
     const store = gameStub({
       configSnapshot: { ...rounds(1), startingTarget: 40 },
     });

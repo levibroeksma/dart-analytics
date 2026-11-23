@@ -54,6 +54,8 @@ jobs:
         run: bash scripts/check-no-inline-comments.sh
       - name: Style-tokens gate
         run: bash scripts/check-style-tokens.sh
+      - name: Mock-reset hooks gate
+        run: bash scripts/check-mock-reset-hooks.sh
       - name: Gate per-file mode fixtures
         run: bash scripts/test-check-file-mode.sh
       - name: Test-repointing check fixtures

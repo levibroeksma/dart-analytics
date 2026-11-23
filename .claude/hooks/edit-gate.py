@@ -14,6 +14,7 @@ CHECKS = [
     ("app/src/**/*.astro", "scripts/check-style-tokens.sh"),
     ("app/src/**/*.ts", "scripts/check-no-inline-comments.sh"),
     ("app/src/**/*.ts", "scripts/check-file-locations.sh"),
+    ("app/tests/**/*.ts", "scripts/check-mock-reset-hooks.sh"),
 ]
 
 MAX_LINES = 20

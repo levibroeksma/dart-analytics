@@ -11,6 +11,9 @@
 # The score is read with `-c .fallowrc.score.jsonc --score`: production code
 # only, no hotspot penalty, so a shallow CI clone and a full clone agree.
 # Float rows may improve by up to 0.5 before the row counts as stale.
+# A row's optional `margin` lets it worsen by that much before it counts as
+# regressed, so a value sitting on fallow's 0.1 rounding edge cannot fail a PR
+# (mi_average: 0.2, #1327).
 #
 # fallow lists large functions only while at least 3 % of all functions are over
 # 60 lines; if the list is absent, `large_test_bodies` is reported missing.
@@ -52,9 +55,10 @@ jq -r --slurpfile cur "$TMP/cur.json" '
   ["health_score", "mi_average", "mi_lowest_file", "dup_pct_weak", "dup_pct_semantic"] as $floats
   | .rows | to_entries[] | .key as $k | .value as $row | $cur[0][$k] as $c
   | (if ($floats | index($k)) then 0.5 else 0 end) as $tol
+  | ($row.margin // 0) as $m
   | if $c == null then "missing value: \($k)"
-    elif $row.dir == "min" and $c < $row.now then "regressed: \($k) \($c) < \($row.now)"
-    elif $row.dir == "max" and $c > $row.now then "regressed: \($k) \($c) > \($row.now)"
+    elif $row.dir == "min" and $c < $row.now - $m then "regressed: \($k) \($c) < \($row.now)\(if $m > 0 then " - margin \($m)" else "" end)"
+    elif $row.dir == "max" and $c > $row.now + $m then "regressed: \($k) \($c) > \($row.now)\(if $m > 0 then " + margin \($m)" else "" end)"
     elif $row.dir == "min" and $c > $row.now + $tol then "stale benchmark, tighten it: \($k) (benchmark \($row.now), now \($c)); run: bash scripts/check-quality-benchmarks.sh --update"
     elif $row.dir == "max" and $c < $row.now - $tol then "stale benchmark, tighten it: \($k) (benchmark \($row.now), now \($c)); run: bash scripts/check-quality-benchmarks.sh --update"
     else empty end' "$BENCH" > "$TMP/issues.txt" || { echo "check-quality-benchmarks: unreadable benchmark file" >&2; exit 1; }
