@@ -33,7 +33,7 @@ bash scripts/check-dependabot-config.sh
 bash scripts/test-check-dependabot-config.sh
 ```
 
-`check-dependabot-config.sh` fails when `.github/dependabot.yml` drifts from the values the dependency-update spec pins: npm in `/app` and github-actions in `/`, weekly Monday 06:00 Europe/Amsterdam, a 2-day cooldown, at most 5 open PRs, and 1 minor+patch group per ecosystem with majors ungrouped. It parses YAML with Ruby's stdlib.
+`check-dependabot-config.sh` fails when `.github/dependabot.yml` drifts from the values the dependency-update spec pins: npm in `/app` and github-actions in `/`, weekly Monday 06:00 Europe/Amsterdam, a 2-day cooldown, at most 5 open PRs, and 1 minor+patch group per ecosystem with majors ungrouped. It also fails when `.github/workflows/dependency-review.yml` loosens: permissions other than `contents: read` + `pull-requests: write`, a job condition other than the exact Dependabot-only expression, an action not pinned to a commit SHA, a Claude step without `github_token`, with an API key, or with `claude_args` beyond `--permission-mode default` and the allowed tool list, or a prompt that interpolates step outputs. It parses YAML with Ruby's stdlib; `test-check-dependabot-config.sh` proves each rule on a mutated copy and the `dependency-review-select.sh` cases.
 
 `check-seed-ids.sh` fails when two `database/seeds/*.sql` files define the same id in one table: the seeds insert with `ON CONFLICT DO NOTHING`, so the later row is dropped silently and only a read of it fails. A new game's seed takes the next free id per prefix (`0198f000` game types, `0198f100` ruleset versions, `0198f300` templates).
 
