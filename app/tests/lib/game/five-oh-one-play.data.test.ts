@@ -1589,20 +1589,21 @@ describe("recordDart — checkout on a double vs. the same score on a treble", (
 });
 
 describe("recordDart — match-ending checkout defers to the confirm dialog", () => {
-  it("opens showMatchFinishConfirm instead of recording immediately", async () => {
+  it("opens showMatchFinishConfirm and holds the dart on the board, without finishing", async () => {
     const play = makePlay(
       { turns: turnsReaching(40) }, // Quick Play: legsToWin 1
       { inputModeKey: "VISUAL_BOARD" },
     );
     await play.init.call(play);
-    const turnCountBefore = play.$store.game.turns.length;
 
     await play.recordDart.call(play, DOUBLE_20);
 
     expect(play.showMatchFinishConfirm).toBe(true);
     expect(play.pendingDartObservation).toEqual(DOUBLE_20);
-    expect(play.$store.game.turns).toHaveLength(turnCountBefore);
+    expect(play.remainingScore.call(play)).toBe(0);
+    expect(play.$store.game.turns.at(-1)!.darts.at(-1)!.score).toBe(40);
     expect(play.finished).toBe(false);
+    expect(appendBatch).not.toHaveBeenCalled();
   });
 
   it("confirmMatchFinish records the deferred dart, finishes, and uploads", async () => {
@@ -1619,6 +1620,9 @@ describe("recordDart — match-ending checkout defers to the confirm dialog", ()
       { inputModeKey: "VISUAL_BOARD" },
     );
     await play.init.call(play);
+    const dartsBefore = play.$store.game.turns.flatMap(
+      (t: { darts: unknown[] }) => t.darts,
+    ).length;
     await play.recordDart.call(play, DOUBLE_20);
     expect(play.showMatchFinishConfirm).toBe(true);
 
@@ -1630,6 +1634,9 @@ describe("recordDart — match-ending checkout defers to the confirm dialog", ()
     expect(play.completionStatus).toBe("succeeded");
     expect(appendBatch).toHaveBeenCalledTimes(1);
     expect(completeSession).toHaveBeenCalledWith("s1", "COMPLETED");
+    expect(
+      play.$store.game.turns.flatMap((t: { darts: unknown[] }) => t.darts),
+    ).toHaveLength(dartsBefore + 1);
   });
 
   it("cancelMatchFinish records nothing and leaves the match open", async () => {
@@ -1647,6 +1654,7 @@ describe("recordDart — match-ending checkout defers to the confirm dialog", ()
     expect(play.showMatchFinishConfirm).toBe(false);
     expect(play.pendingDartObservation).toBeNull();
     expect(play.$store.game.turns).toHaveLength(turnCountBefore);
+    expect(play.remainingScore.call(play)).toBe(40);
     expect(play.finished).toBe(false);
     expect(appendBatch).not.toHaveBeenCalled();
   });
