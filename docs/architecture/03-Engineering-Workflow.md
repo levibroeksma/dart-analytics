@@ -2,12 +2,12 @@
 status: canonical
 scope: architecture/process
 read-when: process and change-lifecycle questions
-updated: 2026-07-15
+updated: 2026-11-20
 -->
 
 # Engineering Workflow
 
-> **Version:** 1.1.1 (2026-08-03 — decision-ledger split: `DECISIONS.md` prompts repointed at `decisions/**` block format, no longer "one line + rationale")
+> **Version:** 1.2.0 (2026-11-20 — Dependency Updates section: weekly Dependabot PRs, 2-day cooldown, Claude impact review on breaking updates)
 >
 > This document defines the mandatory engineering workflow for all contributors, including human developers and AI assistants.
 >
@@ -229,6 +229,34 @@ Before release, verify:
 - documentation is complete
 - no architectural principles have been violated
 - implementation is reviewed
+
+---
+
+# Dependency Updates
+
+Dependabot keeps the `app/` npm packages and the GitHub Actions in `.github/workflows/` up to date D0568. `scripts/check-dependabot-config.sh` pins every value below.
+
+| What | When it arrives | Review |
+| --- | --- | --- |
+| Patch and minor updates | Monday 06:00 Europe/Amsterdam, 1 grouped PR per ecosystem | The owner |
+| Major updates | Monday 06:00 Europe/Amsterdam, 1 PR each | Claude impact comment, then the owner |
+| Minor bump of a 0.x package | Inside the grouped PR | Claude impact comment, then the owner |
+| CVE fixes (security updates) | As soon as the advisory exists | Same rule as above |
+
+A release younger than 2 days waits (`cooldown`). CVE fixes skip that wait. Each ecosystem has at most 5 open update PRs. No job pushes, approves or merges.
+
+The Claude impact comment comes from `.github/workflows/dependency-review.yml`. It lists the breaking changes, the files that use the affected APIs, and a verdict: `safe`, `needs changes` or `unclear`.
+
+**Owner setup (once):**
+
+1. Get the co-one Security Officer's approval to store a Claude plan token in this repo.
+2. Run `claude setup-token` and copy the token.
+3. Add it under *Settings → Secrets and variables → Dependabot* as `CLAUDE_CODE_OAUTH_TOKEN`.
+4. Turn on Dependabot alerts and Dependabot security updates under *Settings → Code security*.
+
+If the token is missing, the review job fails on every breaking PR with `CLAUDE_CODE_OAUTH_TOKEN is not set as a Dependabot secret`.
+
+The repo setting *Settings → Actions → General → "Allow GitHub Actions to create and approve pull requests"* stays on, because `graph.yml` and `schema.yml` open PRs with it. That setting lets the review job's token approve a PR. Claude cannot use it: its tool list allows only `gh pr comment` and `gh pr view`, in default permission mode, and `check-dependabot-config.sh` fails if that list grows.
 
 ---
 

@@ -31,3 +31,5 @@ scripts/test-check-seed-ids.sh
 scripts/check-test-coverage.sh	
 scripts/run-related-tests.sh	^(app/(src|tests)/|scripts/run-related-tests\.sh)
 scripts/test-check-context-budget.sh	^scripts/(test-)?check-context-budget\.sh
+scripts/check-dependabot-config.sh	^(\.github/(dependabot\.yml|workflows/dependency-review\.yml)|scripts/(test-)?check-dependabot-config\.sh)
+scripts/test-check-dependabot-config.sh	^(\.github/(dependabot\.yml|workflows/dependency-review\.yml)|scripts/(test-)?check-dependabot-config\.sh)
