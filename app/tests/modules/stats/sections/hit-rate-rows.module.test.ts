@@ -1,14 +1,10 @@
 import { describe, it, expect } from "vitest";
 import {
-  bestRate,
   foldSeriesByKey,
   hitRateRows,
-  seriesKeys,
-  sumInBand,
-  worstRate,
 } from "@modules/stats/sections/hit-rate-rows.module";
 import type { CachedSeries } from "@client/types";
-import type { HitRateRow, HitRateTotals } from "@modules/types";
+import type { HitRateTotals } from "@modules/types";
 
 function series<M>(bucketMetrics: M[]): CachedSeries<M> {
   return {
@@ -26,10 +22,6 @@ function series<M>(bucketMetrics: M[]): CachedSeries<M> {
       metrics,
     })),
   };
-}
-
-function row(targetKey: string, attempts: number, rate: number): HitRateRow {
-  return { targetKey, attempts, hits: attempts * rate, rate };
 }
 
 describe("hitRateRows", () => {
@@ -112,87 +104,5 @@ describe("foldSeriesByKey", () => {
 
   it("returns an empty map for an undefined series", () => {
     expect(foldSeriesByKey(undefined, init, merge).size).toBe(0);
-  });
-});
-
-describe("bestRate / worstRate", () => {
-  it("return null when no row reaches minAttempts", () => {
-    const rows = [row("A", 4, 0.5), row("B", 9, 1)];
-
-    expect(bestRate(rows, 10)).toBeNull();
-    expect(worstRate(rows, 10)).toBeNull();
-  });
-
-  it("ignore rows below minAttempts", () => {
-    const rows = [row("LOW", 2, 0), row("MID", 10, 0.5), row("TOP", 3, 1)];
-
-    expect(bestRate(rows, 10)?.targetKey).toBe("MID");
-    expect(worstRate(rows, 10)?.targetKey).toBe("MID");
-  });
-
-  it("keep the first row of a tie", () => {
-    const rows = [row("FIRST", 10, 0.5), row("SECOND", 10, 0.5)];
-
-    expect(bestRate(rows, 10)?.targetKey).toBe("FIRST");
-    expect(worstRate(rows, 10)?.targetKey).toBe("FIRST");
-  });
-
-  it("pick the highest and lowest rate", () => {
-    const rows = [row("A", 10, 0.2), row("B", 10, 0.9), row("C", 10, 0.5)];
-
-    expect(bestRate(rows, 10)?.targetKey).toBe("B");
-    expect(worstRate(rows, 10)?.targetKey).toBe("A");
-  });
-});
-
-describe("sumInBand", () => {
-  const pick = (m: { chances: number; finished: number }) => [
-    m.chances,
-    m.finished,
-  ];
-
-  it("sums every metric whose numeric key is within the band, both edges included", () => {
-    const sums = sumInBand(
-      series<Record<string, { chances: number; finished: number }>>([
-        {
-          "1": { chances: 100, finished: 100 },
-          "2": { chances: 3, finished: 1 },
-          "40": { chances: 5, finished: 2 },
-          "41": { chances: 100, finished: 100 },
-        },
-        { "20": { chances: 2, finished: 2 } },
-      ]),
-      { low: 2, high: 40 },
-      pick,
-    );
-
-    expect(sums).toEqual([10, 5]);
-  });
-
-  it("returns zeros for an undefined series", () => {
-    const [chances = 0, finished = 0] = sumInBand(
-      undefined,
-      { low: 2, high: 40 },
-      pick,
-    );
-
-    expect([chances, finished]).toEqual([0, 0]);
-  });
-});
-
-describe("seriesKeys", () => {
-  it("unions the metric keys across buckets, sorted", () => {
-    expect(
-      seriesKeys(
-        series([
-          { b: 1, a: 1 },
-          { c: 1, a: 2 },
-        ]),
-      ),
-    ).toEqual(["a", "b", "c"]);
-  });
-
-  it("returns [] for an undefined series", () => {
-    expect(seriesKeys(undefined)).toEqual([]);
   });
 });

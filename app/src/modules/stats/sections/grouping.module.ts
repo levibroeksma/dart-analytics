@@ -1,15 +1,7 @@
-import { zoneCentroid } from "@lib/game/board/board-geometry.module";
 import { intendedKey } from "./intent-cells.module";
 import { bucketFor, closeBuckets } from "./series.module";
-import type { BoardPoint, IntentZoneKey, SeriesBucket } from "@lib/types";
-import type {
-  GroupingMetrics,
-  GroupingMoment,
-  IntentMomentRow,
-} from "@modules/types";
-
-/** Every zone `grouping` ever centres on: `NUMBER`/`BULL` never reach here (decision 6, `01-Section-Catalog.md` §2 — grouping stays stored-only). */
-type StoredIntentZoneKey = Exclude<IntentZoneKey, "NUMBER" | "BULL">;
+import type { SeriesBucket } from "@lib/types";
+import type { GroupingMetrics, IntentMomentRow } from "@modules/types";
 
 /** Folds `findIntentMoments` rows into `grouping` buckets: summed position moments per intended target. */
 export function groupingBuckets(
@@ -44,44 +36,4 @@ export function groupingBuckets(
   }
 
   return closeBuckets(buckets, ctx);
-}
-
-/**
- * The mean offset from the target's centroid, the population spread, and the
- * bearing of that offset — derived isomorphically against `zoneCentroid` so
- * SQL never holds an aim point (phase-2 decision 3). `null` when there is
- * nothing to summarize: fewer than two darts, or the target has no single
- * centre — which is also `zoneCentroid`'s answer for the `NUMBER`/`BULL` aim
- * zones `target.zone` widened to (decision 2) but `grouping` never actually
- * receives (decision 6), hence the cast to `StoredIntentZoneKey` below.
- */
-export function groupingSummary(
-  m: GroupingMoment,
-  target: { number: number; zone: IntentZoneKey },
-): {
-  n: number;
-  meanOffset: BoardPoint;
-  spreadMm: number;
-  bearingDegrees: number;
-} | null {
-  if (m.n < 2) return null;
-  const centroid = zoneCentroid(
-    target.number,
-    target.zone as StoredIntentZoneKey,
-  );
-  if (centroid === null) return null;
-
-  const meanX = m.sumX / m.n;
-  const meanY = m.sumY / m.n;
-  const varX = m.sumXX / m.n - meanX * meanX;
-  const varY = m.sumYY / m.n - meanY * meanY;
-  const dx = meanX - centroid.x;
-  const dy = meanY - centroid.y;
-
-  return {
-    n: m.n,
-    meanOffset: { x: dx, y: dy },
-    spreadMm: Math.sqrt(varX + varY),
-    bearingDegrees: (Math.atan2(dx, -dy) * (180 / Math.PI) + 360) % 360,
-  };
 }
