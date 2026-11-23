@@ -91,6 +91,7 @@ bash scripts/test-precommit-scope.sh
 bash scripts/test-check-html-parity.sh
 bash scripts/test-reuse-lookup.sh
 bash scripts/test-check-dupes.sh
+bash scripts/test-check-types.sh
 bash scripts/test-check-quality-benchmarks.sh
 bash scripts/test-check-test-coverage.sh
 bash scripts/test-scaffold-game-screens.sh

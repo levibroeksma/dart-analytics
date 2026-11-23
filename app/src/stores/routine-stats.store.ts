@@ -29,7 +29,6 @@ import {
   readSection,
   readSessionPage,
 } from "@client/stats-cache/cache";
-import { defaultRange } from "@stores/game-stats.store";
 import type {
   RoutineHeaderSchemaData,
   RoutineSectionParams,
@@ -54,7 +53,21 @@ import type {
 } from "@modules/types";
 import type { CachedSeries, CacheScope, StatsCacheQuery } from "@client/types";
 
-/** The same synthetic browser-scoped cache identity `game-stats.store.ts` uses: the client never learns its own `player_id`, and sign-out wipes the whole cache. */
+/** A statistics page's opening range: the last twelve months to a minute from now, bucketed by month in the browser's own time zone. */
+export function defaultRange() {
+  const now = new Date();
+  const from = new Date(now);
+  from.setUTCMonth(from.getUTCMonth() - 12);
+  const to = new Date(now.getTime() + 60_000);
+  return {
+    from: from.toISOString(),
+    to: to.toISOString(),
+    bucket: "month" as const,
+    tz: Intl.DateTimeFormat().resolvedOptions().timeZone,
+  };
+}
+
+/** A synthetic browser-scoped cache identity: the client never learns its own `player_id`, and sign-out wipes the whole cache. */
 const CACHE_PLAYER_ID = "me";
 
 /**
@@ -144,7 +157,7 @@ function stepScope(routineKey: string, step: StepDescriptor): CacheScope {
 /**
  * A section's fetch parameters: the page range, except a section that is not
  * bucketable, which always reads as one un-bucketed request over the whole
- * range, exactly as `game-stats.store.ts` reads it.
+ * range.
  */
 function sectionParams(
   meta: SectionMeta | RoutineSectionMeta,

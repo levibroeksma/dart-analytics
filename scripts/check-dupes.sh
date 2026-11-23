@@ -19,6 +19,7 @@ trap 'rm -rf "$TMP"' EXIT
 if [ -n "${DUPES_JSON:-}" ]; then
   cp "$DUPES_JSON" "$TMP/in.json"
 else
+  [ -d "$ROOT/app/node_modules" ] || { echo "SKIP: app/node_modules absent" >&2; exit 0; }
   # Default output lists every group (clone_groups_omitted stays 0 without --top).
   (cd "$ROOT/app" && npx --no-install fallow dupes --format json --no-fragments --quiet) > "$TMP/in.json" || true
 fi

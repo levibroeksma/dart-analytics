@@ -26,9 +26,11 @@ import {
   setScoreText,
 } from "@lib/game/five-oh-one-match";
 import {
+  holdFinishingDart,
   playCommitDart,
   playInit,
   playUploadAndCompleteSession,
+  releaseHeldDart,
   runPlayAgain,
   undoBotAwareVisit,
 } from "@lib/game/play-lifecycle";
@@ -399,9 +401,9 @@ const fiveOhOnePlayMethods2 = {
    * there is never a checkout that is ambiguous between a double and a
    * bust the way `submitVisit`'s typed total is — `showDoubleConfirm`
    * never opens for a dart. A dart that would complete the whole match is
-   * still gated behind `showMatchFinishConfirm`, because recording it
-   * uploads and completes the session immediately and that step is
-   * irreversible; a leg-only checkout or a bust commits straight away.
+   * recorded and held (`holdFinishingDart`) behind `showMatchFinishConfirm`,
+   * so the board shows it while uploading and completing waits for the
+   * player; a leg-only checkout or a bust commits straight away.
    */
   async recordDart(this: FiveOhOnePlayContext, observation: DartObservation) {
     if (
@@ -413,7 +415,7 @@ const fiveOhOnePlayMethods2 = {
       return;
 
     if (this.engine.wouldComplete(observation)) {
-      this.pendingDartObservation = observation;
+      holdFinishingDart(this, observation);
       this.showMatchFinishConfirm = true;
       return;
     }
@@ -499,19 +501,20 @@ const fiveOhOnePlayMethods2 = {
   },
 
   /**
-   * Confirm on the second, match-ending dialog: records whichever the
-   * player was deferred on — the board's dart (`recordDart`'s gate) or the
-   * keypad's checkout (`confirmDouble`'s deferral) — which drives
-   * `commitDart`'s or `recordVisit`'s own completion check and upload.
+   * Confirm on the second, match-ending dialog: completes and uploads the
+   * board's held dart (already recorded by `recordDart`), or records the
+   * keypad's deferred checkout (`confirmDouble`), whose `recordVisit` runs
+   * its own completion check and upload.
    */
   async confirmMatchFinish(this: FiveOhOnePlayContext) {
     if (!this.engine || this.finished || !this.showMatchFinishConfirm) return;
 
     if (this.pendingDartObservation) {
-      const observation = this.pendingDartObservation;
       this.pendingDartObservation = null;
       this.showMatchFinishConfirm = false;
-      await this.commitDart(observation);
+      this.finished = true;
+      this.completionStatus = "pending";
+      await this.uploadAndCompleteSession();
       return;
     }
 
@@ -525,15 +528,14 @@ const fiveOhOnePlayMethods2 = {
   /**
    * Cancel on the second, match-ending dialog. Same contract as
    * `cancelCheckout` for the keypad's deferred score: nothing is recorded,
-   * and the score returns to the keypad rather than being lost. A deferred
-   * dart has no keypad buffer to return to — the player simply throws
-   * again — so it is just discarded.
+   * and the score returns to the keypad rather than being lost. A held
+   * dart is undone (`releaseHeldDart`) so the player throws again.
    */
   cancelMatchFinish(this: FiveOhOnePlayContext) {
     if (!this.showMatchFinishConfirm) return;
 
     if (this.pendingDartObservation) {
-      this.pendingDartObservation = null;
+      releaseHeldDart(this);
       this.showMatchFinishConfirm = false;
       return;
     }

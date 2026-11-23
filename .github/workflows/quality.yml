@@ -122,7 +122,8 @@ jobs:
       - name: Format gate
         run: npm run format:check
       - name: Type gate
-        run: npm run check
+        working-directory: ${{ github.workspace }}
+        run: bash scripts/check-types.sh && bash scripts/test-check-types.sh
       - name: Stale-usage gate
         run: bash ../scripts/fallow-gate.sh
       - name: Clone-group ratchet
