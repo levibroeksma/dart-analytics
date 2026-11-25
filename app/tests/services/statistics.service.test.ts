@@ -25,7 +25,7 @@ vi.mock("@repositories/statistics.repository", () => ({
   findVisitScoring: vi.fn(),
   findHitNumberCells: vi.fn(),
   findDartFoldRows: vi.fn(),
-  findMarksFoldRows: vi.fn(),
+  findReplayFoldRows: vi.fn(),
   findReplaySession: vi.fn(),
   findReplayStages: vi.fn(),
   findReplayParticipants: vi.fn(),
@@ -2214,7 +2214,7 @@ describe("getGameSection dispatches derived-intent and game-specific sections (p
       locationY: null,
       kept: false,
     };
-    vi.mocked(repo.findMarksFoldRows).mockResolvedValue([
+    vi.mocked(repo.findReplayFoldRows).mockResolvedValue([
       marksRow,
       { ...marksRow, sessionId: "s-ghost", participantId: "ghost" },
     ] as never);

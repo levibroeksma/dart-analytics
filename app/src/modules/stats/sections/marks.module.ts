@@ -14,15 +14,12 @@ import {
   TACTICS_OBJECTIVES,
   TACTICS_RULES,
 } from "@modules/game/tactics.engine.module";
-import { groupBySession, sessionFactsOf } from "@modules/stats/replay.module";
-import { snapshotOf } from "@modules/stats/x01-checkout-sessions.module";
 import { closeBuckets } from "./series.module";
-import type { SeatFact, SeriesBucket } from "@lib/types";
+import type { SeriesBucket } from "@lib/types";
 import type {
   DartZoneKey,
   EngineFacts,
   MarksDuelSeat,
-  MarksFoldRow,
   MarksFoldedSession,
   MarksGameKey,
   MarksGameState,
@@ -57,7 +54,12 @@ const RING_OF: Partial<Record<DartZoneKey, Ring>> = {
   TREBLE: "treble",
 };
 
-const MARKS_GAMES: readonly string[] = ["CRICKET", "TACTICS", "MICKEY_MOUSE"];
+/** The games the `marks` section replays. */
+export const MARKS_GAMES: readonly MarksGameKey[] = [
+  "CRICKET",
+  "TACTICS",
+  "MICKEY_MOUSE",
+];
 
 /** An objective's metrics key: the bull as `"BULL"`, a number as its digits, a category by name. */
 function objectiveKey(objective: number | string): string {
@@ -253,76 +255,4 @@ export function marksBuckets(
     buckets.set(session.bucketStart, bucket);
   }
   return closeBuckets(buckets, ctx, { dropEmpty: true });
-}
-
-/**
- * The seats a session's darts fold against: its snapshot's own, else the
- * session's only participant as the lone seat; `null` when the snapshot is
- * seatless and more than one participant threw.
- */
-function seatsOf(
-  snapshotSeats: readonly SeatFact[],
-  rows: readonly MarksFoldRow[],
-): readonly SeatFact[] | null {
-  if (snapshotSeats.length > 0) return snapshotSeats;
-  const participants = new Map(rows.map((row) => [row.participantId, row]));
-  if (participants.size !== 1) return null;
-  const [only] = participants.values();
-  return [
-    {
-      participantRef: only!.participantId,
-      displayName: only!.participantName,
-      sideKey: "A",
-      participantTypeKey: only!.participantTypeKey,
-    } as SeatFact,
-  ];
-}
-
-/** One session's rows as a `MarksSession`, or `null` when it cannot be replayed. */
-function marksSessionOf(rows: readonly MarksFoldRow[]): MarksSession | null {
-  const first = rows[0]!;
-  if (!MARKS_GAMES.includes(first.gameTypeKey)) return null;
-  const snapshot = snapshotOf(first.rulesetVersionKey, first.configuration);
-  if (!snapshot) return null;
-  const seats = seatsOf(snapshot.seats, rows);
-  const owners = (seats ?? []).filter(
-    (seat) => seat.participantTypeKey === "PLAYER",
-  );
-  if (!seats || owners.length !== 1) return null;
-  try {
-    return {
-      sessionId: first.sessionId,
-      gameTypeKey: first.gameTypeKey as MarksGameKey,
-      bucketStart: first.bucketStart,
-      bucketEnd: first.bucketEnd,
-      seats,
-      ownerRef: owners[0]!.participantRef,
-      facts: sessionFactsOf(rows),
-    };
-  } catch {
-    return null;
-  }
-}
-
-/**
- * Groups `findMarksFoldRows`' rows into replayable sessions. The owner is
- * the session's one `PLAYER` seat; a session whose snapshot does not
- * decode, whose seats cannot be told, or with no single `PLAYER` seat is
- * skipped and counted.
- */
-export function marksSessions(rows: readonly MarksFoldRow[]): {
-  sessions: MarksSession[];
-  skippedSessions: number;
-} {
-  const sessions: MarksSession[] = [];
-  let skippedSessions = 0;
-  for (const sessionRows of groupBySession(rows).values()) {
-    const session = marksSessionOf(sessionRows);
-    if (session) {
-      sessions.push(session);
-    } else {
-      skippedSessions += 1;
-    }
-  }
-  return { sessions, skippedSessions };
 }

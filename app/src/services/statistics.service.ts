@@ -38,6 +38,7 @@ import {
 import {
   decodeReplayCursor,
   encodeReplayCursor,
+  ownerSessions,
   rowsToTurns,
   stageOrder,
 } from "@modules/stats/replay.module";
@@ -105,8 +106,8 @@ import { sessionResultBuckets } from "@modules/stats/sections/session-result.mod
 import { shanghaiCountBuckets } from "@modules/stats/sections/shanghai-count.module";
 import {
   foldMarksSessions,
+  MARKS_GAMES,
   marksBuckets,
-  marksSessions,
 } from "@modules/stats/sections/marks.module";
 import { trainingResultBuckets } from "@modules/stats/sections/training-result.module";
 import { stepResultBuckets } from "@modules/stats/sections/step-result.module";
@@ -118,7 +119,7 @@ import {
   findBucketFloor,
   findBucketedSessionAggregates,
   findDartFoldRows,
-  findMarksFoldRows,
+  findReplayFoldRows,
   findGameDataVersion,
   findGameVariations,
   countGameSessions,
@@ -618,7 +619,7 @@ async function stepsLoad(
 
 /**
  * The `marks` load: every participant's darts of the owner's sessions in
- * scope (`findMarksFoldRows`), grouped into sessions and replayed through
+ * scope (`findReplayFoldRows`), grouped into sessions and replayed through
  * each game's own marks fold. A session that cannot be grouped or replayed
  * adds to `skippedSessions`.
  */
@@ -626,12 +627,12 @@ async function marksLoad(
   db: Db,
   ctx: SectionContext,
 ): Promise<SectionLoadResult> {
-  const rows = await findMarksFoldRows(db, {
+  const rows = await findReplayFoldRows(db, {
     ...sectionScope(ctx),
     bucket: ctx.bucket,
     tz: ctx.tz,
   });
-  const grouped = marksSessions(rows);
+  const grouped = ownerSessions(rows, MARKS_GAMES);
   const folded = foldMarksSessions(grouped.sessions);
   return {
     rows: folded.sessions,

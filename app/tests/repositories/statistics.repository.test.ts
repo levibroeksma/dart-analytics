@@ -33,7 +33,7 @@ import {
   findStepBuckets,
   findStepSessionPage,
   findStepFoldRows,
-  findMarksFoldRows,
+  findReplayFoldRows,
   findStepScopeDartCount,
 } from "@repositories/statistics.repository";
 
@@ -3568,10 +3568,10 @@ describe("findStepSessionPage", () => {
   });
 });
 
-describe("findMarksFoldRows", () => {
+describe("findReplayFoldRows", () => {
   it("reads every v_game_replay dart of the owner's scoped sessions", async () => {
     const { db, statements } = renderingDb([]);
-    await findMarksFoldRows(db, {
+    await findReplayFoldRows(db, {
       ...sessionScope,
       bucket: "none",
       tz: undefined,
@@ -3586,7 +3586,7 @@ describe("findMarksFoldRows", () => {
 
   it("orders by session, stage sequence, turn and dart", async () => {
     const { db, statements } = renderingDb([]);
-    await findMarksFoldRows(db, {
+    await findReplayFoldRows(db, {
       ...sessionScope,
       bucket: "none",
       tz: undefined,

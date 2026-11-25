@@ -780,18 +780,23 @@ export type SessionSteps<TSeat> = {
 export type MarksGameKey = "CRICKET" | "TACTICS" | "MICKEY_MOUSE";
 
 /**
- * One marks session ready to replay: every seat's kept turns in play order,
- * and the seat the requesting player held (`ownerRef`).
+ * One session ready to replay: every seat's turns in play order, the seat
+ * the requesting player held (`ownerRef`), and the decoded snapshot
+ * (`config`) with its seats resolved.
  */
-export type MarksSession = {
+export type OwnerSession<G extends string> = {
   sessionId: string;
-  gameTypeKey: MarksGameKey;
+  gameTypeKey: G;
   bucketStart: string;
   bucketEnd: string;
   seats: readonly SeatFact[];
   ownerRef: string;
+  config: Record<string, unknown> & { seats: readonly SeatFact[] };
   facts: EngineFacts;
 };
+
+/** One marks session ready to replay. */
+export type MarksSession = OwnerSession<MarksGameKey>;
 
 /** One objective's owner marks and landed darts; `key` is `"20"`, `"BULL"`, `"DOUBLES"` or `"TRIPLES"`. */
 export type MarksObjectiveCount = { key: string; marks: number; darts: number };
@@ -958,11 +963,11 @@ export type StagedReplayRow = ReplayRow & {
 };
 
 /**
- * `findMarksFoldRows`' row: every participant's dart of one owner session in
+ * `findReplayFoldRows`' row: every participant's dart of one owner session in
  * scope, with the session's snapshot and the bucket its `completed_at`
  * falls in.
  */
-export type MarksFoldRow = StagedReplayRow & {
+export type ReplayFoldRow = StagedReplayRow & {
   gameTypeKey: string;
   rulesetVersionKey: string;
   configuration: Record<string, unknown> | null;

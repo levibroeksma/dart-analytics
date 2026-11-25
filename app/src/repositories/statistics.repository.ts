@@ -59,7 +59,7 @@ import type {
   StepBucketRow,
   StepFoldBucketRow,
   StagedReplayRow,
-  MarksFoldRow,
+  ReplayFoldRow,
   StepScope,
   StepSessionRow,
   TrainedRoutineRow,
@@ -2524,10 +2524,10 @@ export async function findStepFoldRows(
  * turn and dart; `sessionFactsOf` re-sorts each session into stage
  * pre-order.
  */
-export async function findMarksFoldRows(
+export async function findReplayFoldRows(
   db: Db,
   q: SessionScope & { bucket: Bucket; tz: string | undefined },
-): Promise<MarksFoldRow[]> {
+): Promise<ReplayFoldRow[]> {
   const window = bucketWindow(vStatsSessionFacts.completedAt, q);
   const rows = await db
     .select({
