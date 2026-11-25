@@ -1,5 +1,5 @@
 ---
-id: pending
+id: D0569
 status: accepted
 date: 2026-11-25
 origin: contemporaneous
