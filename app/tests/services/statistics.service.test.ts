@@ -2239,6 +2239,66 @@ describe("getGameSection dispatches derived-intent and game-specific sections (p
     }
   });
 
+  it("dispatches elimination through the replay fold on KILLER, counting skipped sessions", async () => {
+    vi.mocked(repo.findGameDataVersion).mockResolvedValue({
+      count: 2,
+      maxCompletedAt: null,
+    });
+    vi.mocked(repo.findScopeDartCount).mockResolvedValue(2);
+    const killerRow = {
+      sessionId: "s-killer",
+      gameTypeKey: "KILLER",
+      rulesetVersionKey: "KILLER_V1",
+      configuration: { lives: 3, seat_numbers: [5, 12], seats: SEATS },
+      bucketStart: "2026-01-01T00:00:00.000Z",
+      bucketEnd: "2026-02-01T00:00:00.000Z",
+      stageId: "01900000-0000-7000-9000-0000000000a1",
+      stageSequence: 1,
+      stageTypeKey: "EXERCISE_BLOCK",
+      parentStageId: null,
+      turnSequence: 1,
+      participantId: SEATS[0]!.participantRef,
+      participantName: "Levi",
+      participantTypeKey: "PLAYER",
+      turnTotalScore: 0,
+      dartNumber: 1,
+      intendedTargetNumber: null,
+      intendedZoneKey: null,
+      hitTargetNumber: 5,
+      hitZoneKey: "DOUBLE",
+      score: 10,
+      locationX: null,
+      locationY: null,
+      kept: false,
+    };
+    vi.mocked(repo.findReplayFoldRows).mockResolvedValue([
+      killerRow,
+      { ...killerRow, sessionId: "s-ghost", participantId: "ghost" },
+    ] as never);
+
+    const result = await getGameSection(playerId, "KILLER", "elimination", {
+      ...baseRangeQuery,
+      status: "completed",
+    });
+
+    expect(result.ok).toBe(true);
+    if (result.ok) {
+      expect(result.data.sectionId).toBe("elimination");
+      const metrics = result.data.buckets[0]!.metrics as unknown as {
+        games: number;
+        killer: { killerGames: number; dartsToKiller: number };
+      };
+      expect(metrics.games).toBe(1);
+      expect(metrics.killer).toMatchObject({
+        killerGames: 1,
+        dartsToKiller: 1,
+      });
+      expect(
+        (result.data as { skippedSessions?: number }).skippedSessions,
+      ).toBe(1);
+    }
+  });
+
   it("dispatches training-result through the fold on SINGLES_TRAINING", async () => {
     vi.mocked(repo.findGameDataVersion).mockResolvedValue({
       count: 1,

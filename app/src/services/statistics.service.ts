@@ -109,6 +109,11 @@ import {
   MARKS_GAMES,
   marksBuckets,
 } from "@modules/stats/sections/marks.module";
+import {
+  ELIMINATION_GAMES,
+  eliminationBuckets,
+  foldEliminationSessions,
+} from "@modules/stats/sections/elimination.module";
 import { trainingResultBuckets } from "@modules/stats/sections/training-result.module";
 import { stepResultBuckets } from "@modules/stats/sections/step-result.module";
 import { stepVolumeBuckets } from "@modules/stats/sections/step-volume.module";
@@ -191,6 +196,7 @@ import type {
   RoutineStepScope,
   SessionScope,
   SessionSteps,
+  EliminationFoldedSession,
   MarksFoldedSession,
   StatsBucketRow,
   StepScope,
@@ -640,6 +646,29 @@ async function marksLoad(
   };
 }
 
+/**
+ * The `elimination` load: every participant's darts of the owner's sessions
+ * in scope (`findReplayFoldRows`), grouped into sessions and replayed through
+ * each game's own fold. A session that cannot be grouped or replayed adds to
+ * `skippedSessions`.
+ */
+async function eliminationLoad(
+  db: Db,
+  ctx: SectionContext,
+): Promise<SectionLoadResult> {
+  const rows = await findReplayFoldRows(db, {
+    ...sectionScope(ctx),
+    bucket: ctx.bucket,
+    tz: ctx.tz,
+  });
+  const grouped = ownerSessions(rows, ELIMINATION_GAMES);
+  const folded = foldEliminationSessions(grouped.sessions);
+  return {
+    rows: folded.sessions,
+    skippedSessions: grouped.skippedSessions + folded.skippedSessions,
+  };
+}
+
 /** `target-accuracy`'s `server`-site shape (phase-4 decision 1): the fold's recovered aims, fed through phase-2's own bucket function. */
 function targetAccuracyFromSessions(
   sessions: readonly SessionSteps<unknown>[],
@@ -753,6 +782,13 @@ const HANDLERS: Record<
   "atc-darts-per-target": { server: stepsHandler(atcDartsPerTargetBuckets) },
   "bobs27-survival": { server: stepsHandler(bobs27SurvivalBuckets) },
   "shanghai-count": { server: stepsHandler(shanghaiCountBuckets) },
+  elimination: {
+    server: {
+      load: eliminationLoad,
+      shape: (rows, ctx) =>
+        eliminationBuckets(rows as EliminationFoldedSession[], ctx),
+    },
+  },
   marks: {
     server: {
       load: marksLoad,

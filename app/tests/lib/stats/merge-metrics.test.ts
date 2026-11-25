@@ -1,3 +1,4 @@
+import { emptyEliminationMetrics } from "@modules/stats/sections/elimination.module";
 import { describe, expect, it } from "vitest";
 import {
   chunkWindows,
@@ -479,6 +480,18 @@ describe("mergeMetrics", () => {
       ],
       closeOuts: { games: 2, darts: 18 },
       duel: { games: 2, wins: 2, darts: 18, points: 120 },
+    });
+  });
+
+  it("sums elimination metrics field-wise, nested beds included", () => {
+    const base = emptyEliminationMetrics();
+    base.wins = 1;
+    base.followTheLeader.byBed.BULL = { visits: 3, matched: 1 };
+    const merged = mergeMetrics("elimination", base, base);
+    expect(merged.wins).toBe(2);
+    expect(merged.followTheLeader.byBed.BULL).toEqual({
+      visits: 6,
+      matched: 2,
     });
   });
 
