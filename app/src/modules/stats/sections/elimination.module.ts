@@ -52,6 +52,18 @@ const RESULT_FIELD: Record<string, keyof EliminationMetrics["prisoner"]> = {
   Miss: "miss",
 };
 
+/**
+ * The Prisoner metrics field a `prisonerDartResults` result counts toward.
+ * @throws on a result it does not know.
+ */
+export function prisonerResultField(
+  result: string,
+): keyof EliminationMetrics["prisoner"] {
+  const field = RESULT_FIELD[result];
+  if (!field) throw new Error(`Unknown Prisoner dart result ${result}.`);
+  return field;
+}
+
 /** An elimination metrics value with nothing counted. */
 export function emptyEliminationMetrics(): EliminationMetrics {
   const bed = () => ({ visits: 0, matched: 0 });
@@ -215,7 +227,7 @@ function prisonerMetrics(session: EliminationSession): EliminationMetrics {
       session.ownerRef,
       turn.darts,
     )) {
-      metrics.prisoner[RESULT_FIELD[result]!] += 1;
+      metrics.prisoner[prisonerResultField(result)] += 1;
     }
   }
   metrics.prisoner.reached =

@@ -5,6 +5,7 @@ import {
   eliminationSessionMetrics,
   emptyEliminationMetrics,
   foldEliminationSessions,
+  prisonerResultField,
 } from "@modules/stats/sections/elimination.module";
 import { KillerEngine } from "@modules/game/killer.engine.module";
 import { FollowTheLeaderEngine } from "@modules/game/follow-the-leader.engine.module";
@@ -291,5 +292,18 @@ describe("addEliminationMetrics", () => {
     expect(sum.followTheLeader.byBed.SINGLE).toEqual({ visits: 4, matched: 2 });
     expect(sum.prisoner.reached).toBe(8);
     expect(a.games).toBe(1);
+  });
+});
+
+describe("prisonerResultField", () => {
+  it("maps each engine result to its metrics field", () => {
+    expect(prisonerResultField("Advance and capture")).toBe(
+      "advanceAndCapture",
+    );
+    expect(prisonerResultField("Miss")).toBe("miss");
+  });
+
+  it("throws on a result it does not know, so the session is skipped", () => {
+    expect(() => prisonerResultField("Bogus")).toThrow();
   });
 });

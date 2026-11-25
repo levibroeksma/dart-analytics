@@ -29,7 +29,7 @@ import ErrorAlert from "@components/ui/ErrorAlert.astro";
     <div
       class="glass flex flex-col gap-2 rounded-xl px-3 py-3.5"
       x-data="{ get table() { return card.beds } }"
-      x-show="card.beds.length"
+      x-show="!loading && card.beds.length"
       x-cloak
     >
       <span class="font-mono text-eyebrow font-semibold text-muted-foreground">
@@ -42,7 +42,7 @@ import ErrorAlert from "@components/ui/ErrorAlert.astro";
     <div
       class="glass flex flex-col gap-2 rounded-xl px-3 py-3.5"
       x-data="{ get table() { return card.results } }"
-      x-show="card.results.length"
+      x-show="!loading && card.results.length"
       x-cloak
     >
       <span class="font-mono text-eyebrow font-semibold text-muted-foreground">
