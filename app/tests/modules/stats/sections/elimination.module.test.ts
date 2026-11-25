@@ -72,7 +72,7 @@ function session(
   };
 }
 
-const KILLER = { lives: 3, seatNumbers: [5, 12] };
+const KILLER = { lives: 3 as const, seatNumbers: [5, 12] };
 
 function killer(darts: DartObservation[]) {
   const engine = new KillerEngine({ ...KILLER, seats: [OWNER, RIVAL] });
