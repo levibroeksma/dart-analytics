@@ -10,7 +10,7 @@ import {
   initialPrisonerExt,
   prisonerWinner,
   resolveDart,
-  resolveVisit,
+  resolvePrisonerVisit,
   WON_TARGET,
 } from "./prisoner-policy";
 import type { DartGameSpec, EliminationRules } from "./interfaces";
@@ -30,7 +30,7 @@ type Seat = EliminationSeat<PrisonerExt>;
 
 const GAME_ENDED = endedRefusal("game has ended");
 
-/** Prisoner V1 as Elimination rules: darts held are lives, every dart resolved in order (`resolveDart`), the budget and skip walk at visit close (`resolveVisit`). */
+/** Prisoner V1 as Elimination rules: darts held are lives, every dart resolved in order (`resolveDart`), the budget and skip walk at visit close (`resolvePrisonerVisit`). */
 function prisonerRules(
   config: PrisonerSnapshot,
 ): EliminationRules<PrisonerExt, PrisonerShared> {
@@ -41,7 +41,7 @@ function prisonerRules(
     reduceDart: (thrower, _seats, shared, dart) =>
       resolveDart(thrower, shared, dart),
     initShared: () => ({ lodged: {}, next: null }),
-    onVisitClose: resolveVisit,
+    onVisitClose: resolvePrisonerVisit,
     activeOverride: (_seats, shared) => shared.next,
     decidedWinner: prisonerWinner,
   };

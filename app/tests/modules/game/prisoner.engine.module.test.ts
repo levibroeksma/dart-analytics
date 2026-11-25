@@ -157,6 +157,11 @@ describe("prisoner engine", () => {
     });
   });
 
+  it("closes each visit through the visit rules, handing the board back to A with a fresh budget", () => {
+    const state = engineAfter([miss, miss, miss, miss, miss, miss]).state();
+    expect(state).toMatchObject({ activeParticipantRef: "p1", dartsLeft: 3 });
+  });
+
   it("A opens on outer 1 to target 2; B throws once A's three darts are gone", () => {
     const engine = new PrisonerEngine(config);
     const first = engine.record(outer(1));

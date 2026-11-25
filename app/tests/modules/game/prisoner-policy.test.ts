@@ -3,7 +3,7 @@ import {
   initialPrisonerExt,
   prisonerWinner,
   resolveDart,
-  resolveVisit,
+  resolvePrisonerVisit,
   WON_TARGET,
 } from "@modules/game/prisoner-policy";
 import type {
@@ -204,33 +204,33 @@ describe("resolveDart", () => {
   });
 });
 
-describe("resolveVisit", () => {
+describe("resolvePrisonerVisit", () => {
   const visit = (ref: string): ClosedVisit => ({
     participantRef: ref,
     darts: [],
     kept: false,
   });
   const changeOf = (
-    out: ReturnType<typeof resolveVisit>,
+    out: ReturnType<typeof resolvePrisonerVisit>,
     ref: string,
   ): PrisonerExt | undefined =>
     out.changes.find((c) => c.participantRef === ref)?.ext;
 
   it("sits missed darts out and passes to the next seat in", () => {
     const seats = [seat("A", { missed: 1 }), seat("B")];
-    const out = resolveVisit(visit("A"), seats, shared());
+    const out = resolvePrisonerVisit(visit("A"), seats, shared());
     expect(changeOf(out, "A")).toEqual(ext({ sitting: 1, budget: 2 }));
     expect(out.shared.next).toBe("B");
   });
 
   it("with no miss the closing seat keeps its held count as budget", () => {
     const seats = [seat("A", { budget: 3 }, 4), seat("B")];
-    const out = resolveVisit(visit("A"), seats, shared());
+    const out = resolvePrisonerVisit(visit("A"), seats, shared());
     expect(changeOf(out, "A")).toEqual(ext({ sitting: 0, budget: 4 }));
   });
 
   it("one dart held and sitting means budget 0: seat is skipped and recovers", () => {
-    const out2 = resolveVisit(
+    const out2 = resolvePrisonerVisit(
       visit("A"),
       [seat("A", { missed: 1 }, 1), seat("B")],
       shared(),
@@ -241,7 +241,7 @@ describe("resolveVisit", () => {
 
   it("skips a sitting seat, clears its sitting and returns its darts", () => {
     const seats = [seat("A"), seat("B", { sitting: 1, budget: 0 }, 1)];
-    const out = resolveVisit(visit("A"), seats, shared());
+    const out = resolvePrisonerVisit(visit("A"), seats, shared());
     expect(changeOf(out, "B")).toEqual(ext({ sitting: 0, budget: 1 }));
     expect(out.shared.next).toBe("A");
   });
@@ -251,7 +251,7 @@ describe("resolveVisit", () => {
       seat("A", { missed: 1 }, 1),
       seat("B", { sitting: 1, budget: 0 }, 1),
     ];
-    const out = resolveVisit(visit("A"), seats, shared());
+    const out = resolvePrisonerVisit(visit("A"), seats, shared());
     expect(out.shared.next).toBe("B");
     expect(changeOf(out, "A")).toEqual(ext({ sitting: 0, budget: 1 }));
     expect(changeOf(out, "B")).toEqual(ext({ sitting: 0, budget: 1 }));
@@ -259,7 +259,7 @@ describe("resolveVisit", () => {
 
   it("a closing seat that went out is passed by the walk", () => {
     const seats = [seat("A", {}, 0), seat("B")];
-    const out = resolveVisit(visit("A"), seats, shared());
+    const out = resolvePrisonerVisit(visit("A"), seats, shared());
     expect(out.shared.next).toBe("B");
     expect(out.changes.find((c) => c.participantRef === "A")).toBeUndefined();
   });
@@ -301,12 +301,12 @@ describe("resolveVisit", () => {
 
   it("clears missed for the next visit", () => {
     const seats = [seat("A", { missed: 2 }), seat("B")];
-    const out = resolveVisit(visit("A"), seats, shared());
+    const out = resolvePrisonerVisit(visit("A"), seats, shared());
     expect(changeOf(out, "A")?.missed).toBe(0);
   });
 
   it("keeps lodged and sets next", () => {
-    const out = resolveVisit(
+    const out = resolvePrisonerVisit(
       visit("A"),
       [seat("A"), seat("B")],
       shared({ 3: 1 }),
