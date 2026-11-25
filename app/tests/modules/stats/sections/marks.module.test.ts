@@ -295,6 +295,21 @@ describe("marksBuckets", () => {
     });
   });
 
+  it("orders buckets by start, one per bucket start", () => {
+    const { sessions } = foldMarksSessions([
+      session("CRICKET", [[OWNER, [T(20)]]]),
+      session("CRICKET", [[OWNER, [T(19)]]], undefined, {
+        sessionId: "session-2",
+        bucketStart: "2026-08-01T00:00:00.000Z",
+        bucketEnd: "2026-09-01T00:00:00.000Z",
+      }),
+    ]);
+    expect(marksBuckets(sessions, CTX).map((b) => b.start)).toEqual([
+      "2026-08-01T00:00:00.000Z",
+      "2026-09-01T00:00:00.000Z",
+    ]);
+  });
+
   it("emits no bucket for no sessions", () => {
     expect(marksBuckets([], CTX)).toEqual([]);
   });

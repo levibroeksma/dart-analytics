@@ -5,6 +5,7 @@ import type {
   DartFact,
   DartZoneKey,
   EngineFacts,
+  FoldedSession,
   OwnerSession,
   ReplayCursor,
   ReplayFoldRow,
@@ -404,4 +405,29 @@ export function ownerSessions<G extends string>(
     }
   }
   return { sessions, skippedSessions };
+}
+
+/**
+ * Replays every session through `metricsOf`; one whose replay throws is
+ * skipped and counted, never guessed.
+ */
+export function foldOwnerSessions<G extends string, M>(
+  sessions: readonly OwnerSession<G>[],
+  metricsOf: (session: OwnerSession<G>) => M,
+): { sessions: FoldedSession<M>[]; skippedSessions: number } {
+  const folded: FoldedSession<M>[] = [];
+  let skippedSessions = 0;
+  for (const session of sessions) {
+    try {
+      folded.push({
+        sessionId: session.sessionId,
+        bucketStart: session.bucketStart,
+        bucketEnd: session.bucketEnd,
+        metrics: metricsOf(session),
+      });
+    } catch {
+      skippedSessions += 1;
+    }
+  }
+  return { sessions: folded, skippedSessions };
 }

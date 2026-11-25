@@ -7,6 +7,7 @@ import { ReplayTurnSchema } from "@routes/statistics/types";
 import {
   decodeReplayCursor,
   encodeReplayCursor,
+  foldOwnerSessions,
   groupBySession,
   ownerSessions,
   replayFacts,
@@ -667,5 +668,41 @@ describe("ownerSessions", () => {
       MARKS,
     );
     expect(result).toEqual({ sessions: [], skippedSessions: 1 });
+  });
+});
+
+describe("foldOwnerSessions", () => {
+  const base = {
+    gameTypeKey: "KILLER",
+    bucketStart: "2026-09-01T00:00:00.000Z",
+    bucketEnd: "2026-10-01T00:00:00.000Z",
+    seats: DUEL_SEATS,
+    ownerRef: OWNER,
+    config: { seats: DUEL_SEATS },
+    facts: { stages: [], turns: [] },
+  };
+
+  it("tags each session's metrics with its bucket and counts the ones that throw", () => {
+    const result = foldOwnerSessions(
+      [
+        { ...base, sessionId: "ok" },
+        { ...base, sessionId: "bad" },
+      ],
+      (session) => {
+        if (session.sessionId === "bad") throw new Error("refused");
+        return 7;
+      },
+    );
+    expect(result).toEqual({
+      sessions: [
+        {
+          sessionId: "ok",
+          bucketStart: base.bucketStart,
+          bucketEnd: base.bucketEnd,
+          metrics: 7,
+        },
+      ],
+      skippedSessions: 1,
+    });
   });
 });

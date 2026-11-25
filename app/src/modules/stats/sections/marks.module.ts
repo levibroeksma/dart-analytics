@@ -14,7 +14,8 @@ import {
   TACTICS_OBJECTIVES,
   TACTICS_RULES,
 } from "@modules/game/tactics.engine.module";
-import { closeBuckets } from "./series.module";
+import { foldOwnerSessions } from "@modules/stats/replay.module";
+import { foldedBuckets } from "./series.module";
 import type { SeriesBucket } from "@lib/types";
 import type {
   DartZoneKey,
@@ -177,21 +178,7 @@ export function foldMarksSessions(sessions: readonly MarksSession[]): {
   sessions: MarksFoldedSession[];
   skippedSessions: number;
 } {
-  const folded: MarksFoldedSession[] = [];
-  let skippedSessions = 0;
-  for (const session of sessions) {
-    try {
-      folded.push({
-        sessionId: session.sessionId,
-        bucketStart: session.bucketStart,
-        bucketEnd: session.bucketEnd,
-        metrics: marksSessionMetrics(session),
-      });
-    } catch {
-      skippedSessions += 1;
-    }
-  }
-  return { sessions: folded, skippedSessions };
+  return foldOwnerSessions(sessions, marksSessionMetrics);
 }
 
 /** Field-wise sum of two marks metrics; objectives keep `a`'s order, then `b`'s new keys. */
@@ -240,19 +227,5 @@ export function marksBuckets(
   sessions: readonly MarksFoldedSession[],
   ctx: { to: string; now: Date },
 ): SeriesBucket<MarksMetrics>[] {
-  const buckets = new Map<
-    string,
-    { end: string; sampleSize: number; metrics: MarksMetrics }
-  >();
-  for (const session of sessions) {
-    const bucket = buckets.get(session.bucketStart) ?? {
-      end: session.bucketEnd,
-      sampleSize: 0,
-      metrics: emptyMarksMetrics(),
-    };
-    bucket.sampleSize += 1;
-    bucket.metrics = addMarksMetrics(bucket.metrics, session.metrics);
-    buckets.set(session.bucketStart, bucket);
-  }
-  return closeBuckets(buckets, ctx, { dropEmpty: true });
+  return foldedBuckets(sessions, ctx, emptyMarksMetrics, addMarksMetrics);
 }

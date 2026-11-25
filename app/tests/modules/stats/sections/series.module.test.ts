@@ -7,6 +7,7 @@ import {
   encodeCursor,
   decodeCursor,
   encodeDataVersion,
+  foldedBuckets,
 } from "@modules/stats/sections/series.module";
 
 describe("isClosed", () => {
@@ -272,5 +273,46 @@ describe("rowBuckets", () => {
 
     expect(buckets.map((bucket) => bucket.sampleSize)).toEqual([2, 7]);
     expect(rows.map((row) => row.n)).toEqual([2, 5]);
+  });
+});
+
+describe("foldedBuckets", () => {
+  const CTX = {
+    to: "2026-10-01T00:00:00.000Z",
+    now: new Date("2026-11-01T00:00:00.000Z"),
+  };
+  const session = (bucketStart: string, metrics: number) => ({
+    sessionId: bucketStart + metrics,
+    bucketStart,
+    bucketEnd: "2026-10-01T00:00:00.000Z",
+    metrics,
+  });
+
+  it("sums sessions per bucket start, one sample per session", () => {
+    const buckets = foldedBuckets(
+      [
+        session("2026-09-01", 2),
+        session("2026-08-01", 1),
+        session("2026-09-01", 3),
+      ],
+      CTX,
+      () => 0,
+      (a, b) => a + b,
+    );
+    expect(buckets.map((b) => [b.start, b.sampleSize, b.metrics])).toEqual([
+      ["2026-08-01", 1, 1],
+      ["2026-09-01", 2, 5],
+    ]);
+  });
+
+  it("emits nothing for no sessions", () => {
+    expect(
+      foldedBuckets(
+        [],
+        CTX,
+        () => 0,
+        (a: number, b: number) => a + b,
+      ),
+    ).toEqual([]);
   });
 });

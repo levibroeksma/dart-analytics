@@ -1,5 +1,6 @@
 import type {
   BucketedSession,
+  FoldedSession,
   SessionListCursor,
   StagedVisit,
 } from "@modules/types";
@@ -81,6 +82,29 @@ export function closeBuckets<M>(
       sampleSize: bucket.sampleSize,
       metrics: bucket.metrics,
     }));
+}
+
+/**
+ * Sums replayed sessions into start-keyed buckets with `add`, each bucket
+ * starting from `empty()`. `sampleSize` is the number of sessions; a bucket
+ * with none is not emitted.
+ */
+export function foldedBuckets<M>(
+  sessions: readonly FoldedSession<M>[],
+  ctx: { to: string; now: Date },
+  empty: () => NoInfer<M>,
+  add: (a: M, b: M) => M,
+): SeriesBucket<M>[] {
+  const buckets = new Map<
+    string,
+    { end: string; sampleSize: number; metrics: M }
+  >();
+  for (const session of sessions) {
+    const bucket = bucketFor(buckets, session, empty);
+    bucket.sampleSize += 1;
+    bucket.metrics = add(bucket.metrics, session.metrics);
+  }
+  return closeBuckets(buckets, ctx, { dropEmpty: true });
 }
 
 /**
