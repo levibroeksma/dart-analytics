@@ -1,0 +1,58 @@
+---
+/**
+ * The Elimination statistics layout for Killer, Follow the Leader and
+ * Prisoner: the completion tile, the game's win rate and three game tiles
+ * against the preceding period, the Follow the Leader match rate by bed or
+ * the Prisoner dart results card, then the heatmap and the session list.
+ */
+import AimTable from "./AimTable.astro";
+import GameCompletionSection from "./GameCompletionSection.astro";
+import GameHeatmapSection from "./GameHeatmapSection.astro";
+import GameSessionList from "./GameSessionList.astro";
+import StatTileRow from "./StatTileRow.astro";
+import ErrorAlert from "@components/ui/ErrorAlert.astro";
+---
+
+<div class="flex flex-col gap-2">
+  <div class="grid grid-cols-2 gap-2">
+    <GameCompletionSection />
+  </div>
+  <div
+    class="flex flex-col gap-2"
+    x-data="eliminationSection()"
+  >
+    <ErrorAlert
+      showExpr="error !== null"
+      textExpr="error"
+    />
+    <StatTileRow />
+    <div
+      class="glass flex flex-col gap-2 rounded-xl px-3 py-3.5"
+      x-data="{ get table() { return card.beds } }"
+      x-show="card.beds.length"
+      x-cloak
+    >
+      <span class="font-mono text-eyebrow font-semibold text-muted-foreground">
+        MATCH RATE BY BED
+      </span>
+      <div class="overflow-x-auto">
+        <AimTable headers={["Bed", "Match rate"]} />
+      </div>
+    </div>
+    <div
+      class="glass flex flex-col gap-2 rounded-xl px-3 py-3.5"
+      x-data="{ get table() { return card.results } }"
+      x-show="card.results.length"
+      x-cloak
+    >
+      <span class="font-mono text-eyebrow font-semibold text-muted-foreground">
+        DART RESULTS
+      </span>
+      <div class="overflow-x-auto">
+        <AimTable headers={["Result", "Share"]} />
+      </div>
+    </div>
+  </div>
+  <GameHeatmapSection />
+  <GameSessionList />
+</div>

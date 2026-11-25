@@ -1,5 +1,4 @@
 import type { AceMeasure } from "../ace/types";
-import type { TrackTile } from "../track/types";
 import type { AimTableRow } from "../x01/types";
 
 /**
@@ -22,11 +21,9 @@ export type EliminationComparison = Record<
   AceMeasure
 >;
 
-/** The Elimination page card for one game and period: its comparison, four tiles, and its row card (none for Killer). */
+/** The Elimination page card for one game and period: its comparison, the Follow the Leader bed rows and the Prisoner dart result rows (empty for the other games). */
 export type EliminationCard = {
   comparison: EliminationComparison;
-  tiles: TrackTile[];
-  rows: AimTableRow[];
-  rowHeaders: [string, string] | null;
-  rowTitle: string | null;
+  beds: AimTableRow[];
+  results: AimTableRow[];
 };

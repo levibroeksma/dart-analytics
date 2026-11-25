@@ -1,7 +1,6 @@
 import { MIN_ROW_SAMPLE } from "@lib/stats/constants";
 import { formatRate } from "@lib/stats/x01/format";
 import { eliminationComparison } from "./elimination-comparison";
-import { eliminationTiles } from "./elimination-comparison-lines";
 import type { AimTableRow, EliminationCard } from "@lib/types";
 import type {
   BedKey,
@@ -48,38 +47,15 @@ export function prisonerResultRows(m: EliminationMetrics): AimTableRow[] {
   }));
 }
 
-const ROW_CARDS: Record<
-  EliminationGameKey,
-  Pick<EliminationCard, "rowTitle" | "rowHeaders"> & {
-    rows: (m: EliminationMetrics) => AimTableRow[];
-  }
-> = {
-  KILLER: { rowTitle: null, rowHeaders: null, rows: () => [] },
-  FOLLOW_THE_LEADER: {
-    rowTitle: "Match rate by bed",
-    rowHeaders: ["Visits", "Match rate"],
-    rows: bedRows,
-  },
-  PRISONER: {
-    rowTitle: "Dart results",
-    rowHeaders: ["Darts", "Share"],
-    rows: prisonerResultRows,
-  },
-};
-
-/** `game`'s card for the current period against the previous one: comparison, tiles, and row card. */
+/** `game`'s card for the current period against the previous one: comparison, the Follow the Leader bed rows and the Prisoner result rows (each empty for the other games). */
 export function eliminationCard(
   game: EliminationGameKey,
   current: EliminationMetrics,
   previous: EliminationMetrics | null,
 ): EliminationCard {
-  const comparison = eliminationComparison(current, previous);
-  const rowCard = ROW_CARDS[game];
   return {
-    comparison,
-    tiles: eliminationTiles(game, comparison),
-    rows: rowCard.rows(current),
-    rowHeaders: rowCard.rowHeaders,
-    rowTitle: rowCard.rowTitle,
+    comparison: eliminationComparison(current, previous),
+    beds: game === "FOLLOW_THE_LEADER" ? bedRows(current) : [],
+    results: game === "PRISONER" ? prisonerResultRows(current) : [],
   };
 }

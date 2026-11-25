@@ -52,12 +52,10 @@ describe("prisonerResultRows", () => {
 });
 
 describe("eliminationCard", () => {
-  it("gives Killer no rows and no headers", () => {
+  it("gives Killer no rows", () => {
     const card = eliminationCard("KILLER", emptyEliminationMetrics(), null);
-    expect(card.rows).toEqual([]);
-    expect(card.rowHeaders).toBeNull();
-    expect(card.rowTitle).toBeNull();
-    expect(card.tiles).toHaveLength(4);
+    expect(card.beds).toEqual([]);
+    expect(card.results).toEqual([]);
   });
 
   it("gives Follow the Leader its bed rows and Prisoner its result rows", () => {
@@ -66,16 +64,14 @@ describe("eliminationCard", () => {
       emptyEliminationMetrics(),
       null,
     );
-    expect(ftl.rowTitle).toBe("Match rate by bed");
-    expect(ftl.rowHeaders).toEqual(["Visits", "Match rate"]);
-    expect(ftl.rows).toHaveLength(4);
+    expect(ftl.beds).toHaveLength(4);
+    expect(ftl.results).toEqual([]);
     const prisoner = eliminationCard(
       "PRISONER",
       emptyEliminationMetrics(),
       null,
     );
-    expect(prisoner.rowTitle).toBe("Dart results");
-    expect(prisoner.rowHeaders).toEqual(["Darts", "Share"]);
-    expect(prisoner.rows).toHaveLength(5);
+    expect(prisoner.beds).toEqual([]);
+    expect(prisoner.results).toHaveLength(5);
   });
 });

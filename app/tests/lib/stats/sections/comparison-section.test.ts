@@ -35,6 +35,21 @@ describe("comparisonSection", () => {
     expect(s.error).toBeNull();
   });
 
+  it("hands the page game to the tiles", () => {
+    const s = Object.assign(
+      comparisonSection(
+        () => Promise.resolve({ card: 0, error: null }),
+        0,
+        (_card, game) => [{ title: "game", value: game, detail: "" }],
+      ),
+      {
+        $data: { rangeKey: "30d" as const, game: "KILLER_V1", variation: 0 },
+        $watch: vi.fn(),
+      },
+    );
+    expect(s.tiles[0]!.value).toBe("KILLER_V1");
+  });
+
   it("keeps the message from a failed read", async () => {
     const s = scope(() => Promise.resolve({ card: 0, error: "boom" }));
     await s.load(NOW);

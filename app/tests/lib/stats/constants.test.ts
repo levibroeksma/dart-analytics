@@ -4,6 +4,7 @@ import {
   ACE_LAYOUTS,
   CHECKOUT_LAYOUTS,
   DOUBLES_TRAINING_LAYOUTS,
+  ELIMINATION_LAYOUTS,
   HEATMAP_ONLY_LAYOUTS,
   MARKS_LAYOUTS,
   MAX_LANDING_DARTS,
@@ -29,17 +30,32 @@ const SCORE_TRAINING_LAYOUT: ReadonlySet<string> = new Set([
 describe("HEATMAP_ONLY_LAYOUTS", () => {
   it("holds the plain-heatmap games, never a dedicated layout", () => {
     expect([...HEATMAP_ONLY_LAYOUTS].sort()).toEqual(
-      [
-        "BASEBALL_V1",
-        "BULL_500_V1",
-        "FIVES_V1",
-        "FOLLOW_THE_LEADER_V1",
-        "KILLER_V1",
-        "PRISONER_V1",
-      ].sort(),
+      ["BASEBALL_V1", "BULL_500_V1", "FIVES_V1"].sort(),
     );
     for (const key of HEATMAP_ONLY_LAYOUTS)
       expect(SCORE_TRAINING_LAYOUT.has(key)).toBe(false);
+  });
+});
+
+describe("ELIMINATION_LAYOUTS", () => {
+  it("holds Killer, Follow the Leader and Prisoner, outside every other layout set", () => {
+    expect([...ELIMINATION_LAYOUTS].sort()).toEqual([
+      "FOLLOW_THE_LEADER_V1",
+      "KILLER_V1",
+      "PRISONER_V1",
+    ]);
+    for (const key of ELIMINATION_LAYOUTS)
+      for (const other of [
+        ACE_LAYOUTS,
+        CHECKOUT_LAYOUTS,
+        DOUBLES_TRAINING_LAYOUTS,
+        HEATMAP_ONLY_LAYOUTS,
+        MARKS_LAYOUTS,
+        SCORE_TRAINING_LAYOUT,
+        TRACK_LAYOUTS,
+        X01_LAYOUTS,
+      ])
+        expect(other.has(key)).toBe(false);
   });
 });
 

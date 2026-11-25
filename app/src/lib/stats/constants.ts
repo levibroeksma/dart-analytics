@@ -45,12 +45,16 @@ export const MARKS_LAYOUTS: ReadonlySet<string> = new Set([
   "MICKEY_MOUSE_V1",
 ]);
 
+/** Ruleset versions whose `/statistics` view is the Elimination layout (`EliminationStatsOverview.astro`): Killer, Follow the Leader and Prisoner. */
+export const ELIMINATION_LAYOUTS: ReadonlySet<string> = new Set([
+  "KILLER_V1",
+  "FOLLOW_THE_LEADER_V1",
+  "PRISONER_V1",
+]);
+
 /** Ruleset versions whose `/statistics` view is the plain heatmap alone (`HeatmapStatsOverview.astro`): board games, with a target picker where the heatmap takes a `target` (`heatmap-targets.ts`). */
 export const HEATMAP_ONLY_LAYOUTS: ReadonlySet<string> = new Set([
   "BASEBALL_V1",
-  "KILLER_V1",
   "FIVES_V1",
   "BULL_500_V1",
-  "FOLLOW_THE_LEADER_V1",
-  "PRISONER_V1",
 ]);
