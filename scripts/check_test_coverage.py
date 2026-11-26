@@ -9,6 +9,7 @@ from __future__ import annotations
 
 import json
 import re
+from collections import Counter
 import subprocess
 import sys
 from pathlib import Path
@@ -36,6 +37,16 @@ TYPE_DECL_START = re.compile(
     r"|^(?P<imported>import|export)\s+type\s",
     re.MULTILINE,
 )
+
+TOKEN = re.compile(r"[A-Za-z_$][\w$]*|\d+(?:\.\d+)?|\S")
+IDENTIFIER = re.compile(r"[A-Za-z_$][\w$]*\Z")
+KEYWORDS = frozenset(
+    "as async await break case catch class const continue default delete do "
+    "else enum export extends false finally for from function if import in "
+    "instanceof let new null of return static super switch this throw true try "
+    "typeof undefined var void while yield".split()
+)
+IMPORT_STATEMENT = re.compile(r"^\s*import\b[^;]*;", re.MULTILINE)
 
 LINE_COMMENT = re.compile(r"//[^\n]*")
 BLOCK_COMMENT = re.compile(r"/\*.*?\*/", re.DOTALL)
@@ -237,15 +248,111 @@ def in_scope(source: str, base_ref: str) -> bool:
     return runtime_shape(before) != runtime_shape(text)
 
 
+def declares(text: str, name: str) -> bool:
+    """Whether `text` declares `name` as a function, class, enum or variable."""
+    pattern = rf"\b(?:function\*?|const|let|var|class|enum)\s+{re.escape(name)}\b"
+    return re.search(pattern, strip_comments(text)) is not None
+
+
+def rename_pairs(before: str, after: str) -> dict[str, str] | None:
+    """The identifier renames that turn `before` into `after`, or None.
+
+    Both runtime shapes must tokenise to sequences of one length that differ
+    only where an identifier became another identifier, one to one: no new
+    name already in `before`, no old name left in `after`.
+    """
+    old = TOKEN.findall(runtime_shape(before))
+    new = TOKEN.findall(runtime_shape(after))
+    if len(old) != len(new):
+        return None
+    pairs: dict[str, str] = {}
+    for was, now in zip(old, new):
+        if was == now:
+            continue
+        if not (IDENTIFIER.match(was) and IDENTIFIER.match(now)):
+            return None
+        if was in KEYWORDS or now in KEYWORDS:
+            return None
+        if pairs.setdefault(was, now) != now:
+            return None
+    if not pairs or len(set(pairs.values())) != len(pairs):
+        return None
+    if set(pairs.values()) & set(old) or set(pairs) & set(new):
+        return None
+    return pairs
+
+
+def is_pure_rename(
+    source: str, sides: dict[str, tuple[str, str]]
+) -> bool:
+    """`source` changed only by renaming names some changed file redeclares.
+
+    A rename counts only when a changed file declared the old name before and
+    declares the new one now, so pointing a call at a different existing
+    function, or reading a different property, is never exempt.
+    """
+    pairs = rename_pairs(*sides[source])
+    if pairs is None:
+        return False
+    return all(
+        any(declares(was_text, was) and declares(now_text, now)
+            for was_text, now_text in sides.values())
+        for was, now in pairs.items()
+    )
+
+
+def code_lines(text: str) -> Counter[str]:
+    """Non-blank, comment-free lines outside import statements."""
+    body = IMPORT_STATEMENT.sub("", strip_comments(text))
+    return Counter(line.strip() for line in body.splitlines() if line.strip())
+
+
+def is_pure_move(source: str, sides: dict[str, tuple[str, str]]) -> bool:
+    """`source` only lost lines, each now added to another changed file.
+
+    Import statements are ignored, so a move that also rewires imports
+    still counts; any other added line makes it a behaviour change.
+    """
+    before, after = sides[source]
+    removed = code_lines(before) - code_lines(after)
+    added = code_lines(after) - code_lines(before)
+    if not removed or added:
+        return False
+    elsewhere: set[str] = set()
+    for path, (was_text, now_text) in sides.items():
+        if path != source:
+            elsewhere |= set(code_lines(now_text) - code_lines(was_text))
+    return all(line in elsewhere for line in removed)
+
+
+def change_sides(changed: list[str], base_ref: str) -> dict[str, tuple[str, str]]:
+    """Each changed source file present at `base_ref` and now, as (before, after)."""
+    sides: dict[str, tuple[str, str]] = {}
+    for path in changed:
+        if not path.startswith(SOURCE_ROOTS) or not Path(path).is_file():
+            continue
+        before = previous_version(path, base_ref)
+        if before is not None:
+            sides[path] = (before, Path(path).read_text(encoding="utf-8"))
+    return sides
+
+
 def main(argv: list[str]) -> int:
     changed = [line.strip() for line in argv[1].splitlines() if line.strip()]
     base_ref = argv[2]
     changed_tests = {c for c in changed if c.startswith("app/tests/")}
     failed = False
     checked: list[tuple[str, str]] = []
+    exempt: list[str] = []
+    sides = change_sides(changed, base_ref)
 
     for source in changed:
         if not in_scope(source, base_ref):
+            continue
+        if source in sides and (
+            is_pure_rename(source, sides) or is_pure_move(source, sides)
+        ):
+            exempt.append(source)
             continue
 
         tests = covering_tests(source)
@@ -274,6 +381,9 @@ def main(argv: list[str]) -> int:
 
     if failed:
         return 1
+
+    for source in exempt:
+        print(f"     {source}: pure rename or move, no test edit owed")
 
     if not checked:
         print("OK: test-coverage — no runtime source change in this change set.")

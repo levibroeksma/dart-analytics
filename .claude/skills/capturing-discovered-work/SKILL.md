@@ -21,6 +21,12 @@ was asked to do?"
 Proximity, ease, or relatedness never move something into scope. "I'm
 already in this file" and "it would be faster to fix" are not scope tests.
 
+A failing gate or test is **pre-existing** only when it is red on the base
+too: run the same command on `origin/main` (a worktree under `.worktrees/`)
+before an issue says so. Files your diff never touched prove nothing — a new
+import can surface a name clash or cycle in them. Red on the branch alone
+means it is the current task's to fix.
+
 ## Procedure
 
 1. Stop pursuing the discovery.

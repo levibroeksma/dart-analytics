@@ -28,15 +28,21 @@
 # wrapper prints one note saying so; the threshold is read from the config,
 # so the note disappears if a limit is ever turned on.
 #
+# Dead-code failures (unused or duplicate exports, unresolved imports) get
+# the same treatment: `fallow dead-code --format json` is read and every
+# non-empty category is listed with its symbol and file:line. A duplicate
+# export can surface in files a diff never touched, once a new module
+# imports both of them.
+#
 # The wrapper never changes the verdict: fallow's own stdout/stderr is
 # passed through unmodified and its exit code is the script's exit code.
-# The extra `health` run happens only on failure, and its own non-zero
-# exit is expected and ignored.
+# The extra `dead-code` and `health` runs happen only on failure, and their own non-zero
+# exits are expected and ignored.
 set -u
 cd "$(git rev-parse --show-toplevel 2>/dev/null || echo .)/app" || exit 1
 
 TMP="$(mktemp "${TMPDIR:-/tmp}/fallow-gate.XXXXXX")"
-trap 'rm -f "$TMP" "$TMP.json"' EXIT
+trap 'rm -f "$TMP" "$TMP.json" "$TMP.dead.json"' EXIT
 
 npx --no-install fallow 2>&1 | tee "$TMP"
 STATUS="${PIPESTATUS[0]}"
@@ -59,6 +65,37 @@ if (threshold === 0) {
 NODE
 fi
 
+npx --no-install fallow dead-code --format json >"$TMP.dead.json" 2>/dev/null || true
+node - "$TMP.dead.json" <<'NODE'
+const fs = require('node:fs');
+let report;
+try {
+  report = JSON.parse(fs.readFileSync(process.argv[2], 'utf8'));
+} catch {
+  process.exit(0);
+}
+const skip = new Set(['entry_points', 'gate_outcomes', 'workspace_diagnostics', 'next_steps']);
+const where = (l) => `${l.path}:${l.line ?? '?'}`;
+const lines = [];
+for (const [category, items] of Object.entries(report)) {
+  if (skip.has(category) || !Array.isArray(items) || items.length === 0) continue;
+  lines.push(`  ${category} (${items.length})`);
+  for (const item of items) {
+    const name = item.export_name ?? item.name ?? item.package_name ?? '';
+    const at = Array.isArray(item.locations)
+      ? item.locations.map(where).join(' <-> ')
+      : item.path
+        ? where(item)
+        : '';
+    lines.push(`    ${[name, at].filter(Boolean).join('  ')}`);
+  }
+}
+if (lines.length > 0) {
+  console.error('\n── dead-code gate: the findings behind the Failed: line ──');
+  for (const line of lines) console.error(line);
+}
+NODE
+
 npx --no-install fallow health --format json >"$TMP.json" 2>/dev/null || true
 
 node - "$TMP.json" <<'NODE'
@@ -72,7 +109,7 @@ try {
 }
 const findings = Array.isArray(report.findings) ? report.findings : [];
 if (findings.length === 0) {
-  console.error('\nfallow-gate: no health-threshold violations — the failure above is a different gate (dead code, dependencies). The "start with" file is a refactoring suggestion, not a violator (#292).');
+  console.error('\nfallow-gate: no health-threshold violations — the failure above is a different gate (dead code, dependencies; listed above). The "start with" file is a refactoring suggestion, not a violator (#292).');
   process.exit(0);
 }
 console.error(`\n── health gate: ${findings.length} function(s) above threshold ──`);

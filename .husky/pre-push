@@ -1,7 +1,9 @@
 #!/usr/bin/env sh
 set -e
 
-touches_app_src() {
+# Prints the files the pushed ranges change, read from the hook's stdin; prints
+# ALL when a range cannot be resolved (so every gate runs) or nothing is pushed.
+pushed_files() {
   zero=0000000000000000000000000000000000000000
   seen=0
   while read -r _ local_sha _ remote_sha; do
@@ -9,25 +11,28 @@ touches_app_src() {
     [ "$local_sha" = "$zero" ] && continue
     seen=1
     if [ "$remote_sha" = "$zero" ]; then
-      base=$(git merge-base "$local_sha" origin/main 2>/dev/null) || return 0
+      base=$(git merge-base "$local_sha" origin/main 2>/dev/null) || { echo ALL; return; }
     else
-      git cat-file -e "$remote_sha^{commit}" 2>/dev/null || return 0
+      git cat-file -e "$remote_sha^{commit}" 2>/dev/null || { echo ALL; return; }
       base=$remote_sha
     fi
-    files=$(git diff --name-only "$base" "$local_sha" 2>/dev/null) || return 0
-    printf '%s\n' "$files" | grep -q '^app/src/' && return 0
+    git diff --name-only "$base" "$local_sha" 2>/dev/null || { echo ALL; return; }
   done
-  [ "$seen" -eq 0 ] && return 0
-  return 1
+  [ "$seen" -eq 0 ] && echo ALL
+  return 0
 }
 
 if [ -d app/node_modules ]; then
-  RUN_QUALITY=0
-  touches_app_src && RUN_QUALITY=1
+  FILES=$(pushed_files)
+  touches() { printf '%s\n' "$FILES" | grep -Eq "^(ALL\$|$1)"; }
   (cd app && npm test)
-  if [ "$RUN_QUALITY" -eq 1 ]; then
+  if touches 'app/'; then
+    bash scripts/check-types.sh
+  fi
+  if touches 'app/src/'; then
+    bash scripts/fallow-gate.sh
     bash scripts/check-quality-benchmarks.sh
   fi
 else
-  echo "SKIP: app/node_modules absent — full suite and quality benchmarks not run." >&2
+  echo "SKIP: app/node_modules absent — full suite, type check, fallow and quality benchmarks not run." >&2
 fi
