@@ -260,6 +260,12 @@ describe("foldEliminationSessions", () => {
     ]);
     expect(result).toEqual({ sessions: [], skippedSessions: 1 });
   });
+
+  it("throws the shared owner-seat error for an unseated owner", () => {
+    expect(() =>
+      eliminationSessionMetrics({ ...killer([]), ownerRef: "nobody" }),
+    ).toThrow("Owner nobody holds no seat.");
+  });
 });
 
 describe("eliminationBuckets", () => {

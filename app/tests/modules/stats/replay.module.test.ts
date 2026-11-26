@@ -14,6 +14,7 @@ import {
   rowsToTurns,
   sessionFactsOf,
   stageOrder,
+  ownerIn,
 } from "@modules/stats/replay.module";
 import { toBase64Url } from "@modules/stats/sections/series.module";
 import type { SeatFact } from "@lib/types";
@@ -704,5 +705,17 @@ describe("foldOwnerSessions", () => {
       ],
       skippedSessions: 1,
     });
+  });
+});
+
+describe("ownerIn", () => {
+  const seats = [{ participantRef: "p1" }, { participantRef: "p2" }];
+
+  it("finds the owner's seat", () => {
+    expect(ownerIn(seats, "p2")).toBe(seats[1]);
+  });
+
+  it("throws when the owner holds no seat", () => {
+    expect(() => ownerIn(seats, "p9")).toThrow("Owner p9 holds no seat.");
   });
 });

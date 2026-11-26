@@ -7,7 +7,7 @@ import {
 } from "@modules/game/prisoner.engine.module";
 import { WON_TARGET } from "@modules/game/prisoner-policy";
 import { seatOf } from "@modules/game/seat-rota.module";
-import { foldOwnerSessions } from "@modules/stats/replay.module";
+import { foldOwnerSessions, ownerIn } from "@modules/stats/replay.module";
 import { addCounts, foldedBuckets } from "./series.module";
 import type {
   FollowTheLeaderSnapshot,
@@ -105,19 +105,6 @@ type FoldedOutcome = {
   winningSideKey: string | null;
   seats: readonly { participantRef: string; sideKey: string }[];
 };
-
-/**
- * The owner's seat in `seats`.
- * @throws when the owner holds no seat.
- */
-function ownerIn<S extends { participantRef: string }>(
-  seats: readonly S[],
-  ownerRef: string,
-): S {
-  const seat = seats.find((s) => s.participantRef === ownerRef);
-  if (!seat) throw new Error(`Owner ${ownerRef} holds no seat.`);
-  return seat;
-}
 
 /** `facts` with only its first `count` turns. */
 function before(facts: EngineFacts, count: number): EngineFacts {

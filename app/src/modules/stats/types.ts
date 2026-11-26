@@ -1228,6 +1228,31 @@ export type EliminationMetrics = {
 /** One replayed elimination session's owner metrics and bucket. */
 export type EliminationFoldedSession = FoldedSession<EliminationMetrics>;
 
+/** `fives` section metrics for the owner's seat. */
+export type FivesMetrics = {
+  /** Sessions. */
+  games: number;
+  /** Sessions whose fold is complete. */
+  finished: number;
+  /** Finished sessions the owner's side won. */
+  wins: number;
+  /** Closed owner visits, in visits. */
+  visits: number;
+  /** Owner visits that booked fives points, in visits. */
+  scoringVisits: number;
+  /** Owner visits voided by an off-board dart, in visits. */
+  voids: number;
+  /** Owner visits that would have passed 51, in visits. */
+  busts: number;
+  /** Fives points the owner booked. */
+  points: number;
+  /** Owner visits in sessions the owner won, in visits. */
+  winVisits: number;
+};
+
+/** One replayed Fives session's owner metrics and bucket. */
+export type FivesFoldedSession = FoldedSession<FivesMetrics>;
+
 /** One replayed session's owner metrics and the bucket its completion falls in. */
 export type FoldedSession<M> = {
   sessionId: string;

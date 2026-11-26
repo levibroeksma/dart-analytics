@@ -408,6 +408,19 @@ export function ownerSessions<G extends string>(
 }
 
 /**
+ * The owner's seat in `seats`.
+ * @throws when the owner holds no seat.
+ */
+export function ownerIn<S extends { participantRef: string }>(
+  seats: readonly S[],
+  ownerRef: string,
+): S {
+  const seat = seats.find((s) => s.participantRef === ownerRef);
+  if (!seat) throw new Error(`Owner ${ownerRef} holds no seat.`);
+  return seat;
+}
+
+/**
  * Replays every session through `metricsOf`; one whose replay throws is
  * skipped and counted, never guessed.
  */
