@@ -12,6 +12,7 @@ import type {
   LegStatsMetrics,
   LooseDartsMetrics,
   EliminationMetrics,
+  FivesMetrics,
   MarksMetrics,
   MissDirectionMetrics,
   ScoringTrendMetrics,
@@ -46,6 +47,7 @@ export type SectionId =
   | "shanghai-count"
   | "marks"
   | "elimination"
+  | "fives"
   | "training-result"
   | "large-target-accuracy"
   | "aim-drift"
@@ -193,6 +195,7 @@ export type ServerSectionId =
   | "shanghai-count"
   | "marks"
   | "elimination"
+  | "fives"
   | "training-result"
   | "heatmap"
   | "large-target-accuracy"
@@ -218,6 +221,7 @@ export type ServerSectionMetrics = {
   "shanghai-count": ShanghaiCountMetrics;
   marks: MarksMetrics;
   elimination: EliminationMetrics;
+  fives: FivesMetrics;
   "training-result": TrainingResultMetrics;
   "large-target-accuracy": AimCountMetrics;
   "aim-drift": AimCountMetrics;
@@ -430,3 +434,4 @@ export * from "./ace/types";
 export * from "./checkout/types";
 export * from "./marks/types";
 export * from "./elimination/types";
+export * from "./fives/types";

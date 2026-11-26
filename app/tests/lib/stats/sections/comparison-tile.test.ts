@@ -1,5 +1,9 @@
 import { describe, expect, it } from "vitest";
-import { meanTile, ratioTile } from "@lib/stats/sections/comparison-tile";
+import {
+  compareMeasures,
+  meanTile,
+  ratioTile,
+} from "@lib/stats/sections/comparison-tile";
 
 const r = (part: number, whole: number) => ({ part, whole });
 
@@ -82,5 +86,23 @@ describe("meanTile", () => {
         1,
       ),
     ).toEqual({ title: "D", value: "—", detail: "No darts yet" });
+  });
+});
+
+describe("compareMeasures", () => {
+  const measures = {
+    hits: (m: { a: number; b: number }) => ({ part: m.a, whole: m.b }),
+  };
+
+  it("reads each measure off both periods", () => {
+    expect(compareMeasures(measures, { a: 1, b: 2 }, { a: 3, b: 4 })).toEqual({
+      hits: { current: { part: 1, whole: 2 }, previous: { part: 3, whole: 4 } },
+    });
+  });
+
+  it("gives every previous null with no preceding period", () => {
+    expect(
+      compareMeasures(measures, { a: 1, b: 2 }, null).hits.previous,
+    ).toBeNull();
   });
 });

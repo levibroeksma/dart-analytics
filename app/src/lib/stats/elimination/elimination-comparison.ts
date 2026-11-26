@@ -1,3 +1,4 @@
+import { compareMeasures } from "@lib/stats/sections/comparison-tile";
 import {
   addEliminationMetrics,
   emptyEliminationMetrics,
@@ -47,12 +48,5 @@ export function eliminationComparison(
   current: EliminationMetrics,
   previous: EliminationMetrics | null,
 ): EliminationComparison {
-  const entries = Object.entries(MEASURES).map(([key, read]) => [
-    key,
-    {
-      current: read(current),
-      previous: previous === null ? null : read(previous),
-    },
-  ]);
-  return Object.fromEntries(entries) as EliminationComparison;
+  return compareMeasures(MEASURES, current, previous);
 }

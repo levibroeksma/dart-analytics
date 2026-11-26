@@ -457,6 +457,21 @@ describe("statistics section registry", () => {
     }
   });
 
+  it("offers fives on Fives only", () => {
+    expect(SECTIONS.fives).toMatchObject({
+      requires: ["board"],
+      games: ["FIVES"],
+      computeSite: "server",
+      bucketable: true,
+      includesAbandoned: false,
+    });
+    for (const gameType of new Set(Object.values(GAME_TYPE_BY_RULESET))) {
+      expect(sectionsForGame(gameType).includes("fives")).toBe(
+        gameType === "FIVES",
+      );
+    }
+  });
+
   it("gives Baseball the higher result direction and only the board tag", () => {
     expect(RESULT_DIRECTION.BASEBALL).toBe("higher");
     expect(tagsForGameType("BASEBALL")).toEqual(new Set(["board"]));

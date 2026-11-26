@@ -716,6 +716,26 @@ export type EliminationSeriesResponseData = z.infer<
   typeof EliminationSeriesResponse
 >;
 
+const FivesCount = z.number().int().nonnegative();
+
+const FivesMetrics = z.object({
+  games: FivesCount,
+  finished: FivesCount,
+  wins: FivesCount,
+  visits: FivesCount,
+  scoringVisits: FivesCount,
+  voids: FivesCount,
+  busts: FivesCount,
+  points: FivesCount,
+  winVisits: FivesCount,
+});
+
+export const FivesSeriesResponse = SeriesBase.extend({
+  sectionId: z.literal("fives"),
+  buckets: z.array(BucketBase.extend({ metrics: FivesMetrics })),
+});
+export type FivesSeriesResponseData = z.infer<typeof FivesSeriesResponse>;
+
 /**
  * One page of a session's replay (D371 decisions 4, 6): only `cursor` and
  * `limit` are accepted -- any other search param fails `.strict()`, per

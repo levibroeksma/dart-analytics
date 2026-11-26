@@ -114,6 +114,11 @@ import {
   eliminationBuckets,
   foldEliminationSessions,
 } from "@modules/stats/sections/elimination.module";
+import {
+  FIVES_GAMES,
+  fivesBuckets,
+  foldFivesSessions,
+} from "@modules/stats/sections/fives.module";
 import { trainingResultBuckets } from "@modules/stats/sections/training-result.module";
 import { stepResultBuckets } from "@modules/stats/sections/step-result.module";
 import { stepVolumeBuckets } from "@modules/stats/sections/step-volume.module";
@@ -197,7 +202,10 @@ import type {
   SessionScope,
   SessionSteps,
   EliminationFoldedSession,
+  FivesFoldedSession,
+  FoldedSession,
   MarksFoldedSession,
+  OwnerSession,
   StatsBucketRow,
   StepScope,
   VisitScoringRow,
@@ -624,48 +632,30 @@ async function stepsLoad(
 }
 
 /**
- * The `marks` load: every participant's darts of the owner's sessions in
- * scope (`findReplayFoldRows`), grouped into sessions and replayed through
- * each game's own marks fold. A session that cannot be grouped or replayed
- * adds to `skippedSessions`.
+ * A replay load over `games`: every participant's darts of the owner's
+ * sessions in scope (`findReplayFoldRows`), grouped into sessions and
+ * replayed through `fold`. A session that cannot be grouped or replayed adds
+ * to `skippedSessions`.
  */
-async function marksLoad(
-  db: Db,
-  ctx: SectionContext,
-): Promise<SectionLoadResult> {
-  const rows = await findReplayFoldRows(db, {
-    ...sectionScope(ctx),
-    bucket: ctx.bucket,
-    tz: ctx.tz,
-  });
-  const grouped = ownerSessions(rows, MARKS_GAMES);
-  const folded = foldMarksSessions(grouped.sessions);
-  return {
-    rows: folded.sessions,
-    skippedSessions: grouped.skippedSessions + folded.skippedSessions,
-  };
-}
-
-/**
- * The `elimination` load: every participant's darts of the owner's sessions
- * in scope (`findReplayFoldRows`), grouped into sessions and replayed through
- * each game's own fold. A session that cannot be grouped or replayed adds to
- * `skippedSessions`.
- */
-async function eliminationLoad(
-  db: Db,
-  ctx: SectionContext,
-): Promise<SectionLoadResult> {
-  const rows = await findReplayFoldRows(db, {
-    ...sectionScope(ctx),
-    bucket: ctx.bucket,
-    tz: ctx.tz,
-  });
-  const grouped = ownerSessions(rows, ELIMINATION_GAMES);
-  const folded = foldEliminationSessions(grouped.sessions);
-  return {
-    rows: folded.sessions,
-    skippedSessions: grouped.skippedSessions + folded.skippedSessions,
+function replayLoad<G extends string, M>(
+  games: readonly G[],
+  fold: (sessions: OwnerSession<G>[]) => {
+    sessions: FoldedSession<M>[];
+    skippedSessions: number;
+  },
+): (db: Db, ctx: SectionContext) => Promise<SectionLoadResult> {
+  return async (db, ctx) => {
+    const rows = await findReplayFoldRows(db, {
+      ...sectionScope(ctx),
+      bucket: ctx.bucket,
+      tz: ctx.tz,
+    });
+    const grouped = ownerSessions(rows, games);
+    const folded = fold(grouped.sessions);
+    return {
+      rows: folded.sessions,
+      skippedSessions: grouped.skippedSessions + folded.skippedSessions,
+    };
   };
 }
 
@@ -784,14 +774,20 @@ const HANDLERS: Record<
   "shanghai-count": { server: stepsHandler(shanghaiCountBuckets) },
   elimination: {
     server: {
-      load: eliminationLoad,
+      load: replayLoad(ELIMINATION_GAMES, foldEliminationSessions),
       shape: (rows, ctx) =>
         eliminationBuckets(rows as EliminationFoldedSession[], ctx),
     },
   },
+  fives: {
+    server: {
+      load: replayLoad(FIVES_GAMES, foldFivesSessions),
+      shape: (rows, ctx) => fivesBuckets(rows as FivesFoldedSession[], ctx),
+    },
+  },
   marks: {
     server: {
-      load: marksLoad,
+      load: replayLoad(MARKS_GAMES, foldMarksSessions),
       shape: (rows, ctx) => marksBuckets(rows as MarksFoldedSession[], ctx),
     },
   },

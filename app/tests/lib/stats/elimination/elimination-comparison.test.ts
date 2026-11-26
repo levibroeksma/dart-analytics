@@ -72,4 +72,10 @@ describe("eliminationComparison", () => {
     );
     expect(c.wins.previous).toEqual({ part: 1, whole: 2 });
   });
+
+  it("gives every measure a null previous with no preceding period", () => {
+    const c = eliminationComparison(emptyEliminationMetrics(), null);
+    expect(Object.values(c).every((m) => m.previous === null)).toBe(true);
+    expect(Object.keys(c)).toHaveLength(9);
+  });
 });

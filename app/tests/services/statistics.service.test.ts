@@ -2239,6 +2239,71 @@ describe("getGameSection dispatches derived-intent and game-specific sections (p
     }
   });
 
+  it("dispatches fives through the replay fold on FIVES, counting skipped sessions", async () => {
+    vi.mocked(repo.findGameDataVersion).mockResolvedValue({
+      count: 2,
+      maxCompletedAt: null,
+    });
+    vi.mocked(repo.findScopeDartCount).mockResolvedValue(3);
+    const fivesRow = {
+      sessionId: "s-fives",
+      gameTypeKey: "FIVES",
+      rulesetVersionKey: "FIVES_V1",
+      configuration: { seats: SEATS },
+      bucketStart: "2026-01-01T00:00:00.000Z",
+      bucketEnd: "2026-02-01T00:00:00.000Z",
+      stageId: "01900000-0000-7000-9000-0000000000f1",
+      stageSequence: 1,
+      stageTypeKey: "EXERCISE_BLOCK",
+      parentStageId: null,
+      turnSequence: 1,
+      participantId: SEATS[0]!.participantRef,
+      participantName: "Levi",
+      participantTypeKey: "PLAYER",
+      turnTotalScore: 15,
+      dartNumber: 1,
+      intendedTargetNumber: null,
+      intendedZoneKey: null,
+      hitTargetNumber: 5,
+      hitZoneKey: "OUTER_SINGLE",
+      score: 5,
+      locationX: null,
+      locationY: null,
+      kept: false,
+    };
+    vi.mocked(repo.findReplayFoldRows).mockResolvedValue([
+      fivesRow,
+      { ...fivesRow, dartNumber: 2 },
+      { ...fivesRow, dartNumber: 3 },
+      { ...fivesRow, sessionId: "s-ghost", participantId: "ghost" },
+    ] as never);
+
+    const result = await getGameSection(playerId, "FIVES", "fives", {
+      ...baseRangeQuery,
+      status: "completed",
+    });
+
+    expect(result.ok).toBe(true);
+    if (result.ok) {
+      expect(result.data.sectionId).toBe("fives");
+      const metrics = result.data.buckets[0]!.metrics as unknown as {
+        games: number;
+        visits: number;
+        scoringVisits: number;
+        points: number;
+      };
+      expect(metrics).toMatchObject({
+        games: 1,
+        visits: 1,
+        scoringVisits: 1,
+        points: 3,
+      });
+      expect(
+        (result.data as { skippedSessions?: number }).skippedSessions,
+      ).toBe(1);
+    }
+  });
+
   it("dispatches elimination through the replay fold on KILLER, counting skipped sessions", async () => {
     vi.mocked(repo.findGameDataVersion).mockResolvedValue({
       count: 2,
