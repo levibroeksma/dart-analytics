@@ -2,7 +2,7 @@
 status: canonical
 scope: shared Astro component inventory
 read-when: before writing markup for any recurring UI shape
-updated: 2026-11-22
+updated: 2026-11-26
 -->
 
 # Component Inventory
@@ -246,6 +246,7 @@ that split (2026-09-19, closes issue #423).
 | `CheckoutCards.astro` | Checkout cards: target ranges, doubles and routes with a target `Select`, over `AimTable` (D0565) | none |
 | `MarksStatsOverview.astro` | Marks `/statistics` layout (Cricket, Tactics, Mickey Mouse): completion tile, marks per round / darts to close out / wasted darts / win rate tiles against the preceding period, OBJECTIVES and RING MIX `AimTable` cards, a 1v1 points tile, the heatmap and the replay list (D0566) | none |
 | `EliminationStatsOverview.astro` | Elimination `/statistics` layout (Killer, Follow the Leader, Prisoner): completion tile, win rate plus three per-game tiles against the preceding period, MATCH RATE BY BED (Follow the Leader) or DART RESULTS (Prisoner) `AimTable` card, the heatmap and the replay list (D0569) | none |
+| `FivesStatsOverview.astro` | Fives `/statistics` layout: completion tile, win rate, scoring visit rate, points per visit and visits per win against the preceding period, VISIT OUTCOMES `AimTable` card (Scored, No five, Void, Bust), the heatmap and the replay list ([pending:fives-statistics-page]) | none |
 | `DoublesTrainingStatsOverview.astro` | Doubles Training `/statistics` layout: completion tile, a DOUBLES `AimCardSection` over the page Period, the heatmap and the replay list (D561) | none |
 | `ReplayCard.astro` | Session replay card for any statistics page: a `GrowingCard` row with a play icon that grows into the session's replay (`SessionReplay.astro`), opening it on `$store.replay`; for use inside an Alpine `x-for` (2026-10-03, D401; grows in place 2026-10-05, D414) | `sessionIdExpr`, `titleExpr`, `captionExpr` |
 | `SessionReplay.astro` | One session's replay read from `$store.replay`: header, result, score curve, board with the selected turn's darts, turns by stage, Load more; rendered inside an open `ReplayCard` (2026-10-05, D414) | — |
