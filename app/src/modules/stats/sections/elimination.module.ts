@@ -8,7 +8,7 @@ import {
 import { WON_TARGET } from "@modules/game/prisoner-policy";
 import { seatOf } from "@modules/game/seat-rota.module";
 import { foldOwnerSessions } from "@modules/stats/replay.module";
-import { foldedBuckets } from "./series.module";
+import { addCounts, foldedBuckets } from "./series.module";
 import type {
   FollowTheLeaderSnapshot,
   KillerSnapshot,
@@ -91,25 +91,12 @@ export function emptyEliminationMetrics(): EliminationMetrics {
   };
 }
 
-/** Sums every numeric leaf of two values of the same shape. */
-function addDeep<T>(a: T, b: T): T {
-  if (typeof a === "number") return ((a as number) + (b as number)) as T;
-  const sum = {} as Record<string, unknown>;
-  for (const key of Object.keys(a as object)) {
-    sum[key] = addDeep(
-      (a as Record<string, unknown>)[key],
-      (b as Record<string, unknown>)[key],
-    );
-  }
-  return sum as T;
-}
-
 /** Field-wise sum of two elimination metrics. */
 export function addEliminationMetrics(
   a: EliminationMetrics,
   b: EliminationMetrics,
 ): EliminationMetrics {
-  return addDeep(a, b);
+  return addCounts(a, b);
 }
 
 /** The folded state shared by the three games: outcome and seats. */

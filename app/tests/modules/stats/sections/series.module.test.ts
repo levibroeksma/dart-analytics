@@ -8,6 +8,7 @@ import {
   decodeCursor,
   encodeDataVersion,
   foldedBuckets,
+  addCounts,
 } from "@modules/stats/sections/series.module";
 
 describe("isClosed", () => {
@@ -314,5 +315,13 @@ describe("foldedBuckets", () => {
         (a: number, b: number) => a + b,
       ),
     ).toEqual([]);
+  });
+});
+
+describe("addCounts", () => {
+  it("sums every numeric leaf and leaves its inputs unchanged", () => {
+    const a = { a: 1, n: { b: 2 } };
+    expect(addCounts(a, { a: 3, n: { b: 4 } })).toEqual({ a: 4, n: { b: 6 } });
+    expect(a).toEqual({ a: 1, n: { b: 2 } });
   });
 });

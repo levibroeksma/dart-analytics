@@ -85,6 +85,22 @@ export function closeBuckets<M>(
 }
 
 /**
+ * Sums every numeric leaf of two values of the same shape into a new value;
+ * the inputs are left unchanged.
+ */
+export function addCounts<T>(a: T, b: T): T {
+  if (typeof a === "number") return ((a as number) + (b as number)) as T;
+  const sum = {} as Record<string, unknown>;
+  for (const key of Object.keys(a as object)) {
+    sum[key] = addCounts(
+      (a as Record<string, unknown>)[key],
+      (b as Record<string, unknown>)[key],
+    );
+  }
+  return sum as T;
+}
+
+/**
  * Sums replayed sessions into start-keyed buckets with `add`, each bucket
  * starting from `empty()`. `sampleSize` is the number of sessions; a bucket
  * with none is not emitted.
