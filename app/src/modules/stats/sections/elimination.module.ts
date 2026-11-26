@@ -8,7 +8,7 @@ import {
 import { WON_TARGET } from "@modules/game/prisoner-policy";
 import { seatOf } from "@modules/game/seat-rota.module";
 import { foldOwnerSessions, ownerIn } from "@modules/stats/replay.module";
-import { addCounts, foldedBuckets } from "./series.module";
+import { addMetricCounts, foldedBuckets } from "./series.module";
 import type {
   FollowTheLeaderSnapshot,
   KillerSnapshot,
@@ -96,7 +96,7 @@ export function addEliminationMetrics(
   a: EliminationMetrics,
   b: EliminationMetrics,
 ): EliminationMetrics {
-  return addCounts(a, b);
+  return addMetricCounts(a, b);
 }
 
 /** The folded state shared by the three games: outcome and seats. */

@@ -7,7 +7,7 @@ import {
   foldEliminationSessions,
   prisonerResultField,
 } from "@modules/stats/sections/elimination.module";
-import { addCounts } from "@modules/stats/sections/series.module";
+import { addMetricCounts } from "@modules/stats/sections/series.module";
 import { KillerEngine } from "@modules/game/killer.engine.module";
 import { FollowTheLeaderEngine } from "@modules/game/follow-the-leader.engine.module";
 import { PrisonerEngine } from "@modules/game/prisoner.engine.module";
@@ -301,10 +301,10 @@ describe("addEliminationMetrics", () => {
     expect(a.games).toBe(1);
   });
 
-  it("equals the shared addCounts sum", () => {
+  it("equals the shared addMetricCounts sum", () => {
     const a = emptyEliminationMetrics();
     a.killer.livesTaken = 3;
-    expect(addEliminationMetrics(a, a)).toEqual(addCounts(a, a));
+    expect(addEliminationMetrics(a, a)).toEqual(addMetricCounts(a, a));
   });
 });
 

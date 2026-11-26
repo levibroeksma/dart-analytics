@@ -31,6 +31,15 @@ describe("sumElimination", () => {
     expect(sum.prisoner.reached).toBe(10);
     expect(sumElimination([])).toEqual(emptyEliminationMetrics());
   });
+
+  it("leaves the buckets' metrics unchanged", () => {
+    const games = (m: EliminationMetrics) => {
+      m.games = 1;
+    };
+    const first = bucket(metrics(games));
+    sumElimination([first, bucket(metrics(games))]);
+    expect(first.metrics).toEqual(metrics(games));
+  });
 });
 
 describe("eliminationComparison", () => {

@@ -1,3 +1,4 @@
+import { sumBuckets } from "@modules/stats/sections/series.module";
 import { compareMeasures } from "@lib/stats/sections/comparison-tile";
 import {
   addEliminationMetrics,
@@ -10,10 +11,7 @@ import type { EliminationMetrics } from "@modules/types";
 export function sumElimination(
   buckets: readonly SeriesBucket<EliminationMetrics>[],
 ): EliminationMetrics {
-  return buckets.reduce(
-    (sum, bucket) => addEliminationMetrics(sum, bucket.metrics),
-    emptyEliminationMetrics(),
-  );
+  return sumBuckets(buckets, emptyEliminationMetrics, addEliminationMetrics);
 }
 
 const MEASURES: Record<

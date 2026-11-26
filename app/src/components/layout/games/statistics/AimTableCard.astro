@@ -1,0 +1,34 @@
+---
+/**
+ * A glass card with an eyebrow title over an `AimTable` of `rows`.
+ * @param {string} title Eyebrow title, in capitals
+ * @param {string[]} headers Column headers, the first for the row label
+ * @param {string} rows Alpine expression for the table's rows
+ * @param {boolean} [hideEmpty] Hide the card while loading or with no rows
+ */
+import AimTable from "./AimTable.astro";
+
+interface Props {
+  title: string;
+  headers: string[];
+  rows: string;
+  hideEmpty?: boolean;
+}
+
+// Props
+const { title, headers, rows, hideEmpty = false }: Props = Astro.props;
+---
+
+<div
+  class="glass flex flex-col gap-2 rounded-xl px-3 py-3.5"
+  x-data={`{ get table() { return ${rows} } }`}
+  x-show={hideEmpty ? `!loading && ${rows}.length` : undefined}
+  x-cloak={hideEmpty ? true : undefined}
+>
+  <span class="font-mono text-eyebrow font-semibold text-muted-foreground">
+    {title}
+  </span>
+  <div class="overflow-x-auto">
+    <AimTable headers={headers} />
+  </div>
+</div>

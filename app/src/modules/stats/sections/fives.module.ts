@@ -1,7 +1,7 @@
 import { foldFivesState } from "@modules/game/fives.engine.module";
 import { seatOf } from "@modules/game/seat-rota.module";
 import { foldOwnerSessions, ownerIn } from "@modules/stats/replay.module";
-import { addCounts, foldedBuckets } from "./series.module";
+import { addMetricCounts, foldedBuckets } from "./series.module";
 import type { FivesSnapshot, Seated, SeriesBucket } from "@lib/types";
 import type {
   FivesFoldedSession,
@@ -34,7 +34,7 @@ export function addFivesMetrics(
   a: FivesMetrics,
   b: FivesMetrics,
 ): FivesMetrics {
-  return addCounts(a, b);
+  return addMetricCounts(a, b);
 }
 
 /**

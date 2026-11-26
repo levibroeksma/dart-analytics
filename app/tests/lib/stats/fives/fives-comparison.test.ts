@@ -20,6 +20,15 @@ describe("sumFives", () => {
     ).toEqual({ ...emptyFivesMetrics(), visits: 6, points: 8 });
     expect(sumFives([])).toEqual(emptyFivesMetrics());
   });
+
+  it("leaves the buckets' metrics unchanged", () => {
+    const m = { ...emptyFivesMetrics(), voids: 2 };
+    sumFives([
+      { ...BUCKET, metrics: m },
+      { ...BUCKET, metrics: m },
+    ]);
+    expect(m).toEqual({ ...emptyFivesMetrics(), voids: 2 });
+  });
 });
 
 describe("fivesComparison", () => {

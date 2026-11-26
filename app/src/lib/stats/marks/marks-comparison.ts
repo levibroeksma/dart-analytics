@@ -1,3 +1,4 @@
+import { sumBuckets } from "@modules/stats/sections/series.module";
 import {
   addMarksMetrics,
   emptyMarksMetrics,
@@ -11,10 +12,7 @@ const ROUND = 3;
 export function sumMarks(
   buckets: readonly SeriesBucket<MarksMetrics>[],
 ): MarksMetrics {
-  return buckets.reduce(
-    (sum, bucket) => addMarksMetrics(sum, bucket.metrics),
-    emptyMarksMetrics(),
-  );
+  return sumBuckets(buckets, emptyMarksMetrics, addMarksMetrics);
 }
 
 const MEASURES: Record<keyof MarksComparison, (m: MarksMetrics) => Ratio> = {

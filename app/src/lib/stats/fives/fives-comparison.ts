@@ -1,3 +1,4 @@
+import { sumBuckets } from "@modules/stats/sections/series.module";
 import { compareMeasures } from "@lib/stats/sections/comparison-tile";
 import {
   addFivesMetrics,
@@ -10,10 +11,7 @@ import type { FivesMetrics } from "@modules/types";
 export function sumFives(
   buckets: readonly SeriesBucket<FivesMetrics>[],
 ): FivesMetrics {
-  return buckets.reduce(
-    (sum, bucket) => addFivesMetrics(sum, bucket.metrics),
-    emptyFivesMetrics(),
-  );
+  return sumBuckets(buckets, emptyFivesMetrics, addFivesMetrics);
 }
 
 const MEASURES: Record<keyof FivesComparison, (m: FivesMetrics) => Ratio> = {

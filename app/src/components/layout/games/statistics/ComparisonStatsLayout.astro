@@ -1,0 +1,39 @@
+---
+/**
+ * The shell of a comparison statistics layout: the completion tile, the
+ * `scope` Alpine section with its error alert, tile row and slotted cards,
+ * then the heatmap and the session list.
+ * @param {string} scope Alpine `x-data` expression of the section
+ */
+import GameCompletionSection from "./GameCompletionSection.astro";
+import GameHeatmapSection from "./GameHeatmapSection.astro";
+import GameSessionList from "./GameSessionList.astro";
+import StatTileRow from "./StatTileRow.astro";
+import ErrorAlert from "@components/ui/ErrorAlert.astro";
+
+interface Props {
+  scope: string;
+}
+
+// Props
+const { scope }: Props = Astro.props;
+---
+
+<div class="flex flex-col gap-2">
+  <div class="grid grid-cols-2 gap-2">
+    <GameCompletionSection />
+  </div>
+  <div
+    class="flex flex-col gap-2"
+    x-data={scope}
+  >
+    <ErrorAlert
+      showExpr="error !== null"
+      textExpr="error"
+    />
+    <StatTileRow />
+    <slot />
+  </div>
+  <GameHeatmapSection />
+  <GameSessionList />
+</div>
