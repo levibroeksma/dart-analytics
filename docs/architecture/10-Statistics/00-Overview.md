@@ -419,7 +419,7 @@ per-section views are still planned.
   `v_stats_session_facts` (`0043`). Server folds that need every
   participant's darts read `v_game_replay` too: `step-result`, `marks`,
   `elimination` and `fives` (the opponent's darts decide points, lives and
-  the winner, D0566, D0569, [pending:fives-statistics-page]).
+  the winner, D0566, D0569, D0571).
 - `v_game_replay.kept` (migration `0053`) marks a Follow the Leader keep
   turn; it is not a filter (marks turns carry `kept = false`). Folds pass it
   through `replayFacts`.
