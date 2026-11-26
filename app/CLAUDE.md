@@ -10,7 +10,7 @@ Local setup: `app/.env.example`, `app/README.md`. Neon local env: `npm run env:d
 
 `db:status` is not proof the database matches `database/migrations/` — dbmate enumerates the migration _files_ and reports each one's applied flag, so a `schema_migrations` row with no file is invisible to it and it still prints `Pending: 0`. `npm run db:drift` is what proves it: applied versions against the files in both directions, plus live `v_*` views against the ones the chain's `migrate:up` regions leave behind. It runs inside `validate:app` between `db:migrate` and `db:introspect`, so a drifted database cannot be introspected into `app/src/db/schema.ts`.
 
-To see a page, run `node scripts/screenshot-page.mjs <route> [out.png] [--click text]...` from `app/`, then Read the PNG: it needs no database or login and stubs the API (empty data).
+To see a page, run `node scripts/screenshot-page.mjs <route> [out.png] [--click text]...` from `app/`, then Read the PNG: it needs no database or login and stubs the API, so every data section shows its error state. To see a section with data, add `--fixture "<url substring>=<file.json>"` with the route's `data` payload in the file.
 
 When starting the dev server, use background mode:
 
@@ -52,7 +52,7 @@ Freshness is CI-owned; nothing here is a local task. Looking something up: the `
 - Format on save via `app/.vscode/settings.json`.
 - **pre-commit:** husky + lint-staged run Prettier `--write` on staged files (`cd app && npx lint-staged`), then the structural gates (test-coverage, type-barrels and dupes first, as the runner stops at the first failure; then file-locations, agent-mirrors, skill-pointers, astro-class-composition, astro-conventions, game-engines, refinement-coverage, alias-sync, constraint-mirror, no-inline-comments, style-tokens, game-wiring, context-budget, related tests: `vitest related` over staged `app/src`/`app/tests` files) run from repo root (the list is `scripts/precommit-gates.tsv`; a row with a regex runs only when a staged path matches, D551), silent on pass (one summary line) and printing the failing gate's output on failure. Hooks install via `npm install` (`prepare` → repo-root `.husky/`).
 - **Hook runtime:** a commit touching `app/` takes about 2 minutes, a push longer. Run `git commit` and `git push` in the foreground with a 600 s timeout, and edit no files until they return: lint-staged stashes and restores unstaged changes mid-run.
-- **pre-push:** `.husky/pre-push` runs `npm test`, then `scripts/check-quality-benchmarks.sh` when the pushed range touches `app/src/` (the CI ratchet, failing locally with its `regressed:` line instead of after the push).
+- **pre-push:** `.husky/pre-push` runs `npm test`; `scripts/check-types.sh` when the pushed range touches `app/` (Vitest does not type-check); then `scripts/fallow-gate.sh` and `scripts/check-quality-benchmarks.sh` when it touches `app/src/` (CI gates, failing locally instead of after the push).
 - **Before every PR create or update (mandatory):** run `cd app && npm run format`, commit any formatting diffs, and confirm `npm run format:check` is clean. Applies to all app work — not only multi-task plan completion. Skipping this fails the CI Format gate.
 
 ## Test-Driven Development (mandatory)
@@ -82,7 +82,7 @@ npm run validate:app
 
 Done means every step of that chain exits zero, the drift and fallow gates included, and the type gate reports **0 errors, 0 warnings, 0 hints** — hint-level diagnostics fail the build (`--minimumFailingSeverity hint`).
 
-A source edit with no test edit is not a completed task: `scripts/check-test-coverage.sh` fails any change set that touches a runtime `.ts` file under `app/src/` or `app/scripts/` without also touching a test that imports it. Type-only edits, pure re-export barrels and `drizzle-kit` output are exempt, derived rather than listed. There is no per-file silencer — if a changed file has no covering test, write one.
+A source edit with no test edit is not a completed task: `scripts/check-test-coverage.sh` fails any change set that touches a runtime `.ts` file under `app/src/` or `app/scripts/` without also touching a test that imports it. Type-only edits, pure re-export barrels, `drizzle-kit` output, pure identifier renames and blocks moved whole into another changed file are exempt, derived rather than listed. There is no per-file silencer — if a changed file has no covering test, write one.
 
 ## Forbidden
 

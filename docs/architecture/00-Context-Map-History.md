@@ -2,7 +2,7 @@
 status: historical
 scope: context-map version history and point-in-time task records
 read-when: never during a task — provenance only
-updated: 2026-11-25
+updated: 2026-11-26
 -->
 
 # Context Map History
@@ -16,6 +16,8 @@ updated: 2026-11-25
 ---
 
 # Version History
+
+> **Version:** 1.262.0 (2026-11-26 — Retro gate hardening: `.husky/pre-push` runs `check-types.sh` when the push touches `app/`, and `fallow-gate.sh` before the quality ratchet when it touches `app/src/`; `fallow-gate.sh` lists each dead-code finding (symbol, file:line, both sides of a duplicate export); `capturing-discovered-work` calls a failure pre-existing only when it is red on `origin/main`; `finishing-a-dart-branch` and `DECISIONS.md` add `ready-to-merge` when a PR with a pending decision opens; `screenshot-page.mjs` gains `--fixture`; `check-test-coverage.sh` exempts pure renames and whole-block moves (D0570).)
 
 > **Version:** 1.261.0 (2026-11-25 — Elimination statistics page (D0569): new server section `elimination` for Killer, Follow the Leader and Prisoner, replayed from `v_game_replay` through the engines' own folds (no migration; `elimination.module.ts`); `findMarksFoldRows` → `findReplayFoldRows`, `ownerSessions`/`foldOwnerSessions` in `replay.module.ts`, `foldedBuckets` in `series.module.ts`, Marks re-pointed; layout `EliminationStatsOverview.astro`, `ELIMINATION_LAYOUTS`, `lib/stats/elimination/`, `eliminationSection()`; `comparisonSection`'s `toTiles` receives the page game; Section Catalog 1.16.0.)
 
