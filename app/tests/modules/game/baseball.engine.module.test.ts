@@ -1,5 +1,6 @@
 import { describe, it, expect } from "vitest";
 import {
+  activeTargetOf,
   applyBaseballDart,
   BASEBALL_INNINGS,
   BaseballEngine,
@@ -154,6 +155,15 @@ describe("baseball engine", () => {
   it("folds the same state from facts as the live engine", () => {
     const engine = engineAfter([T(1), S(1), MISS, D(2)]);
     expect(foldBaseballState(engine.facts(), config)).toEqual(engine.state());
+  });
+
+  it("aims each inning at its own number, inning 1 at the 1", () => {
+    const start = initialBaseballState(config).seats[0];
+    expect(activeTargetOf(start)).toEqual({ kind: "NUMBER", number: 1 });
+    const afterInning1 = [S(1), MISS, D(5)].reduce(applyBaseballDart, start);
+    expect(activeTargetOf(afterInning1)).toEqual({ kind: "NUMBER", number: 2 });
+    const lastInning = seat(engineAfter(perfectGame().slice(0, 24)));
+    expect(activeTargetOf(lastInning)).toEqual({ kind: "NUMBER", number: 9 });
   });
 
   it("applies one dart to a seat", () => {

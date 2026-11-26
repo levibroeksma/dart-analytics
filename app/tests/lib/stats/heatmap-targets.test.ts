@@ -19,6 +19,7 @@ describe("heatmap-targets", () => {
     expect([...HEATMAP_TARGET_GAMES].sort()).toEqual([
       "ACE",
       "AROUND_THE_CLOCK",
+      "BASEBALL",
       "BOBS27",
       "DOUBLES_TRAINING",
       "SHANGHAI",
@@ -54,6 +55,17 @@ describe("heatmap-targets", () => {
     expect(trackRowKeys("ACE").has("BULL:25")).toBe(true);
     expect(trackRowKeys("501").size).toBe(0);
     expect(trackRowKeys(undefined).size).toBe(0);
+  });
+
+  it("offers Baseball the nine inning numbers and no bull", () => {
+    const options = heatmapTargetOptions("BASEBALL");
+    expect(options.map((o) => o.value)).toEqual([
+      null,
+      ...Array.from({ length: 9 }, (_, i) => `NUMBER:${i + 1}`),
+    ]);
+    expect([...trackRowKeys("BASEBALL")]).toEqual(
+      Array.from({ length: 9 }, (_, i) => `NUMBER:${i + 1}`),
+    );
   });
 
   it("offers Ace a picker of all targets, 1 to 20 and the bull", () => {

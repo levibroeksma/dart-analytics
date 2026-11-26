@@ -1,3 +1,4 @@
+import { BASEBALL_INNINGS } from "@modules/game/baseball.engine.module";
 import { doublesPath, targetAt } from "@modules/game/board-progression.module";
 import { doubleTargetIntent } from "@modules/game/turn-log.module";
 import { formatTargetKey, targetLabel } from "./target-key";
@@ -12,6 +13,7 @@ export const HEATMAP_TARGET_GAMES: ReadonlySet<string> = new Set([
   "SHANGHAI",
   "AROUND_THE_CLOCK",
   "ACE",
+  "BASEBALL",
 ]);
 
 const NUMBER_KEYS: readonly TargetKey[] = Array.from({ length: 20 }, (_, i) =>
@@ -20,12 +22,13 @@ const NUMBER_KEYS: readonly TargetKey[] = Array.from({ length: 20 }, (_, i) =>
 
 const BULL_KEY: TargetKey = formatTargetKey(25, "BULL");
 
-/** Derived games' picker keys: `NUMBER:1..20`, plus `BULL:25` where the game can aim at the bull (Shanghai never does). */
+/** Derived games' picker keys: `NUMBER:1..20` (Baseball's nine innings: `NUMBER:1..9`), plus `BULL:25` where the game can aim at the bull (Shanghai and Baseball never do). */
 const DERIVED_KEYS: Readonly<Record<string, readonly TargetKey[]>> = {
   SINGLES_TRAINING: [...NUMBER_KEYS, BULL_KEY],
   AROUND_THE_CLOCK: [...NUMBER_KEYS, BULL_KEY],
   SHANGHAI: NUMBER_KEYS,
   ACE: [...NUMBER_KEYS, BULL_KEY],
+  BASEBALL: NUMBER_KEYS.slice(0, BASEBALL_INNINGS),
 };
 
 /**

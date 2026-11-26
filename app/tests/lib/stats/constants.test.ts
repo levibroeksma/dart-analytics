@@ -30,9 +30,7 @@ const SCORE_TRAINING_LAYOUT: ReadonlySet<string> = new Set([
 
 describe("HEATMAP_ONLY_LAYOUTS", () => {
   it("holds the plain-heatmap games, never a dedicated layout", () => {
-    expect([...HEATMAP_ONLY_LAYOUTS].sort()).toEqual(
-      ["BASEBALL_V1", "BULL_500_V1"].sort(),
-    );
+    expect([...HEATMAP_ONLY_LAYOUTS].sort()).toEqual(["BULL_500_V1"]);
     for (const key of HEATMAP_ONLY_LAYOUTS)
       expect(SCORE_TRAINING_LAYOUT.has(key)).toBe(false);
   });
@@ -76,9 +74,10 @@ describe("ACE_LAYOUTS", () => {
 });
 
 describe("TRACK_LAYOUTS", () => {
-  it("holds the four per-target Track games, outside every other layout set", () => {
+  it("holds the five per-target Track games, outside every other layout set", () => {
     expect([...TRACK_LAYOUTS].sort()).toEqual([
       "AROUND_THE_CLOCK_V1",
+      "BASEBALL_V1",
       "BOBS27_V1",
       "SHANGHAI_V1",
       "SINGLES_V1",
@@ -89,7 +88,6 @@ describe("TRACK_LAYOUTS", () => {
       expect(DOUBLES_TRAINING_LAYOUTS.has(key)).toBe(false);
       expect(X01_LAYOUTS.has(key)).toBe(false);
     }
-    expect(HEATMAP_ONLY_LAYOUTS.has("BASEBALL_V1")).toBe(true);
   });
 });
 
