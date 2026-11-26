@@ -5,6 +5,7 @@ import {
   CHECKOUT_LAYOUTS,
   DOUBLES_TRAINING_LAYOUTS,
   ELIMINATION_LAYOUTS,
+  FIVES_LAYOUTS,
   HEATMAP_ONLY_LAYOUTS,
   MARKS_LAYOUTS,
   MAX_LANDING_DARTS,
@@ -30,7 +31,7 @@ const SCORE_TRAINING_LAYOUT: ReadonlySet<string> = new Set([
 describe("HEATMAP_ONLY_LAYOUTS", () => {
   it("holds the plain-heatmap games, never a dedicated layout", () => {
     expect([...HEATMAP_ONLY_LAYOUTS].sort()).toEqual(
-      ["BASEBALL_V1", "BULL_500_V1", "FIVES_V1"].sort(),
+      ["BASEBALL_V1", "BULL_500_V1"].sort(),
     );
     for (const key of HEATMAP_ONLY_LAYOUTS)
       expect(SCORE_TRAINING_LAYOUT.has(key)).toBe(false);
@@ -49,6 +50,7 @@ describe("ELIMINATION_LAYOUTS", () => {
         ACE_LAYOUTS,
         CHECKOUT_LAYOUTS,
         DOUBLES_TRAINING_LAYOUTS,
+        FIVES_LAYOUTS,
         HEATMAP_ONLY_LAYOUTS,
         MARKS_LAYOUTS,
         SCORE_TRAINING_LAYOUT,
@@ -178,5 +180,23 @@ describe("MARKS_LAYOUTS", () => {
       X01_LAYOUTS,
     ])
       for (const key of MARKS_LAYOUTS) expect(other.has(key)).toBe(false);
+  });
+});
+
+describe("FIVES_LAYOUTS", () => {
+  it("holds Fives alone, outside every other layout set", () => {
+    expect([...FIVES_LAYOUTS]).toEqual(["FIVES_V1"]);
+    for (const other of [
+      ACE_LAYOUTS,
+      CHECKOUT_LAYOUTS,
+      DOUBLES_TRAINING_LAYOUTS,
+      ELIMINATION_LAYOUTS,
+      HEATMAP_ONLY_LAYOUTS,
+      MARKS_LAYOUTS,
+      SCORE_TRAINING_LAYOUT,
+      TRACK_LAYOUTS,
+      X01_LAYOUTS,
+    ])
+      expect(other.has("FIVES_V1")).toBe(false);
   });
 });

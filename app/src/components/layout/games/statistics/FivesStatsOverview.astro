@@ -1,0 +1,44 @@
+---
+/**
+ * The Fives statistics layout: the completion tile, the four tiles against
+ * the preceding period, the visit outcomes card, then the heatmap and the
+ * session list.
+ */
+import AimTable from "./AimTable.astro";
+import GameCompletionSection from "./GameCompletionSection.astro";
+import GameHeatmapSection from "./GameHeatmapSection.astro";
+import GameSessionList from "./GameSessionList.astro";
+import StatTileRow from "./StatTileRow.astro";
+import ErrorAlert from "@components/ui/ErrorAlert.astro";
+---
+
+<div class="flex flex-col gap-2">
+  <div class="grid grid-cols-2 gap-2">
+    <GameCompletionSection />
+  </div>
+  <div
+    class="flex flex-col gap-2"
+    x-data="fivesSection()"
+  >
+    <ErrorAlert
+      showExpr="error !== null"
+      textExpr="error"
+    />
+    <StatTileRow />
+    <div
+      class="glass flex flex-col gap-2 rounded-xl px-3 py-3.5"
+      x-data="{ get table() { return card.outcomes } }"
+      x-show="!loading && card.outcomes.length"
+      x-cloak
+    >
+      <span class="font-mono text-eyebrow font-semibold text-muted-foreground">
+        VISIT OUTCOMES
+      </span>
+      <div class="overflow-x-auto">
+        <AimTable headers={["Outcome", "Share"]} />
+      </div>
+    </div>
+  </div>
+  <GameHeatmapSection />
+  <GameSessionList />
+</div>

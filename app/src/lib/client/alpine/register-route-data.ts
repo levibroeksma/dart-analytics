@@ -58,6 +58,7 @@ import { checkoutCardsSection } from "@lib/stats/sections/checkout-cards.data";
 import { checkoutComparisonSection } from "@lib/stats/sections/checkout-comparison.data";
 import { marksSection } from "@lib/stats/sections/marks-section.data";
 import { eliminationSection } from "@lib/stats/sections/elimination-section.data";
+import { fivesSection } from "@lib/stats/sections/fives-section.data";
 import { driftCardSection } from "@lib/stats/sections/drift-card.data";
 import { preferenceCardSection } from "@lib/stats/sections/preference-card.data";
 import { setupCardSection } from "@lib/stats/sections/setup-card.data";
@@ -90,6 +91,7 @@ function registerStatisticsData(Alpine: Alpine) {
   Alpine.data("checkoutCardsSection", checkoutCardsSection);
   Alpine.data("marksSection", marksSection);
   Alpine.data("eliminationSection", eliminationSection);
+  Alpine.data("fivesSection", fivesSection);
   Alpine.data("preferenceCardSection", preferenceCardSection);
   Alpine.data("setupCardSection", setupCardSection);
 }
