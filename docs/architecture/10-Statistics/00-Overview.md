@@ -109,7 +109,7 @@ The page renders the intersection.
 | --- | ------------------ | ----------------------- |
 | `board` | landing coordinates per dart | all |
 | `intent-stored` | `intended_target_number`/`intended_zone` stored per dart | Doubles Training, Bob's 27 |
-| `intent-derived` | the aimed target is implicit and recovered by an engine fold | Singles, Shanghai, Around the Clock, Ace (D563), Baseball ([pending:baseball-statistics-page]) |
+| `intent-derived` | the aimed target is implicit and recovered by an engine fold | Singles, Shanghai, Around the Clock, Ace (D563), Baseball (D0572) |
 | `intent-inferred` | an aim inferred at read time from the remaining score plus the landing point; never stored (D555) | 501 |
 | `scoring` | face-value visit scoring | 501, Score Training |
 | `checkout` | double-out remaining-score ladder | 501, 121, TUOD |

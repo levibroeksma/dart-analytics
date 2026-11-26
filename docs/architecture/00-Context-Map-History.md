@@ -17,7 +17,7 @@ updated: 2026-11-26
 
 # Version History
 
-> **Version:** 1.264.0 (2026-11-26 — Baseball statistics page ([pending:baseball-statistics-page]): `BASEBALL_V1` gains `intent-derived` and `target-sequence`; a `BASEBALL` walker in `derived-aims.module.ts` aims each owner dart at its inning's number through the engine's new `activeTargetOf`; `heatmap-targets.ts` gives Baseball a 1 to 9 picker and rows; `BASEBALL_V1` moves from `HEATMAP_ONLY_LAYOUTS` to `TRACK_LAYOUTS` (File Inventory rows; Section Catalog 1.18.0, Statistics Overview tag table).)
+> **Version:** 1.264.0 (2026-11-26 — Baseball statistics page (D0572): `BASEBALL_V1` gains `intent-derived` and `target-sequence`; a `BASEBALL` walker in `derived-aims.module.ts` aims each owner dart at its inning's number through the engine's new `activeTargetOf`; `heatmap-targets.ts` gives Baseball a 1 to 9 picker and rows; `BASEBALL_V1` moves from `HEATMAP_ONLY_LAYOUTS` to `TRACK_LAYOUTS` (File Inventory rows; Section Catalog 1.18.0, Statistics Overview tag table).)
 
 > **Version:** 1.263.0 (2026-11-26 — Fives statistics page (D0571): new server section `fives` replayed from `v_game_replay` through `foldFivesState` (no migration; `fives.module.ts`); `addMetricCounts` in `series.module.ts`, `ownerIn` in `replay.module.ts`, `compareMeasures` in `comparison-tile.ts`, `sumBuckets`, the `ComparisonStatsLayout.astro`/`AimTableCard.astro` components and a generic `replayLoad` in `statistics.service.ts` now shared with `marks`/`elimination`; `FIVES_LAYOUTS` and `FivesStatsOverview.astro` (File Inventory, Component Inventory rows; Section Catalog 1.17.0, Statistics Overview replay readers). Bull 500 stays heatmap-only.)
 
