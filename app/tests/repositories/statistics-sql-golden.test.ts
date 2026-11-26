@@ -4,7 +4,7 @@ import {
   countGameSessions,
   findBucketedSessionAggregates,
   findDartFoldRows,
-  findMarksFoldRows,
+  findReplayFoldRows,
   findGameSessionsPage,
   findHeatmapCells,
   findHitNumberCells,
@@ -72,9 +72,9 @@ describe("statistics readers rendered SQL", () => {
         await render((db) => findX01FoldRows(db, { ...scope, ...b })),
       ).toMatchSnapshot();
     });
-    it("findMarksFoldRows", async () => {
+    it("findReplayFoldRows", async () => {
       expect(
-        await render((db) => findMarksFoldRows(db, { ...scope, ...b })),
+        await render((db) => findReplayFoldRows(db, { ...scope, ...b })),
       ).toMatchSnapshot();
     });
 

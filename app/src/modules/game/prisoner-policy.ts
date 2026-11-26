@@ -159,7 +159,7 @@ function closerExt(closer: Seat): PrisonerExt {
  * out and skips any seat with budget 0, clearing its `sitting` and returning
  * its darts, until a seat with budget above 0 becomes `shared.next`.
  */
-export function resolveVisit(
+export function resolvePrisonerVisit(
   visit: ClosedVisit,
   seats: readonly Seat[],
   shared: PrisonerShared,

@@ -668,6 +668,54 @@ export const MarksSeriesResponse = SeriesBase.extend({
 });
 export type MarksSeriesResponseData = z.infer<typeof MarksSeriesResponse>;
 
+const EliminationCount = z.number().int().nonnegative();
+
+const BedCount = z.object({
+  visits: EliminationCount,
+  matched: EliminationCount,
+});
+
+const EliminationMetrics = z.object({
+  games: EliminationCount,
+  finished: EliminationCount,
+  wins: EliminationCount,
+  darts: EliminationCount,
+  livesLost: EliminationCount,
+  killer: z.object({
+    killerGames: EliminationCount,
+    dartsToKiller: EliminationCount,
+    livesTaken: EliminationCount,
+  }),
+  followTheLeader: z.object({
+    matchVisits: EliminationCount,
+    matched: EliminationCount,
+    matchDarts: EliminationCount,
+    byBed: z.object({
+      SINGLE: BedCount,
+      DOUBLE: BedCount,
+      TREBLE: BedCount,
+      BULL: BedCount,
+    }),
+  }),
+  prisoner: z.object({
+    advance: EliminationCount,
+    advanceAndCapture: EliminationCount,
+    capture: EliminationCount,
+    prison: EliminationCount,
+    miss: EliminationCount,
+    reached: EliminationCount,
+  }),
+});
+
+export const EliminationSeriesResponse = SeriesBase.extend({
+  sectionId: z.literal("elimination"),
+  buckets: z.array(BucketBase.extend({ metrics: EliminationMetrics })),
+  ...SkippedSessions,
+});
+export type EliminationSeriesResponseData = z.infer<
+  typeof EliminationSeriesResponse
+>;
+
 /**
  * One page of a session's replay (D371 decisions 4, 6): only `cursor` and
  * `limit` are accepted -- any other search param fails `.strict()`, per

@@ -9,6 +9,7 @@ import DoublesTrainingStatsOverview from "@components/layout/games/statistics/Do
 import AceStatsOverview from "@components/layout/games/statistics/AceStatsOverview.astro";
 import CheckoutStatsOverview from "@components/layout/games/statistics/CheckoutStatsOverview.astro";
 import MarksStatsOverview from "@components/layout/games/statistics/MarksStatsOverview.astro";
+import EliminationStatsOverview from "@components/layout/games/statistics/EliminationStatsOverview.astro";
 import TrackGamesStatsOverview from "@components/layout/games/statistics/TrackGamesStatsOverview.astro";
 import HeatmapStatsOverview from "@components/layout/games/statistics/HeatmapStatsOverview.astro";
 import GameVariationSelect from "@components/layout/games/statistics/GameVariationSelect.astro";
@@ -16,6 +17,7 @@ import {
   ACE_LAYOUTS,
   CHECKOUT_LAYOUTS,
   DOUBLES_TRAINING_LAYOUTS,
+  ELIMINATION_LAYOUTS,
   HEATMAP_ONLY_LAYOUTS,
   MARKS_LAYOUTS,
   TRACK_LAYOUTS,
@@ -35,6 +37,7 @@ const gameOptions = primaryCards().map((game) => ({
 const aceRulesets = JSON.stringify([...ACE_LAYOUTS]);
 const checkoutRulesets = JSON.stringify([...CHECKOUT_LAYOUTS]);
 const marksRulesets = JSON.stringify([...MARKS_LAYOUTS]);
+const eliminationRulesets = JSON.stringify([...ELIMINATION_LAYOUTS]);
 const trackRulesets = JSON.stringify([...TRACK_LAYOUTS]);
 const heatmapOnly = JSON.stringify([...HEATMAP_ONLY_LAYOUTS]);
 const doublesTrainingRulesets = JSON.stringify([...DOUBLES_TRAINING_LAYOUTS]);
@@ -97,11 +100,14 @@ const scope = `{ tab: $store.routineStats.initialTab, game: ${JSON.stringify(gam
         <template x-if={`${marksRulesets}.includes(game)`}>
           <MarksStatsOverview />
         </template>
+        <template x-if={`${eliminationRulesets}.includes(game)`}>
+          <EliminationStatsOverview />
+        </template>
         <template x-if={`${heatmapOnly}.includes(game)`}>
           <HeatmapStatsOverview />
         </template>
         <template
-          x-if={`game !== 'SCORE_TRAINING_V1' && !${x01Rulesets}.includes(game) && !${doublesTrainingRulesets}.includes(game) && !${trackRulesets}.includes(game) && !${aceRulesets}.includes(game) && !${checkoutRulesets}.includes(game) && !${marksRulesets}.includes(game) && !${heatmapOnly}.includes(game)`}
+          x-if={`game !== 'SCORE_TRAINING_V1' && !${x01Rulesets}.includes(game) && !${doublesTrainingRulesets}.includes(game) && !${trackRulesets}.includes(game) && !${aceRulesets}.includes(game) && !${checkoutRulesets}.includes(game) && !${marksRulesets}.includes(game) && !${eliminationRulesets}.includes(game) && !${heatmapOnly}.includes(game)`}
         >
           <p class="glass rounded-2xl p-4 text-sm text-muted-foreground">
             Statistics for this game are being rebuilt.

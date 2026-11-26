@@ -441,6 +441,22 @@ describe("statistics section registry", () => {
     }
   });
 
+  it("offers elimination on Killer, Follow the Leader and Prisoner only", () => {
+    expect(SECTIONS.elimination).toMatchObject({
+      requires: ["board"],
+      games: ["KILLER", "FOLLOW_THE_LEADER", "PRISONER"],
+      computeSite: "server",
+      bucketable: true,
+      includesAbandoned: false,
+    });
+    const games = new Set(["KILLER", "FOLLOW_THE_LEADER", "PRISONER"]);
+    for (const gameType of new Set(Object.values(GAME_TYPE_BY_RULESET))) {
+      expect(sectionsForGame(gameType).includes("elimination")).toBe(
+        games.has(gameType),
+      );
+    }
+  });
+
   it("gives Baseball the higher result direction and only the board tag", () => {
     expect(RESULT_DIRECTION.BASEBALL).toBe("higher");
     expect(tagsForGameType("BASEBALL")).toEqual(new Set(["board"]));

@@ -44,7 +44,7 @@ export function periodComparison<I, C>(
   };
 }
 
-/** The Alpine scope of a comparison tile row: `fetchCard` runs over the page period and its card becomes `tiles` through `toTiles`; the card is `empty` while loading or after a failed read. */
+/** The Alpine scope of a comparison tile row: `fetchCard` runs over the page period and its card becomes `tiles` through `toTiles`, which also sees the page game (a ruleset version key); the card is `empty` while loading or after a failed read. */
 export function comparisonSection<C>(
   fetchCard: (
     game: string,
@@ -52,7 +52,7 @@ export function comparisonSection<C>(
     now: Date,
   ) => Promise<{ card: C; error: string | null }>,
   empty: C,
-  toTiles: (card: C) => TrackTile[],
+  toTiles: (card: C, game: string) => TrackTile[],
 ) {
   return {
     loading: true,
@@ -67,7 +67,8 @@ export function comparisonSection<C>(
     load: latestCardLoad(fetchCard),
 
     get tiles(): TrackTile[] {
-      return toTiles(this.card);
+      const page = (this as { $data?: { game: string } }).$data;
+      return toTiles(this.card, page?.game ?? "");
     },
   };
 }

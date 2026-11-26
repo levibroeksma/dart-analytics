@@ -3,7 +3,6 @@ import {
   foldMarksSessions,
   marksBuckets,
   marksSessionMetrics,
-  marksSessions,
   RULES_BY_GAME,
 } from "@modules/stats/sections/marks.module";
 import { CRICKET_RULES } from "@modules/game/cricket.engine.module";
@@ -11,7 +10,7 @@ import { TACTICS_RULES } from "@modules/game/tactics.engine.module";
 import { MICKEY_MOUSE_RULES } from "@modules/game/mickey-mouse.engine.module";
 import type { SeatFact } from "@lib/types";
 import type { DartFact, DartZoneKey, EngineFacts } from "@modules/types";
-import type { MarksFoldRow, MarksSession } from "@modules/types";
+import type { MarksSession } from "@modules/types";
 
 const CTX = {
   to: "2026-10-01T00:00:00.000Z",
@@ -89,6 +88,7 @@ function session(
     bucketEnd: "2026-10-01T00:00:00.000Z",
     seats,
     ownerRef: OWNER,
+    config: { seats },
     facts: facts(visits),
     ...overrides,
   };
@@ -295,115 +295,22 @@ describe("marksBuckets", () => {
     });
   });
 
+  it("orders buckets by start, one per bucket start", () => {
+    const { sessions } = foldMarksSessions([
+      session("CRICKET", [[OWNER, [T(20)]]]),
+      session("CRICKET", [[OWNER, [T(19)]]], undefined, {
+        sessionId: "session-2",
+        bucketStart: "2026-08-01T00:00:00.000Z",
+        bucketEnd: "2026-09-01T00:00:00.000Z",
+      }),
+    ]);
+    expect(marksBuckets(sessions, CTX).map((b) => b.start)).toEqual([
+      "2026-08-01T00:00:00.000Z",
+      "2026-09-01T00:00:00.000Z",
+    ]);
+  });
+
   it("emits no bucket for no sessions", () => {
     expect(marksBuckets([], CTX)).toEqual([]);
-  });
-});
-
-const ROOT = "01900000-0000-7000-9000-0000000000a1";
-
-let dartNo = 0;
-
-function foldRow(overrides: Partial<MarksFoldRow> = {}): MarksFoldRow {
-  dartNo += 1;
-  return {
-    sessionId: "s-1",
-    gameTypeKey: "CRICKET",
-    rulesetVersionKey: "CRICKET_V2",
-    configuration: { seats: DUEL_SEATS },
-    bucketStart: "2026-09-01T00:00:00.000Z",
-    bucketEnd: "2026-10-01T00:00:00.000Z",
-    stageId: ROOT,
-    stageSequence: 1,
-    stageTypeKey: "EXERCISE_BLOCK",
-    parentStageId: null,
-    turnSequence: 1,
-    participantId: OWNER,
-    participantName: OWNER,
-    participantTypeKey: "PLAYER",
-    turnTotalScore: 0,
-    dartNumber: 1,
-    intendedTargetNumber: null,
-    intendedZoneKey: null,
-    hitTargetNumber: 20,
-    hitZoneKey: "TREBLE",
-    score: 60,
-    locationX: null,
-    locationY: null,
-    kept: false,
-    ...overrides,
-  };
-}
-
-describe("marksSessions", () => {
-  it("groups rows into sessions with both seats, the PLAYER seat as owner", () => {
-    const result = marksSessions([
-      foldRow({ turnSequence: 1, dartNumber: 1 }),
-      foldRow({ turnSequence: 1, dartNumber: 2, hitTargetNumber: 19 }),
-      foldRow({
-        turnSequence: 2,
-        dartNumber: 1,
-        participantId: RIVAL,
-        participantTypeKey: "GUEST",
-      }),
-      foldRow({ sessionId: "s-2", turnSequence: 1 }),
-    ]);
-    expect(result.skippedSessions).toBe(0);
-    expect(result.sessions.map((s) => s.sessionId)).toEqual(["s-1", "s-2"]);
-    const [first] = result.sessions;
-    expect(first.gameTypeKey).toBe("CRICKET");
-    expect(first.ownerRef).toBe(OWNER);
-    expect(first.seats.map((s) => s.participantRef)).toEqual([OWNER, RIVAL]);
-    expect(first.facts.turns.map((t) => t.participantRef)).toEqual([
-      OWNER,
-      RIVAL,
-    ]);
-    expect(first.facts.turns[0].darts.map((d) => d.hitTargetNumber)).toEqual([
-      20, 19,
-    ]);
-  });
-
-  it("keeps a turn whatever its kept flag", () => {
-    const result = marksSessions([foldRow({ kept: false })]);
-    expect(result.sessions[0].facts.turns).toHaveLength(1);
-  });
-
-  it("seats a seatless snapshot's only participant as the owner", () => {
-    const result = marksSessions([
-      foldRow({ rulesetVersionKey: "CRICKET_V1", configuration: {} }),
-    ]);
-    expect(result.sessions[0].seats.map((s) => s.participantRef)).toEqual([
-      OWNER,
-    ]);
-    expect(result.sessions[0].ownerRef).toBe(OWNER);
-  });
-
-  it("skips a seatless snapshot with two participants", () => {
-    const result = marksSessions([
-      foldRow({ configuration: {} }),
-      foldRow({ participantId: RIVAL, turnSequence: 2 }),
-    ]);
-    expect(result).toEqual({ sessions: [], skippedSessions: 1 });
-  });
-
-  it("skips a session with no PLAYER seat", () => {
-    const result = marksSessions([
-      foldRow({
-        configuration: {
-          seats: [
-            { ...DUEL_SEATS[0], participantTypeKey: "GUEST" },
-            DUEL_SEATS[1],
-          ],
-        },
-      }),
-    ]);
-    expect(result).toEqual({ sessions: [], skippedSessions: 1 });
-  });
-
-  it("skips a session whose snapshot does not decode", () => {
-    const result = marksSessions([
-      foldRow({ rulesetVersionKey: "NOT_A_RULESET" }),
-    ]);
-    expect(result).toEqual({ sessions: [], skippedSessions: 1 });
   });
 });

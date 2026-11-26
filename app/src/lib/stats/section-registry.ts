@@ -241,6 +241,17 @@ export const SECTIONS: Readonly<Record<SectionId, SectionMeta>> = {
     configSensitive: [],
     params: [],
   },
+  elimination: {
+    id: "elimination",
+    version: 1,
+    requires: ["board"],
+    games: ["KILLER", "FOLLOW_THE_LEADER", "PRISONER"],
+    computeSite: "server",
+    bucketable: true,
+    includesAbandoned: false,
+    configSensitive: [],
+    params: [],
+  },
   confusion: {
     id: "confusion",
     version: 1,

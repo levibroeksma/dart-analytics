@@ -11,6 +11,7 @@ import type {
   LadderProgressMetrics,
   LegStatsMetrics,
   LooseDartsMetrics,
+  EliminationMetrics,
   MarksMetrics,
   MissDirectionMetrics,
   ScoringTrendMetrics,
@@ -44,6 +45,7 @@ export type SectionId =
   | "bobs27-survival"
   | "shanghai-count"
   | "marks"
+  | "elimination"
   | "training-result"
   | "large-target-accuracy"
   | "aim-drift"
@@ -190,6 +192,7 @@ export type ServerSectionId =
   | "bobs27-survival"
   | "shanghai-count"
   | "marks"
+  | "elimination"
   | "training-result"
   | "heatmap"
   | "large-target-accuracy"
@@ -214,6 +217,7 @@ export type ServerSectionMetrics = {
   "bobs27-survival": Bobs27SurvivalMetrics;
   "shanghai-count": ShanghaiCountMetrics;
   marks: MarksMetrics;
+  elimination: EliminationMetrics;
   "training-result": TrainingResultMetrics;
   "large-target-accuracy": AimCountMetrics;
   "aim-drift": AimCountMetrics;
@@ -425,3 +429,4 @@ export * from "./track/types";
 export * from "./ace/types";
 export * from "./checkout/types";
 export * from "./marks/types";
+export * from "./elimination/types";

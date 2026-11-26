@@ -1,9 +1,14 @@
 import { fromBase64Url, toBase64Url } from "./sections/series.module";
+import { snapshotOf } from "./x01-checkout-sessions.module";
+import type { SeatFact } from "@lib/types";
 import type {
   DartFact,
   DartZoneKey,
   EngineFacts,
+  FoldedSession,
+  OwnerSession,
   ReplayCursor,
+  ReplayFoldRow,
   ReplayDart,
   ReplayRow,
   ReplayStageRow,
@@ -324,4 +329,105 @@ function inPlayOrder<T extends StagedReplayRow>(
 export function sessionFactsOf(rows: readonly StagedReplayRow[]): EngineFacts {
   const stages = stageOrder(stagesOf(rows));
   return replayFacts(stages, rowsToTurns(inPlayOrder(rows, stages)));
+}
+
+/**
+ * The seats a session's darts fold against: its snapshot's own, else the
+ * session's only participant as the lone seat; `null` when the snapshot is
+ * seatless and more than one participant threw.
+ */
+function seatsOf(
+  snapshotSeats: readonly SeatFact[],
+  rows: readonly ReplayFoldRow[],
+): readonly SeatFact[] | null {
+  if (snapshotSeats.length > 0) return snapshotSeats;
+  const participants = new Map(rows.map((row) => [row.participantId, row]));
+  if (participants.size !== 1) return null;
+  const [only] = participants.values();
+  return [
+    {
+      participantRef: only!.participantId,
+      displayName: only!.participantName,
+      sideKey: "A",
+      participantTypeKey: only!.participantTypeKey,
+    } as SeatFact,
+  ];
+}
+
+/** One session's rows as an `OwnerSession`, or `null` when it cannot be replayed. */
+function ownerSessionOf<G extends string>(
+  rows: readonly ReplayFoldRow[],
+  games: readonly G[],
+): OwnerSession<G> | null {
+  const first = rows[0]!;
+  if (!(games as readonly string[]).includes(first.gameTypeKey)) return null;
+  const snapshot = snapshotOf(first.rulesetVersionKey, first.configuration);
+  if (!snapshot) return null;
+  const seats = seatsOf(snapshot.seats, rows);
+  const owners = (seats ?? []).filter(
+    (seat) => seat.participantTypeKey === "PLAYER",
+  );
+  if (!seats || owners.length !== 1) return null;
+  try {
+    return {
+      sessionId: first.sessionId,
+      gameTypeKey: first.gameTypeKey as G,
+      bucketStart: first.bucketStart,
+      bucketEnd: first.bucketEnd,
+      seats,
+      ownerRef: owners[0]!.participantRef,
+      config: { ...snapshot, seats },
+      facts: sessionFactsOf(rows),
+    };
+  } catch {
+    return null;
+  }
+}
+
+/**
+ * Groups `findReplayFoldRows`' rows into replayable sessions of `games`. The
+ * owner is the session's one `PLAYER` seat; a session of another game, whose
+ * snapshot does not decode, whose seats cannot be told, or with no single
+ * `PLAYER` seat is skipped and counted.
+ */
+export function ownerSessions<G extends string>(
+  rows: readonly ReplayFoldRow[],
+  games: readonly G[],
+): { sessions: OwnerSession<G>[]; skippedSessions: number } {
+  const sessions: OwnerSession<G>[] = [];
+  let skippedSessions = 0;
+  for (const sessionRows of groupBySession(rows).values()) {
+    const session = ownerSessionOf(sessionRows, games);
+    if (session) {
+      sessions.push(session);
+    } else {
+      skippedSessions += 1;
+    }
+  }
+  return { sessions, skippedSessions };
+}
+
+/**
+ * Replays every session through `metricsOf`; one whose replay throws is
+ * skipped and counted, never guessed.
+ */
+export function foldOwnerSessions<G extends string, M>(
+  sessions: readonly OwnerSession<G>[],
+  metricsOf: (session: OwnerSession<G>) => M,
+): { sessions: FoldedSession<M>[]; skippedSessions: number } {
+  const folded: FoldedSession<M>[] = [];
+  let skippedSessions = 0;
+  for (const session of sessions) {
+    try {
+      folded.push({
+        sessionId: session.sessionId,
+        bucketStart: session.bucketStart,
+        bucketEnd: session.bucketEnd,
+        metrics: metricsOf(session),
+      });
+    } catch {
+      skippedSessions += 1;
+    }
+  }
+  return { sessions: folded, skippedSessions };
 }

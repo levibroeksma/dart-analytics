@@ -2,7 +2,7 @@
 status: historical
 scope: context-map version history and point-in-time task records
 read-when: never during a task — provenance only
-updated: 2026-11-23
+updated: 2026-11-25
 -->
 
 # Context Map History
@@ -16,6 +16,8 @@ updated: 2026-11-23
 ---
 
 # Version History
+
+> **Version:** 1.261.0 (2026-11-25 — Elimination statistics page (D0569): new server section `elimination` for Killer, Follow the Leader and Prisoner, replayed from `v_game_replay` through the engines' own folds (no migration; `elimination.module.ts`); `findMarksFoldRows` → `findReplayFoldRows`, `ownerSessions`/`foldOwnerSessions` in `replay.module.ts`, `foldedBuckets` in `series.module.ts`, Marks re-pointed; layout `EliminationStatsOverview.astro`, `ELIMINATION_LAYOUTS`, `lib/stats/elimination/`, `eliminationSection()`; `comparisonSection`'s `toTiles` receives the page game; Section Catalog 1.16.0.)
 
 > **Version:** 1.260.0 (2026-11-23 — Issue fixes #1385, #1216, #1219: stats helpers orphaned by the `gameStats` removal and `StatsHeatmap.astro` are deleted (File Inventory, Component Inventory and Statistics Overview/Section Catalog references updated; `RESULT_DIRECTION` stays as the D367 contract); `merge-metrics.ts` gains an internal `mergeByKey` and Doubles Lock's summary reuses `passRows` (File Inventory row); Mickey Mouse results gain marks per round, bulls and the 1v1 comparison through the new shared `MarksBullResults.astro` (File Inventory and Component Inventory rows).)
 

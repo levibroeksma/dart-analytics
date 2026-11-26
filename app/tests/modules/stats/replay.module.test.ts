@@ -7,16 +7,20 @@ import { ReplayTurnSchema } from "@routes/statistics/types";
 import {
   decodeReplayCursor,
   encodeReplayCursor,
+  foldOwnerSessions,
   groupBySession,
+  ownerSessions,
   replayFacts,
   rowsToTurns,
   sessionFactsOf,
   stageOrder,
 } from "@modules/stats/replay.module";
 import { toBase64Url } from "@modules/stats/sections/series.module";
+import type { SeatFact } from "@lib/types";
 import type {
   EngineFacts,
   FollowTheLeaderState,
+  ReplayFoldRow,
   ReplayRow,
   ReplayStageRow,
   StagedReplayRow,
@@ -495,5 +499,210 @@ describe("sessionFactsOf", () => {
       CHILD,
     ]);
     expect(facts.turns[0]!.darts.map((dart) => dart.sequence)).toEqual([1, 2]);
+  });
+});
+
+const OWNER = "owner";
+const RIVAL = "rival";
+const MARKS = ["CRICKET", "TACTICS", "MICKEY_MOUSE"] as const;
+const DUEL_SEATS: SeatFact[] = [
+  {
+    participantRef: OWNER,
+    displayName: OWNER,
+    sideKey: "A",
+    participantTypeKey: "PLAYER",
+  } as SeatFact,
+  {
+    participantRef: RIVAL,
+    displayName: RIVAL,
+    sideKey: "B",
+    participantTypeKey: "GUEST",
+  } as SeatFact,
+];
+
+const FOLD_ROOT = "01900000-0000-7000-9000-0000000000a1";
+
+let dartNo = 0;
+
+function foldRow(overrides: Partial<ReplayFoldRow> = {}): ReplayFoldRow {
+  dartNo += 1;
+  return {
+    sessionId: "s-1",
+    gameTypeKey: "CRICKET",
+    rulesetVersionKey: "CRICKET_V2",
+    configuration: { seats: DUEL_SEATS },
+    bucketStart: "2026-09-01T00:00:00.000Z",
+    bucketEnd: "2026-10-01T00:00:00.000Z",
+    stageId: FOLD_ROOT,
+    stageSequence: 1,
+    stageTypeKey: "EXERCISE_BLOCK",
+    parentStageId: null,
+    turnSequence: 1,
+    participantId: OWNER,
+    participantName: OWNER,
+    participantTypeKey: "PLAYER",
+    turnTotalScore: 0,
+    dartNumber: 1,
+    intendedTargetNumber: null,
+    intendedZoneKey: null,
+    hitTargetNumber: 20,
+    hitZoneKey: "TREBLE",
+    score: 60,
+    locationX: null,
+    locationY: null,
+    kept: false,
+    ...overrides,
+  };
+}
+
+describe("ownerSessions", () => {
+  it("groups rows into sessions with both seats, the PLAYER seat as owner", () => {
+    const result = ownerSessions(
+      [
+        foldRow({ turnSequence: 1, dartNumber: 1 }),
+        foldRow({ turnSequence: 1, dartNumber: 2, hitTargetNumber: 19 }),
+        foldRow({
+          turnSequence: 2,
+          dartNumber: 1,
+          participantId: RIVAL,
+          participantTypeKey: "GUEST",
+        }),
+        foldRow({ sessionId: "s-2", turnSequence: 1 }),
+      ],
+      MARKS,
+    );
+    expect(result.skippedSessions).toBe(0);
+    expect(result.sessions.map((s) => s.sessionId)).toEqual(["s-1", "s-2"]);
+    const [first] = result.sessions;
+    expect(first.gameTypeKey).toBe("CRICKET");
+    expect(first.ownerRef).toBe(OWNER);
+    expect(first.seats.map((s) => s.participantRef)).toEqual([OWNER, RIVAL]);
+    expect(first.facts.turns.map((t) => t.participantRef)).toEqual([
+      OWNER,
+      RIVAL,
+    ]);
+    expect(first.facts.turns[0].darts.map((d) => d.hitTargetNumber)).toEqual([
+      20, 19,
+    ]);
+  });
+
+  it("keeps a turn whatever its kept flag", () => {
+    const result = ownerSessions([foldRow({ kept: false })], MARKS);
+    expect(result.sessions[0].facts.turns).toHaveLength(1);
+  });
+
+  it("seats a seatless snapshot's only participant as the owner", () => {
+    const result = ownerSessions(
+      [foldRow({ rulesetVersionKey: "CRICKET_V1", configuration: {} })],
+      MARKS,
+    );
+    expect(result.sessions[0].seats.map((s) => s.participantRef)).toEqual([
+      OWNER,
+    ]);
+    expect(result.sessions[0].ownerRef).toBe(OWNER);
+  });
+
+  it("skips a seatless snapshot with two participants", () => {
+    const result = ownerSessions(
+      [
+        foldRow({ configuration: {} }),
+        foldRow({ participantId: RIVAL, turnSequence: 2 }),
+      ],
+      MARKS,
+    );
+    expect(result).toEqual({ sessions: [], skippedSessions: 1 });
+  });
+
+  it("skips a session with no PLAYER seat", () => {
+    const result = ownerSessions(
+      [
+        foldRow({
+          configuration: {
+            seats: [
+              { ...DUEL_SEATS[0], participantTypeKey: "GUEST" },
+              DUEL_SEATS[1],
+            ],
+          },
+        }),
+      ],
+      MARKS,
+    );
+    expect(result).toEqual({ sessions: [], skippedSessions: 1 });
+  });
+
+  it("skips a session whose snapshot does not decode", () => {
+    const result = ownerSessions(
+      [foldRow({ rulesetVersionKey: "NOT_A_RULESET" })],
+      MARKS,
+    );
+    expect(result).toEqual({ sessions: [], skippedSessions: 1 });
+  });
+  it("carries the decoded snapshot as config", () => {
+    const result = ownerSessions(
+      [
+        foldRow({
+          gameTypeKey: "KILLER",
+          rulesetVersionKey: "KILLER_V1",
+          configuration: {
+            lives: 3,
+            seat_numbers: [20, 19],
+            seats: DUEL_SEATS,
+          },
+        }),
+      ],
+      ["KILLER"],
+    );
+    expect(result.skippedSessions).toBe(0);
+    expect(result.sessions[0].config).toMatchObject({
+      lives: 3,
+      seatNumbers: [20, 19],
+    });
+    expect(
+      result.sessions[0].config.seats.map((s) => s.participantRef),
+    ).toEqual([OWNER, RIVAL]);
+  });
+
+  it("skips and counts a game outside the requested games", () => {
+    const result = ownerSessions(
+      [foldRow({ gameTypeKey: "KILLER", rulesetVersionKey: "KILLER_V1" })],
+      MARKS,
+    );
+    expect(result).toEqual({ sessions: [], skippedSessions: 1 });
+  });
+});
+
+describe("foldOwnerSessions", () => {
+  const base = {
+    gameTypeKey: "KILLER",
+    bucketStart: "2026-09-01T00:00:00.000Z",
+    bucketEnd: "2026-10-01T00:00:00.000Z",
+    seats: DUEL_SEATS,
+    ownerRef: OWNER,
+    config: { seats: DUEL_SEATS },
+    facts: { stages: [], turns: [] },
+  };
+
+  it("tags each session's metrics with its bucket and counts the ones that throw", () => {
+    const result = foldOwnerSessions(
+      [
+        { ...base, sessionId: "ok" },
+        { ...base, sessionId: "bad" },
+      ],
+      (session) => {
+        if (session.sessionId === "bad") throw new Error("refused");
+        return 7;
+      },
+    );
+    expect(result).toEqual({
+      sessions: [
+        {
+          sessionId: "ok",
+          bucketStart: base.bucketStart,
+          bucketEnd: base.bucketEnd,
+          metrics: 7,
+        },
+      ],
+      skippedSessions: 1,
+    });
   });
 });

@@ -780,18 +780,23 @@ export type SessionSteps<TSeat> = {
 export type MarksGameKey = "CRICKET" | "TACTICS" | "MICKEY_MOUSE";
 
 /**
- * One marks session ready to replay: every seat's kept turns in play order,
- * and the seat the requesting player held (`ownerRef`).
+ * One session ready to replay: every seat's turns in play order, the seat
+ * the requesting player held (`ownerRef`), and the decoded snapshot
+ * (`config`) with its seats resolved.
  */
-export type MarksSession = {
+export type OwnerSession<G extends string> = {
   sessionId: string;
-  gameTypeKey: MarksGameKey;
+  gameTypeKey: G;
   bucketStart: string;
   bucketEnd: string;
   seats: readonly SeatFact[];
   ownerRef: string;
+  config: Record<string, unknown> & { seats: readonly SeatFact[] };
   facts: EngineFacts;
 };
+
+/** One marks session ready to replay. */
+export type MarksSession = OwnerSession<MarksGameKey>;
 
 /** One objective's owner marks and landed darts; `key` is `"20"`, `"BULL"`, `"DOUBLES"` or `"TRIPLES"`. */
 export type MarksObjectiveCount = { key: string; marks: number; darts: number };
@@ -812,12 +817,7 @@ export type MarksMetrics = {
 };
 
 /** One replayed marks session's metrics, tagged with its bucket. */
-export type MarksFoldedSession = {
-  sessionId: string;
-  bucketStart: string;
-  bucketEnd: string;
-  metrics: MarksMetrics;
-};
+export type MarksFoldedSession = FoldedSession<MarksMetrics>;
 
 /** `shanghai-count` section metrics — one bucket (phase-4 decision 12). */
 export type ShanghaiCountMetrics = {
@@ -958,11 +958,11 @@ export type StagedReplayRow = ReplayRow & {
 };
 
 /**
- * `findMarksFoldRows`' row: every participant's dart of one owner session in
+ * `findReplayFoldRows`' row: every participant's dart of one owner session in
  * scope, with the session's snapshot and the bucket its `completed_at`
  * falls in.
  */
-export type MarksFoldRow = StagedReplayRow & {
+export type ReplayFoldRow = StagedReplayRow & {
   gameTypeKey: string;
   rulesetVersionKey: string;
   configuration: Record<string, unknown> | null;
@@ -1165,3 +1165,73 @@ export type InferredSession = {
 
 /** One 501 variation of a game with its completed session count (D556). */
 export type GameVariation = { startingScore: number; sessions: number };
+
+/** An elimination game the `elimination` section replays. */
+export type EliminationGameKey = "KILLER" | "FOLLOW_THE_LEADER" | "PRISONER";
+
+/** A Follow the Leader target's bed row: the outer and inner bull join as `BULL`. */
+export type BedKey = "SINGLE" | "DOUBLE" | "TREBLE" | "BULL";
+
+/** Owner match visits at one bed, and those matched. */
+export type BedCount = {
+  /** Match visits, in visits. */
+  visits: number;
+  /** Matched visits, in visits. */
+  matched: number;
+};
+
+/** `elimination` section metrics for the owner's seat. */
+export type EliminationMetrics = {
+  /** Sessions. */
+  games: number;
+  /** Sessions whose fold is complete. */
+  finished: number;
+  /** Finished sessions the owner's side won. */
+  wins: number;
+  /** Owner darts. */
+  darts: number;
+  /** Lives the owner lost (Killer, Follow the Leader); Prisoner adds 0. */
+  livesLost: number;
+  killer: {
+    /** Sessions where the owner became a Killer. */
+    killerGames: number;
+    /** Darts to Killer, summed over those sessions. */
+    dartsToKiller: number;
+    /** Lives the owner took. */
+    livesTaken: number;
+  };
+  followTheLeader: {
+    /** Owner visits at a standing target the owner did not set, in visits. */
+    matchVisits: number;
+    /** Match visits with a dart in the target's bed, in visits. */
+    matched: number;
+    /** Darts to the first matching dart, summed over matched visits. */
+    matchDarts: number;
+    byBed: Record<BedKey, BedCount>;
+  };
+  prisoner: {
+    /** Owner darts that advanced. */
+    advance: number;
+    /** Owner darts that advanced and captured. */
+    advanceAndCapture: number;
+    /** Owner darts that captured. */
+    capture: number;
+    /** Owner darts imprisoned. */
+    prison: number;
+    /** Owner darts that did nothing. */
+    miss: number;
+    /** Highest number completed, summed over sessions (0–20 each). */
+    reached: number;
+  };
+};
+
+/** One replayed elimination session's owner metrics and bucket. */
+export type EliminationFoldedSession = FoldedSession<EliminationMetrics>;
+
+/** One replayed session's owner metrics and the bucket its completion falls in. */
+export type FoldedSession<M> = {
+  sessionId: string;
+  bucketStart: string;
+  bucketEnd: string;
+  metrics: M;
+};

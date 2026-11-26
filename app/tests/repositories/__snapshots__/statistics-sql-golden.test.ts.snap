@@ -87,7 +87,7 @@ exports[`statistics readers rendered SQL > bucket none > findIntentMoments 1`] =
 ]
 `;
 
-exports[`statistics readers rendered SQL > bucket none > findMarksFoldRows 1`] = `
+exports[`statistics readers rendered SQL > bucket none > findReplayFoldRows 1`] = `
 [
   {
     "params": [
@@ -310,7 +310,7 @@ exports[`statistics readers rendered SQL > bucket week > findIntentMoments 1`] =
 ]
 `;
 
-exports[`statistics readers rendered SQL > bucket week > findMarksFoldRows 1`] = `
+exports[`statistics readers rendered SQL > bucket week > findReplayFoldRows 1`] = `
 [
   {
     "params": [
