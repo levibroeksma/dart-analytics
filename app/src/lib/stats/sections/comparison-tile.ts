@@ -2,6 +2,24 @@ import { MIN_TARGET_SAMPLE } from "@lib/stats/constants";
 import { formatPointDelta, formatRate } from "@lib/stats/x01/format";
 import type { AceMeasure, Ratio, TrackTile } from "@lib/types";
 
+/** Every measure in `measures` read off `current` and `previous`; every `previous` is `null` with no preceding period. */
+export function compareMeasures<K extends string, M>(
+  measures: Record<K, (m: M) => Ratio>,
+  current: M,
+  previous: M | null,
+): Record<K, AceMeasure> {
+  const entries = Object.entries<(m: M) => Ratio>(measures).map(
+    ([key, read]) => [
+      key,
+      {
+        current: read(current),
+        previous: previous === null ? null : read(previous),
+      },
+    ],
+  );
+  return Object.fromEntries(entries) as Record<K, AceMeasure>;
+}
+
 const rateOf = (ratio: Ratio): number => ratio.part / ratio.whole;
 
 /** Why a measure shows no change — no preceding period, or either period below `MIN_TARGET_SAMPLE` — else `null`. */

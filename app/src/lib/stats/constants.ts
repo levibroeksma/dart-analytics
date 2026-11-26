@@ -52,9 +52,11 @@ export const ELIMINATION_LAYOUTS: ReadonlySet<string> = new Set([
   "PRISONER_V1",
 ]);
 
+/** Ruleset versions whose `/statistics` view is the Fives layout (`FivesStatsOverview.astro`). */
+export const FIVES_LAYOUTS: ReadonlySet<string> = new Set(["FIVES_V1"]);
+
 /** Ruleset versions whose `/statistics` view is the plain heatmap alone (`HeatmapStatsOverview.astro`): board games, with a target picker where the heatmap takes a `target` (`heatmap-targets.ts`). */
 export const HEATMAP_ONLY_LAYOUTS: ReadonlySet<string> = new Set([
   "BASEBALL_V1",
-  "FIVES_V1",
   "BULL_500_V1",
 ]);

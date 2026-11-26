@@ -8,6 +8,8 @@ import {
   decodeCursor,
   encodeDataVersion,
   foldedBuckets,
+  addMetricCounts,
+  sumBuckets,
 } from "@modules/stats/sections/series.module";
 
 describe("isClosed", () => {
@@ -314,5 +316,37 @@ describe("foldedBuckets", () => {
         (a: number, b: number) => a + b,
       ),
     ).toEqual([]);
+  });
+});
+
+describe("addMetricCounts", () => {
+  it("sums every numeric leaf and leaves its inputs unchanged", () => {
+    const a = { a: 1, n: { b: 2 } };
+    expect(addMetricCounts(a, { a: 3, n: { b: 4 } })).toEqual({
+      a: 4,
+      n: { b: 6 },
+    });
+    expect(a).toEqual({ a: 1, n: { b: 2 } });
+  });
+});
+
+describe("sumBuckets", () => {
+  const bucket = (n: number) => ({
+    start: "a",
+    end: "b",
+    closed: true,
+    sampleSize: 1,
+    metrics: { n },
+  });
+  const add = (a: { n: number }, b: { n: number }) => ({ n: a.n + b.n });
+
+  it("sums every bucket's metrics from empty", () => {
+    expect(sumBuckets([bucket(2), bucket(3)], () => ({ n: 0 }), add)).toEqual({
+      n: 5,
+    });
+  });
+
+  it("is empty with no buckets", () => {
+    expect(sumBuckets([], () => ({ n: 0 }), add)).toEqual({ n: 0 });
   });
 });

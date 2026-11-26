@@ -38,6 +38,12 @@ describe("sumMarks", () => {
     expect(sumMarks([]).darts).toBe(0);
     expect(sumMarks([]).objectives).toEqual([]);
   });
+
+  it("leaves the buckets' metrics unchanged", () => {
+    const first = bucket(metrics());
+    sumMarks([first, bucket(metrics())]);
+    expect(first.metrics).toEqual(metrics());
+  });
 });
 
 describe("marksComparison", () => {

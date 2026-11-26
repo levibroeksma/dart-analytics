@@ -1,3 +1,4 @@
+import { emptyFivesMetrics } from "@modules/stats/sections/fives.module";
 import { emptyEliminationMetrics } from "@modules/stats/sections/elimination.module";
 import { describe, it, expect } from "vitest";
 import {
@@ -35,6 +36,7 @@ import {
   Bobs27SurvivalSeriesResponse,
   ShanghaiCountSeriesResponse,
   EliminationSeriesResponse,
+  FivesSeriesResponse,
   MarksSeriesResponse,
   TrainingResultSeriesResponse,
   ReplayQuery,
@@ -1251,6 +1253,31 @@ describe("derived and game-specific series responses", () => {
     const negative = structuredClone(series);
     negative.buckets[0]!.metrics.followTheLeader.byBed.DOUBLE.visits = -1;
     expect(EliminationSeriesResponse.safeParse(negative).success).toBe(false);
+  });
+
+  it("parses a fives series response and rejects a negative count", () => {
+    const series = {
+      sectionId: "fives",
+      sectionVersion: 1,
+      dataVersion: "v1:1:0",
+      bucket: "none",
+      tz: null,
+      range: { from: "2026-01-01T00:00:00Z", to: "2026-02-01T00:00:00Z" },
+      skippedSessions: 0,
+      buckets: [
+        {
+          start: "2026-01-01T00:00:00Z",
+          end: "2026-02-01T00:00:00Z",
+          closed: true,
+          sampleSize: 1,
+          metrics: emptyFivesMetrics(),
+        },
+      ],
+    };
+    expect(FivesSeriesResponse.safeParse(series).success).toBe(true);
+    const negative = structuredClone(series);
+    negative.buckets[0]!.metrics.busts = -1;
+    expect(FivesSeriesResponse.safeParse(negative).success).toBe(false);
   });
 
   it("parses a shanghai-count series response", () => {

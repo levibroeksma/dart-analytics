@@ -1,3 +1,4 @@
+import { emptyFivesMetrics } from "@modules/stats/sections/fives.module";
 import { emptyEliminationMetrics } from "@modules/stats/sections/elimination.module";
 import { describe, expect, it } from "vitest";
 import {
@@ -493,6 +494,12 @@ describe("mergeMetrics", () => {
       visits: 6,
       matched: 2,
     });
+  });
+
+  it("sums fives metrics field-wise", () => {
+    const base = { ...emptyFivesMetrics(), visits: 4, winVisits: 2 };
+    const merged = mergeMetrics("fives", base, base);
+    expect(merged).toEqual({ ...emptyFivesMetrics(), visits: 8, winVisits: 4 });
   });
 
   it("sums training-result sessions and totals but takes the max best", () => {

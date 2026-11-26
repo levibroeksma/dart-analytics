@@ -31,6 +31,15 @@ describe("sumElimination", () => {
     expect(sum.prisoner.reached).toBe(10);
     expect(sumElimination([])).toEqual(emptyEliminationMetrics());
   });
+
+  it("leaves the buckets' metrics unchanged", () => {
+    const games = (m: EliminationMetrics) => {
+      m.games = 1;
+    };
+    const first = bucket(metrics(games));
+    sumElimination([first, bucket(metrics(games))]);
+    expect(first.metrics).toEqual(metrics(games));
+  });
 });
 
 describe("eliminationComparison", () => {
@@ -71,5 +80,11 @@ describe("eliminationComparison", () => {
       }),
     );
     expect(c.wins.previous).toEqual({ part: 1, whole: 2 });
+  });
+
+  it("gives every measure a null previous with no preceding period", () => {
+    const c = eliminationComparison(emptyEliminationMetrics(), null);
+    expect(Object.values(c).every((m) => m.previous === null)).toBe(true);
+    expect(Object.keys(c)).toHaveLength(9);
   });
 });

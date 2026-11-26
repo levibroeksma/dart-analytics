@@ -2188,32 +2188,7 @@ describe("getGameSection dispatches derived-intent and game-specific sections (p
       maxCompletedAt: null,
     });
     vi.mocked(repo.findScopeDartCount).mockResolvedValue(2);
-    const marksRow = {
-      sessionId: "s-cricket",
-      gameTypeKey: "CRICKET",
-      rulesetVersionKey: "CRICKET_V1",
-      configuration: { seats: SEATS },
-      bucketStart: "2026-01-01T00:00:00.000Z",
-      bucketEnd: "2026-02-01T00:00:00.000Z",
-      stageId: "01900000-0000-7000-9000-0000000000a1",
-      stageSequence: 1,
-      stageTypeKey: "EXERCISE_BLOCK",
-      parentStageId: null,
-      turnSequence: 1,
-      participantId: SEATS[0]!.participantRef,
-      participantName: "Levi",
-      participantTypeKey: "PLAYER",
-      turnTotalScore: 0,
-      dartNumber: 1,
-      intendedTargetNumber: null,
-      intendedZoneKey: null,
-      hitTargetNumber: 20,
-      hitZoneKey: "TREBLE",
-      score: 60,
-      locationX: null,
-      locationY: null,
-      kept: false,
-    };
+    const marksRow = replayFoldRow({ sessionId: "s-cricket" });
     vi.mocked(repo.findReplayFoldRows).mockResolvedValue([
       marksRow,
       { ...marksRow, sessionId: "s-ghost", participantId: "ghost" },
@@ -2239,38 +2214,69 @@ describe("getGameSection dispatches derived-intent and game-specific sections (p
     }
   });
 
+  it("dispatches fives through the replay fold on FIVES, counting skipped sessions", async () => {
+    vi.mocked(repo.findGameDataVersion).mockResolvedValue({
+      count: 2,
+      maxCompletedAt: null,
+    });
+    vi.mocked(repo.findScopeDartCount).mockResolvedValue(3);
+    const fivesRow = replayFoldRow({
+      sessionId: "s-fives",
+      gameTypeKey: "FIVES",
+      rulesetVersionKey: "FIVES_V1",
+      turnTotalScore: 15,
+      hitTargetNumber: 5,
+      hitZoneKey: "OUTER_SINGLE",
+      score: 5,
+    });
+    vi.mocked(repo.findReplayFoldRows).mockResolvedValue([
+      fivesRow,
+      { ...fivesRow, dartNumber: 2 },
+      { ...fivesRow, dartNumber: 3 },
+      { ...fivesRow, sessionId: "s-ghost", participantId: "ghost" },
+    ] as never);
+
+    const result = await getGameSection(playerId, "FIVES", "fives", {
+      ...baseRangeQuery,
+      status: "completed",
+    });
+
+    expect(result.ok).toBe(true);
+    if (result.ok) {
+      expect(result.data.sectionId).toBe("fives");
+      const metrics = result.data.buckets[0]!.metrics as unknown as {
+        games: number;
+        visits: number;
+        scoringVisits: number;
+        points: number;
+      };
+      expect(metrics).toMatchObject({
+        games: 1,
+        visits: 1,
+        scoringVisits: 1,
+        points: 3,
+      });
+      expect(
+        (result.data as { skippedSessions?: number }).skippedSessions,
+      ).toBe(1);
+    }
+  });
+
   it("dispatches elimination through the replay fold on KILLER, counting skipped sessions", async () => {
     vi.mocked(repo.findGameDataVersion).mockResolvedValue({
       count: 2,
       maxCompletedAt: null,
     });
     vi.mocked(repo.findScopeDartCount).mockResolvedValue(2);
-    const killerRow = {
+    const killerRow = replayFoldRow({
       sessionId: "s-killer",
       gameTypeKey: "KILLER",
       rulesetVersionKey: "KILLER_V1",
       configuration: { lives: 3, seat_numbers: [5, 12], seats: SEATS },
-      bucketStart: "2026-01-01T00:00:00.000Z",
-      bucketEnd: "2026-02-01T00:00:00.000Z",
-      stageId: "01900000-0000-7000-9000-0000000000a1",
-      stageSequence: 1,
-      stageTypeKey: "EXERCISE_BLOCK",
-      parentStageId: null,
-      turnSequence: 1,
-      participantId: SEATS[0]!.participantRef,
-      participantName: "Levi",
-      participantTypeKey: "PLAYER",
-      turnTotalScore: 0,
-      dartNumber: 1,
-      intendedTargetNumber: null,
-      intendedZoneKey: null,
       hitTargetNumber: 5,
       hitZoneKey: "DOUBLE",
       score: 10,
-      locationX: null,
-      locationY: null,
-      kept: false,
-    };
+    });
     vi.mocked(repo.findReplayFoldRows).mockResolvedValue([
       killerRow,
       { ...killerRow, sessionId: "s-ghost", participantId: "ghost" },
@@ -2539,6 +2545,37 @@ function makeReplayParticipant(
     participantId: "participant-1",
     displayName: "Alex",
     participantTypeKey: "PLAYER",
+    ...overrides,
+  };
+}
+
+/** One `findReplayFoldRows` row: the owner's first dart of a session, with `overrides`. */
+function replayFoldRow(overrides: Record<string, unknown>) {
+  return {
+    sessionId: "s-1",
+    gameTypeKey: "CRICKET",
+    rulesetVersionKey: "CRICKET_V1",
+    configuration: { seats: SEATS },
+    bucketStart: "2026-01-01T00:00:00.000Z",
+    bucketEnd: "2026-02-01T00:00:00.000Z",
+    stageId: "01900000-0000-7000-9000-0000000000a1",
+    stageSequence: 1,
+    stageTypeKey: "EXERCISE_BLOCK",
+    parentStageId: null,
+    turnSequence: 1,
+    participantId: SEATS[0]!.participantRef,
+    participantName: "Levi",
+    participantTypeKey: "PLAYER",
+    turnTotalScore: 0,
+    dartNumber: 1,
+    intendedTargetNumber: null,
+    intendedZoneKey: null,
+    hitTargetNumber: 20,
+    hitZoneKey: "TREBLE",
+    score: 60,
+    locationX: null,
+    locationY: null,
+    kept: false,
     ...overrides,
   };
 }

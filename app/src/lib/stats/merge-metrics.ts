@@ -1,3 +1,4 @@
+import { addFivesMetrics } from "@modules/stats/sections/fives.module";
 import { addEliminationMetrics } from "@modules/stats/sections/elimination.module";
 import { addMarksMetrics } from "@modules/stats/sections/marks.module";
 import type {
@@ -454,6 +455,7 @@ const MERGERS: {
   "shanghai-count": mergeShanghaiCount,
   marks: addMarksMetrics,
   elimination: addEliminationMetrics,
+  fives: addFivesMetrics,
   "training-result": mergeTrainingResult,
   heatmap: mergeHeatmap,
 };

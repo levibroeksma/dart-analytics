@@ -1,0 +1,18 @@
+---
+/**
+ * The Fives statistics layout: the completion tile, the four tiles against
+ * the preceding period, the visit outcomes card, then the heatmap and the
+ * session list.
+ */
+import AimTableCard from "./AimTableCard.astro";
+import ComparisonStatsLayout from "./ComparisonStatsLayout.astro";
+---
+
+<ComparisonStatsLayout scope="fivesSection()">
+  <AimTableCard
+    title="VISIT OUTCOMES"
+    headers={["Outcome", "Share"]}
+    rows="card.outcomes"
+    hideEmpty
+  />
+</ComparisonStatsLayout>
