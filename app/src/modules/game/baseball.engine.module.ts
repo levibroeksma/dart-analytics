@@ -1,5 +1,5 @@
 import type { BaseballSnapshot, Seated } from "@lib/types";
-import { numbersPath } from "./board-progression.module";
+import { numbersPath, targetAt } from "./board-progression.module";
 import {
   dartGameEngineClass,
   dartGameEngineFactory,
@@ -22,6 +22,7 @@ import type {
   BaseballSeatState,
   BaseballState,
   BaseballTrackExt,
+  BoardTarget,
   DartIntent,
   DartObservation,
   EngineFacts,
@@ -95,6 +96,11 @@ export function initialBaseballState(
     winningSideKey: null,
     seats: config.seats.map(initialSeatState),
   };
+}
+
+/** The seat's active target: inning n's number on the 1..9 path. */
+export function activeTargetOf(seat: BaseballSeatState): BoardTarget {
+  return targetAt(PATH, seat.targetIndex);
 }
 
 /** Lifts a Baseball seat into the kernel's shape: runs as the score, runs per inning as the extra. */

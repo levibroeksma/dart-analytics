@@ -105,7 +105,7 @@ export const STATS_TAGS: Readonly<
   TACTICS_V1: ["board"],
   TACTICS_V2: ["board"],
   MICKEY_MOUSE_V1: ["board"],
-  BASEBALL_V1: ["board"],
+  BASEBALL_V1: ["board", "intent-derived", "target-sequence"],
   KILLER_V1: ["board"],
   FIVES_V1: ["board"],
   ACE_V1: ["board", "intent-derived"],

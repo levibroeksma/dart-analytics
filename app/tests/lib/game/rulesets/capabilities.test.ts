@@ -298,12 +298,11 @@ describe("DEFAULT_BOT_LEVEL", () => {
 });
 
 describe("BASEBALL_V1", () => {
-  it("declares DETAILED_DARTS and VISUAL_BOARD, the board tag, game type BASEBALL, no Dartbot", () => {
+  it("declares DETAILED_DARTS and VISUAL_BOARD, game type BASEBALL, no Dartbot", () => {
     expect(RULESET_CAPABILITIES.BASEBALL_V1).toEqual([
       { captureModeKey: "RECREATIONAL", inputModeKey: "DETAILED_DARTS" },
       { captureModeKey: "ANALYTICS", inputModeKey: "VISUAL_BOARD" },
     ]);
-    expect(STATS_TAGS.BASEBALL_V1).toEqual(["board"]);
     expect(GAME_TYPE_BY_RULESET.BASEBALL_V1).toBe("BASEBALL");
     expect(supportsDartbot("BASEBALL_V1")).toBe(false);
   });
@@ -441,6 +440,16 @@ describe("PRISONER_V1", () => {
     expect(STATS_TAGS.PRISONER_V1).toEqual(["board"]);
     expect(GAME_TYPE_BY_RULESET.PRISONER_V1).toBe("PRISONER");
     expect(supportsDartbot("PRISONER_V1")).toBe(false);
+  });
+});
+
+describe("BASEBALL_V1 stats tags", () => {
+  it("derives intent along the inning path, as Shanghai does", () => {
+    expect(STATS_TAGS.BASEBALL_V1).toEqual([
+      "board",
+      "intent-derived",
+      "target-sequence",
+    ]);
   });
 });
 

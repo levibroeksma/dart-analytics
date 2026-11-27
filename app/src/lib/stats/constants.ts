@@ -24,6 +24,7 @@ export const TRACK_LAYOUTS: ReadonlySet<string> = new Set([
   "SHANGHAI_V1",
   "AROUND_THE_CLOCK_V1",
   "BOBS27_V1",
+  "BASEBALL_V1",
 ]);
 
 /** Ruleset versions whose `/statistics` view is the Ace layout (`AceStatsOverview.astro`): period comparison tiles, the Track targets card, then the heatmap and session list (D563). */
@@ -57,6 +58,5 @@ export const FIVES_LAYOUTS: ReadonlySet<string> = new Set(["FIVES_V1"]);
 
 /** Ruleset versions whose `/statistics` view is the plain heatmap alone (`HeatmapStatsOverview.astro`): board games, with a target picker where the heatmap takes a `target` (`heatmap-targets.ts`). */
 export const HEATMAP_ONLY_LAYOUTS: ReadonlySet<string> = new Set([
-  "BASEBALL_V1",
   "BULL_500_V1",
 ]);

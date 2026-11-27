@@ -737,3 +737,53 @@ describe("sessionSteps + aimedDarts — Ace", () => {
     expect(sessionSteps(rows).skippedSessions).toBe(1);
   });
 });
+
+describe("sessionSteps + aimedDarts — Baseball", () => {
+  const meta = {
+    gameTypeKey: "BASEBALL" as const,
+    rulesetVersionKey: "BASEBALL_V1",
+    configuration: { seats: SEATS },
+  };
+
+  it("aims each three-dart inning at its own number", () => {
+    const rows = rowsFor(meta, [
+      hit(1, "SINGLE"),
+      miss(),
+      hit(1, "TREBLE"),
+      hit(2, "DOUBLE"),
+      hit(3, "SINGLE"),
+      miss(),
+      hit(3, "SINGLE"),
+    ]);
+
+    const { sessions, skippedSessions } = sessionSteps(rows);
+    expect(skippedSessions).toBe(0);
+    const darts = aimedDarts(sessions[0]!);
+    expect(darts.map((d) => d.aim)).toEqual([
+      ...Array(3).fill("NUMBER:1"),
+      ...Array(3).fill("NUMBER:2"),
+      "NUMBER:3",
+    ]);
+    expect(darts.map((d) => d.hit)).toEqual([
+      true,
+      false,
+      true,
+      true,
+      false,
+      false,
+      true,
+    ]);
+  });
+
+  it("counts the bull as a miss on the inning's number", () => {
+    const darts = aimedDarts(
+      sessionSteps(rowsFor(meta, [hit(25, "INNER_BULL")])).sessions[0]!,
+    );
+    expect(darts).toMatchObject([{ aim: "NUMBER:1", hit: false }]);
+  });
+
+  it("skips a session with a dart past inning 9", () => {
+    const darts = Array.from({ length: 28 }, () => miss());
+    expect(sessionSteps(rowsFor(meta, darts)).skippedSessions).toBe(1);
+  });
+});

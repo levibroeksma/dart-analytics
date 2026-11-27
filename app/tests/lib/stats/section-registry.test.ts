@@ -472,9 +472,11 @@ describe("statistics section registry", () => {
     }
   });
 
-  it("gives Baseball the higher result direction and only the board tag", () => {
+  it("gives Baseball the higher result direction and the board, derived-intent and target-sequence tags", () => {
     expect(RESULT_DIRECTION.BASEBALL).toBe("higher");
-    expect(tagsForGameType("BASEBALL")).toEqual(new Set(["board"]));
+    expect(tagsForGameType("BASEBALL")).toEqual(
+      new Set(["board", "intent-derived", "target-sequence"]),
+    );
   });
 
   it("gives Ace no result direction and the board and derived-intent tags", () => {
@@ -484,17 +486,20 @@ describe("statistics section registry", () => {
     );
   });
 
-  it("offers Ace the per-target sections its derived aim serves, computed on the server", () => {
-    const sections = sectionsForGame("ACE");
-    for (const id of [
-      "target-accuracy",
-      "miss-direction",
-      "loose-darts",
-    ] as const) {
-      expect(sections).toContain(id);
-      expect(sectionSite(SECTIONS[id], "ACE")).toBe("server");
-    }
-  });
+  it.each(["ACE", "BASEBALL"] as const)(
+    "offers %s the per-target sections its derived aim serves, computed on the server",
+    (game) => {
+      const sections = sectionsForGame(game);
+      for (const id of [
+        "target-accuracy",
+        "miss-direction",
+        "loose-darts",
+      ] as const) {
+        expect(sections).toContain(id);
+        expect(sectionSite(SECTIONS[id], game)).toBe("server");
+      }
+    },
+  );
 
   it("gives Bull 500 no result direction and only the board tag", () => {
     expect(RESULT_DIRECTION.BULL_500).toBeNull();
